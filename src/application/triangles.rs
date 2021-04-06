@@ -9,65 +9,38 @@ type Mat4 = nalgebra::Matrix4<f32>;
 use self::graphics_pipeline::GraphicsPipeline;
 use crate::{
     application::render_context::{Frame, RenderTarget},
-    rendering::{
-        buffer::{transfer, Buffer},
-        Device, Swapchain,
-    },
+    rendering::{buffer::Buffer, Device, Swapchain},
 };
 
 use anyhow::Result;
 use ash::{version::DeviceV1_0, vk};
 use std::sync::Arc;
 
-/// Resources used to render a single triangle to a frame.
-pub struct Triangle {
+/// Resources used to render triangles
+pub struct Triangles {
     pub vertices: Vec<Vertex>,
+
     graphics_pipeline: Arc<GraphicsPipeline>,
     swapchain: Arc<Swapchain>,
     device: Arc<Device>,
     projection: Mat4,
 }
 
-impl RenderTarget for Triangle {
+impl RenderTarget for Triangles {
     /// Render the triangle to a single frame.
     fn render_to_frame(
         &mut self,
         image_available: vk::Semaphore,
         frame: &mut Frame,
     ) -> Result<vk::Semaphore> {
-        // update the projection transform based on the frame size
         unsafe {
+            // safe because this method is only invoked after these resources
+            // are done being used by the gpu
             frame
                 .uniform_buffer
                 .write_data(&[UniformBufferObject::new(self.projection)])?;
+            frame.vertex_buffer.write_data(&self.vertices)?;
         }
-
-        // Transfer data to the gpu by first writing it into a staging buffer.
-        //
-        // This is wasteful because the data changes every frame - so it's
-        // just an unneeded extra copy each frame. Even so, this is a useful
-        // technique for other types of data which change less frequently.
-        let transfer_buffer = unsafe {
-            // write the data
-            frame.staging_buffer.write_data(&self.vertices)?;
-
-            // resize the target buffer if needed
-            if frame.vertex_buffer.size_in_bytes()
-                < frame.staging_buffer.size_in_bytes()
-            {
-                frame.vertex_buffer = frame
-                    .vertex_buffer
-                    .allocate(frame.staging_buffer.size_in_bytes())?;
-            }
-
-            // write the copy commands into a command buffer
-            transfer::copy_full_buffer(
-                &self.device,
-                frame.request_command_buffer()?,
-                &frame.staging_buffer,
-                &frame.vertex_buffer,
-            )?
-        };
 
         let render_buffer = self.record_buffer_commands(
             frame.request_command_buffer()?,
@@ -76,16 +49,11 @@ impl RenderTarget for Triangle {
             frame.descriptor_set,
         )?;
 
-        // submission order is irrelevant, the render command includes a
-        // memory barrier for the vertex buffer
-        frame.submit_command_buffers(
-            image_available,
-            &[transfer_buffer, render_buffer],
-        )
+        frame.submit_command_buffers(image_available, &[render_buffer])
     }
 }
 
-impl Triangle {
+impl Triangles {
     /// Create a new Triangle subsystem which knows how to render itself to a
     /// single frame.
     pub fn new(device: Arc<Device>, swapchain: Arc<Swapchain>) -> Result<Self> {
@@ -121,6 +89,21 @@ impl Triangle {
         self.swapchain = swapchain;
         self.graphics_pipeline =
             GraphicsPipeline::new(&self.device, &self.swapchain)?;
+
+        let [uwidth, uheight] =
+            [self.swapchain.extent.width, self.swapchain.extent.height];
+        let aspect = uwidth as f32 / uheight as f32;
+        let height = 2.0;
+        let width = aspect * height;
+
+        self.projection = Mat4::new_orthographic(
+            -width / 2.0,
+            width / 2.0,
+            -height / 2.0,
+            height / 2.0,
+            1.0,
+            -1.0,
+        );
         Ok(())
     }
 
@@ -155,26 +138,6 @@ impl Triangle {
             self.device
                 .logical_device
                 .begin_command_buffer(command_buffer, &begin_info)?;
-
-            let buffer_memory_barriers = [vk::BufferMemoryBarrier::builder()
-                .src_access_mask(vk::AccessFlags::TRANSFER_WRITE)
-                .dst_access_mask(vk::AccessFlags::VERTEX_ATTRIBUTE_READ)
-                .offset(0)
-                .size(
-                    (self.vertices.len() * std::mem::size_of::<Vertex>())
-                        as u64,
-                )
-                .buffer(vertex_buffer)
-                .build()];
-            self.device.logical_device.cmd_pipeline_barrier(
-                command_buffer,
-                vk::PipelineStageFlags::TRANSFER,
-                vk::PipelineStageFlags::VERTEX_INPUT,
-                vk::DependencyFlags::VIEW_LOCAL,
-                &[],
-                &buffer_memory_barriers,
-                &[],
-            );
 
             // begin the render pass
             self.device.logical_device.cmd_begin_render_pass(
@@ -233,7 +196,7 @@ impl Triangle {
     }
 }
 
-impl Drop for Triangle {
+impl Drop for Triangles {
     fn drop(&mut self) {
         unsafe {
             self.device.logical_device.device_wait_idle().expect(

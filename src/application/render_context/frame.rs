@@ -1,9 +1,9 @@
 mod sync;
 
 use self::sync::FrameSync;
-use crate::application::triangle::UniformBufferObject;
+use crate::application::triangles::UniformBufferObject;
 use crate::rendering::{
-    buffer::{Buffer, CpuBuffer, StaticBuffer},
+    buffer::{Buffer, CpuBuffer},
     command_pool::TransientCommandPool,
     Device,
 };
@@ -20,8 +20,7 @@ pub struct Frame {
     pub framebuffer: vk::Framebuffer,
     command_pool: TransientCommandPool,
     device: Arc<Device>,
-    pub staging_buffer: CpuBuffer,
-    pub vertex_buffer: StaticBuffer,
+    pub vertex_buffer: CpuBuffer,
     pub uniform_buffer: CpuBuffer,
 
     descriptor_pool: vk::DescriptorPool,
@@ -129,15 +128,9 @@ impl Frame {
                 device.clone(),
                 name.clone(),
             )?,
-            staging_buffer: CpuBuffer::new(
+            vertex_buffer: CpuBuffer::new(
                 device.clone(),
-                vk::BufferUsageFlags::TRANSFER_SRC,
-            )?,
-            vertex_buffer: StaticBuffer::empty(
-                device.clone(),
-                vk::BufferUsageFlags::VERTEX_BUFFER
-                    | vk::BufferUsageFlags::TRANSFER_DST,
-                vk::MemoryPropertyFlags::DEVICE_LOCAL,
+                vk::BufferUsageFlags::VERTEX_BUFFER,
             )?,
             uniform_buffer,
             descriptor_pool,
