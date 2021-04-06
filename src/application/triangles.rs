@@ -89,6 +89,21 @@ impl Triangles {
         self.swapchain = swapchain;
         self.graphics_pipeline =
             GraphicsPipeline::new(&self.device, &self.swapchain)?;
+
+        let [uwidth, uheight] =
+            [self.swapchain.extent.width, self.swapchain.extent.height];
+        let aspect = uwidth as f32 / uheight as f32;
+        let height = 2.0;
+        let width = aspect * height;
+
+        self.projection = Mat4::new_orthographic(
+            -width / 2.0,
+            width / 2.0,
+            -height / 2.0,
+            height / 2.0,
+            1.0,
+            -1.0,
+        );
         Ok(())
     }
 

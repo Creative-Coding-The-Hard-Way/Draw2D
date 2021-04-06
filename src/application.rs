@@ -28,7 +28,6 @@ pub struct Application {
     render_context: RenderContext,
     swapchain: Arc<Swapchain>,
     triangle: Triangles,
-    app_start: Instant,
 }
 
 impl Application {
@@ -76,7 +75,6 @@ impl Application {
             render_context,
             swapchain: swapchain.clone(),
             triangle,
-            app_start: Instant::now(),
         })
     }
 
@@ -85,36 +83,37 @@ impl Application {
     }
 
     fn update(&mut self) {
-        const COUNT: u32 = 25;
-        const SPEED: f32 = std::f32::consts::FRAC_PI_2;
-        let time = (Instant::now() - self.app_start).as_secs_f32();
-
         self.triangle.vertices.clear();
-        for i in 0..COUNT {
-            let norm = i as f32 / COUNT as f32;
-            let offset =
-                time * SPEED * 0.25 + norm * std::f32::consts::PI * 2.0;
-            let ox = offset.cos() * 0.75;
-            let oy = offset.sin() * 0.75;
 
-            let a = time * SPEED;
-            let b = a + 2.0 * std::f32::consts::FRAC_PI_3;
-            let c = b + 2.0 * std::f32::consts::FRAC_PI_3;
-            let r = 0.05;
+        // top left
+        self.triangle
+            .vertices
+            .push(Vertex::new([-0.75, -0.75], [0.0, 0.0]));
 
-            self.triangle.vertices.push(Vertex::new(
-                [ox + a.cos() * r, oy + a.sin() * r],
-                [1.0, 0.0],
-            ));
-            self.triangle.vertices.push(Vertex::new(
-                [ox + b.cos() * r, oy + b.sin() * r],
-                [0.0, 1.0],
-            ));
-            self.triangle.vertices.push(Vertex::new(
-                [ox + c.cos() * r, oy + c.sin() * r],
-                [0.5, 0.5],
-            ));
-        }
+        // top right
+        self.triangle
+            .vertices
+            .push(Vertex::new([0.75, -0.75], [1.0, 0.0]));
+
+        // bottom right
+        self.triangle
+            .vertices
+            .push(Vertex::new([0.75, 0.75], [1.0, 1.0]));
+
+        // top left
+        self.triangle
+            .vertices
+            .push(Vertex::new([-0.75, -0.75], [0.0, 0.0]));
+
+        // bottom right
+        self.triangle
+            .vertices
+            .push(Vertex::new([0.75, 0.75], [1.0, 1.0]));
+
+        // bottom left
+        self.triangle
+            .vertices
+            .push(Vertex::new([-0.75, 0.75], [0.0, 1.0]));
     }
 
     /// Run the application, blocks until the main event loop exits.
