@@ -8,11 +8,11 @@
 //! ```
 
 pub mod render_context;
-mod triangle;
+mod triangles;
 
 pub use self::{
     render_context::{RenderContext, SwapchainState},
-    triangle::{Triangle, Vertex},
+    triangles::{Triangles, Vertex},
 };
 use crate::rendering::{glfw_window::GlfwWindow, Device, Swapchain};
 
@@ -27,7 +27,7 @@ pub struct Application {
     window_surface: Arc<GlfwWindow>,
     render_context: RenderContext,
     swapchain: Arc<Swapchain>,
-    triangle: Triangle,
+    triangle: Triangles,
     app_start: Instant,
 }
 
@@ -69,7 +69,7 @@ impl Application {
         let swapchain =
             Swapchain::new(device.clone(), window_surface.clone(), None)?;
         let render_context = RenderContext::new(&device, &swapchain)?;
-        let triangle = Triangle::new(device.clone(), swapchain.clone())?;
+        let triangle = Triangles::new(device.clone(), swapchain.clone())?;
 
         Ok(Self {
             window_surface,
