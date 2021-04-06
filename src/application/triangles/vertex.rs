@@ -5,13 +5,13 @@ use memoffset::offset_of;
 #[derive(Copy, Clone, Debug)]
 pub struct Vertex {
     pos: [f32; 2],
-    color: [f32; 4],
+    uv: [f32; 2],
 }
 
 impl Vertex {
     /// Create a new vertex
-    pub fn new(pos: [f32; 2], color: [f32; 4]) -> Self {
-        Self { pos, color }
+    pub fn new(pos: [f32; 2], uv: [f32; 2]) -> Self {
+        Self { pos, uv }
     }
 
     /// Build a binding description for this vertex type.
@@ -30,12 +30,12 @@ impl Vertex {
             .format(vk::Format::R32G32_SFLOAT)
             .offset(offset_of!(Vertex, pos) as u32)
             .build();
-        let color = vk::VertexInputAttributeDescription::builder()
+        let uv = vk::VertexInputAttributeDescription::builder()
             .binding(0)
             .location(1)
             .format(vk::Format::R32G32B32A32_SFLOAT)
-            .offset(offset_of!(Vertex, color) as u32)
+            .offset(offset_of!(Vertex, uv) as u32)
             .build();
-        (vec![binding], vec![pos, color])
+        (vec![binding], vec![pos, uv])
     }
 }

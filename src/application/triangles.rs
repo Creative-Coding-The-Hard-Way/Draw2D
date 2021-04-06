@@ -9,10 +9,7 @@ type Mat4 = nalgebra::Matrix4<f32>;
 use self::graphics_pipeline::GraphicsPipeline;
 use crate::{
     application::render_context::{Frame, RenderTarget},
-    rendering::{
-        buffer::{transfer, Buffer},
-        Device, Swapchain,
-    },
+    rendering::{buffer::Buffer, Device, Swapchain},
 };
 
 use anyhow::Result;

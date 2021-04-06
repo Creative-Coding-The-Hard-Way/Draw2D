@@ -104,15 +104,15 @@ impl Application {
 
             self.triangle.vertices.push(Vertex::new(
                 [ox + a.cos() * r, oy + a.sin() * r],
-                [1.0, 0.0, 0.0, 1.0],
+                [1.0, 0.0],
             ));
             self.triangle.vertices.push(Vertex::new(
                 [ox + b.cos() * r, oy + b.sin() * r],
-                [0.0, 1.0, 0.0, 1.0],
+                [0.0, 1.0],
             ));
             self.triangle.vertices.push(Vertex::new(
                 [ox + c.cos() * r, oy + c.sin() * r],
-                [0.0, 0.0, 1.0, 1.0],
+                [0.5, 0.5],
             ));
         }
     }
