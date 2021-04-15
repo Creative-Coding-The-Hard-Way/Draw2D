@@ -9,7 +9,7 @@ use self::graphics_pipeline::GraphicsPipeline;
 use crate::rendering::{Device, Swapchain};
 
 use anyhow::Result;
-use ash::version::DeviceV1_0;
+use ash::{version::DeviceV1_0, vk};
 use std::sync::Arc;
 
 type Mat4 = nalgebra::Matrix4<f32>;
@@ -29,24 +29,11 @@ impl Draw2d {
     /// single frame.
     pub fn new(device: Arc<Device>, swapchain: Arc<Swapchain>) -> Result<Self> {
         let graphics_pipeline = GraphicsPipeline::new(&device, &swapchain)?;
-
-        let aspect =
-            swapchain.extent.width as f32 / swapchain.extent.height as f32;
-        let height = 2.0;
-        let width = aspect * height;
-
         Ok(Self {
             vertices: vec![],
             graphics_pipeline,
+            projection: Self::ortho(2.0, swapchain.extent),
             swapchain,
-            projection: Mat4::new_orthographic(
-                -width / 2.0,
-                width / 2.0,
-                -height / 2.0,
-                height / 2.0,
-                1.0,
-                -1.0,
-            ),
             device,
         })
     }
@@ -60,22 +47,23 @@ impl Draw2d {
         self.swapchain = swapchain;
         self.graphics_pipeline =
             GraphicsPipeline::new(&self.device, &self.swapchain)?;
+        self.projection = Self::ortho(2.0, self.swapchain.extent);
+        Ok(())
+    }
 
-        let [uwidth, uheight] =
-            [self.swapchain.extent.width, self.swapchain.extent.height];
-        let aspect = uwidth as f32 / uheight as f32;
-        let height = 2.0;
-        let width = aspect * height;
-
-        self.projection = Mat4::new_orthographic(
-            -width / 2.0,
-            width / 2.0,
-            -height / 2.0,
-            height / 2.0,
+    /// Build a orthographic projection using an extent to compute the aspect
+    /// ratio for the screen. The height is fixed and the width varies to account
+    /// for the aspect ratio.
+    fn ortho(screen_height: f32, extent: vk::Extent2D) -> Mat4 {
+        let aspect = extent.width as f32 / extent.height as f32;
+        Mat4::new_orthographic(
+            -aspect * screen_height / 2.0,
+            aspect * screen_height / 2.0,
+            -screen_height / 2.0,
+            screen_height / 2.0,
             1.0,
             -1.0,
-        );
-        Ok(())
+        )
     }
 }
 
