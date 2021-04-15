@@ -1,7 +1,7 @@
 mod sync;
 
 use self::sync::FrameSync;
-use crate::application::triangles::UniformBufferObject;
+use crate::application::draw2d::UniformBufferObject;
 use crate::rendering::{
     buffer::{Buffer, CpuBuffer},
     command_pool::TransientCommandPool,

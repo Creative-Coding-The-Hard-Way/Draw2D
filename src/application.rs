@@ -7,17 +7,17 @@
 //! app.run()?;
 //! ```
 
+mod draw2d;
 pub mod render_context;
-mod triangles;
 
 pub use self::{
+    draw2d::{Draw2d, Vertex},
     render_context::{RenderContext, SwapchainState},
-    triangles::{Triangles, Vertex},
 };
 use crate::rendering::{glfw_window::GlfwWindow, Device, Swapchain};
 
 use anyhow::{Context, Result};
-use std::{sync::Arc, time::Instant};
+use std::sync::Arc;
 
 /// The main application.
 ///
@@ -27,7 +27,7 @@ pub struct Application {
     window_surface: Arc<GlfwWindow>,
     render_context: RenderContext,
     swapchain: Arc<Swapchain>,
-    triangle: Triangles,
+    draw2d: Draw2d,
 }
 
 impl Application {
@@ -37,7 +37,7 @@ impl Application {
     pub fn new() -> Result<Self> {
         let window_surface = GlfwWindow::new(|glfw| {
             let (mut window, event_receiver) = glfw
-                .with_primary_monitor(|glfw, main_monitor| {
+                .with_primary_monitor(|glfw, _main_monitor| {
                     //if let Some(monitor) = main_monitor {
                     //    let (width, height) = monitor.get_physical_size();
                     //    let (sw, sh) = monitor.get_content_scale();
@@ -68,50 +68,50 @@ impl Application {
         let swapchain =
             Swapchain::new(device.clone(), window_surface.clone(), None)?;
         let render_context = RenderContext::new(&device, &swapchain)?;
-        let triangle = Triangles::new(device.clone(), swapchain.clone())?;
+        let draw2d = Draw2d::new(device.clone(), swapchain.clone())?;
 
         Ok(Self {
             window_surface,
             render_context,
             swapchain: swapchain.clone(),
-            triangle,
+            draw2d,
         })
     }
 
     fn init(&mut self) {
-        self.triangle.vertices = vec![];
+        self.draw2d.vertices = vec![];
     }
 
     fn update(&mut self) {
-        self.triangle.vertices.clear();
+        self.draw2d.vertices.clear();
 
         // top left
-        self.triangle
+        self.draw2d
             .vertices
             .push(Vertex::new([-0.75, -0.75], [0.0, 0.0]));
 
         // top right
-        self.triangle
+        self.draw2d
             .vertices
             .push(Vertex::new([0.75, -0.75], [1.0, 0.0]));
 
         // bottom right
-        self.triangle
+        self.draw2d
             .vertices
             .push(Vertex::new([0.75, 0.75], [1.0, 1.0]));
 
         // top left
-        self.triangle
+        self.draw2d
             .vertices
             .push(Vertex::new([-0.75, -0.75], [0.0, 0.0]));
 
         // bottom right
-        self.triangle
+        self.draw2d
             .vertices
             .push(Vertex::new([0.75, 0.75], [1.0, 1.0]));
 
         // bottom left
-        self.triangle
+        self.draw2d
             .vertices
             .push(Vertex::new([-0.75, 0.75], [0.0, 1.0]));
     }
@@ -132,7 +132,7 @@ impl Application {
                 self.handle_event(event)?;
             }
             self.update();
-            let status = self.render_context.draw_frame(&mut self.triangle)?;
+            let status = self.render_context.draw_frame(&mut self.draw2d)?;
             match status {
                 SwapchainState::Ok => {}
                 SwapchainState::NeedsRebuild => {
@@ -146,7 +146,7 @@ impl Application {
     /// Update all systems which depend on the swapchain
     fn replace_swapchain(&mut self) -> Result<()> {
         self.swapchain = self.render_context.rebuild_swapchain()?;
-        self.triangle.replace_swapchain(self.swapchain.clone())?;
+        self.draw2d.replace_swapchain(self.swapchain.clone())?;
         Ok(())
     }
 
