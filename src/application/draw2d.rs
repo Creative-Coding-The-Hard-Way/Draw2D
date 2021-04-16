@@ -6,7 +6,10 @@ mod vertex;
 pub use self::{uniforms::UniformBufferObject, vertex::Vertex};
 
 use self::graphics_pipeline::GraphicsPipeline;
-use crate::rendering::{Device, Swapchain};
+use crate::rendering::{
+    buffer::{Buffer, CpuBuffer},
+    Device, Swapchain,
+};
 
 use anyhow::Result;
 use ash::{version::DeviceV1_0, vk};
@@ -18,6 +21,8 @@ type Mat4 = nalgebra::Matrix4<f32>;
 pub struct Draw2d {
     pub vertices: Vec<Vertex>,
 
+    image_buffer: CpuBuffer,
+
     graphics_pipeline: Arc<GraphicsPipeline>,
     swapchain: Arc<Swapchain>,
     device: Arc<Device>,
@@ -28,8 +33,31 @@ impl Draw2d {
     /// Create a new Triangle subsystem which knows how to render itself to a
     /// single frame.
     pub fn new(device: Arc<Device>, swapchain: Arc<Swapchain>) -> Result<Self> {
+        let example = image::open("assets/example.png")?.into_rgba8();
+        log::info!(
+            "opened image with dims: {}, {}",
+            example.width(),
+            example.height()
+        );
+
+        let mut image_buffer =
+            CpuBuffer::new(device.clone(), vk::BufferUsageFlags::TRANSFER_SRC)?;
+
+        unsafe {
+            image_buffer.write_data(&example.into_raw())?;
+        }
+
+        device.name_vulkan_object(
+            "Image Data",
+            vk::ObjectType::BUFFER,
+            &unsafe { image_buffer.raw() },
+        )?;
+
+        log::info!("gpu image buffer size: {}", image_buffer.size_in_bytes());
+
         let graphics_pipeline = GraphicsPipeline::new(&device, &swapchain)?;
         Ok(Self {
+            image_buffer,
             vertices: vec![],
             graphics_pipeline,
             projection: Self::ortho(2.0, swapchain.extent),
