@@ -130,6 +130,64 @@ impl Device {
 
         Ok(())
     }
+
+    /// Directly allocate device memory.
+    /// Unsafe because the caller is responsible for cleanup and handling the
+    /// lifecycle of the allocated memory.
+    pub unsafe fn allocate_memory(
+        &self,
+        memory_requirements: vk::MemoryRequirements,
+        property_flags: vk::MemoryPropertyFlags,
+    ) -> Result<vk::DeviceMemory> {
+        let memory_properties = self
+            .instance
+            .ash
+            .get_physical_device_memory_properties(self.physical_device);
+
+        let memory_type_index = memory_properties
+            .memory_types
+            .iter()
+            .enumerate()
+            .find(|(i, memory_type)| {
+                let type_supported =
+                    memory_requirements.memory_type_bits & (1 << i) != 0;
+                let properties_supported =
+                    memory_type.property_flags.contains(property_flags);
+                type_supported & properties_supported
+            })
+            .map(|(i, _memory_type)| i as u32)
+            .with_context(|| {
+                "unable to find a suitable memory type for this allocation!"
+            })?;
+
+        let allocate_info = vk::MemoryAllocateInfo::builder()
+            .allocation_size(memory_requirements.size)
+            .memory_type_index(memory_type_index);
+
+        let memory =
+            self.logical_device.allocate_memory(&allocate_info, None)?;
+
+        Ok(memory)
+    }
+
+    /// Submit a command buffer to the specified queue, then wait for it to
+    /// idle.
+    pub unsafe fn submit_and_wait_idle(
+        &self,
+        queue: &Queue,
+        command_buffer: vk::CommandBuffer,
+    ) -> Result<()> {
+        let queue_handle = queue.acquire();
+        self.logical_device.queue_submit(
+            *queue_handle,
+            &[vk::SubmitInfo::builder()
+                .command_buffers(&[command_buffer])
+                .build()],
+            vk::Fence::null(),
+        )?;
+        self.logical_device.queue_wait_idle(*queue_handle)?;
+        Ok(())
+    }
 }
 
 impl Drop for Device {
