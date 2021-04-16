@@ -22,6 +22,7 @@ struct TextureImage {
     device: Arc<Device>,
 
     image: vk::Image,
+    view: vk::ImageView,
     memory: vk::DeviceMemory,
 }
 
@@ -29,8 +30,8 @@ struct TextureImage {
 pub struct Draw2d {
     pub vertices: Vec<Vertex>,
 
-    image_buffer: CpuBuffer,
     texture_image: TextureImage,
+    sampler: vk::Sampler,
 
     graphics_pipeline: Arc<GraphicsPipeline>,
     swapchain: Arc<Swapchain>,
@@ -67,9 +68,36 @@ impl TextureImage {
             device.logical_device.bind_image_memory(image, memory, 0)?;
         }
 
+        let view_create_info = vk::ImageViewCreateInfo::builder()
+            .image(image)
+            .view_type(vk::ImageViewType::TYPE_2D)
+            .format(image_create_info.format)
+            .subresource_range(
+                vk::ImageSubresourceRange::builder()
+                    .aspect_mask(vk::ImageAspectFlags::COLOR)
+                    .base_mip_level(0)
+                    .level_count(1)
+                    .base_array_layer(0)
+                    .layer_count(1)
+                    .build(),
+            )
+            .components(vk::ComponentMapping {
+                r: vk::ComponentSwizzle::R,
+                g: vk::ComponentSwizzle::G,
+                b: vk::ComponentSwizzle::B,
+                a: vk::ComponentSwizzle::A,
+            });
+
+        let view = unsafe {
+            device
+                .logical_device
+                .create_image_view(&view_create_info, None)?
+        };
+
         Ok(Self {
             device,
             image,
+            view,
             memory,
         })
     }
@@ -219,6 +247,9 @@ impl TextureImage {
 impl Drop for TextureImage {
     fn drop(&mut self) {
         unsafe {
+            self.device
+                .logical_device
+                .destroy_image_view(self.view, None);
             self.device.logical_device.destroy_image(self.image, None);
             self.image = vk::Image::null();
             self.device.logical_device.free_memory(self.memory, None);
@@ -308,10 +339,32 @@ impl Draw2d {
             )?;
         }
 
+        let sampler_create_info = vk::SamplerCreateInfo::builder()
+            .mag_filter(vk::Filter::LINEAR)
+            .min_filter(vk::Filter::LINEAR)
+            .address_mode_u(vk::SamplerAddressMode::REPEAT)
+            .address_mode_v(vk::SamplerAddressMode::REPEAT)
+            .address_mode_w(vk::SamplerAddressMode::REPEAT)
+            .anisotropy_enable(false)
+            .border_color(vk::BorderColor::INT_OPAQUE_BLACK)
+            .unnormalized_coordinates(false)
+            .compare_enable(false)
+            .compare_op(vk::CompareOp::ALWAYS)
+            .mipmap_mode(vk::SamplerMipmapMode::LINEAR)
+            .mip_lod_bias(0.0)
+            .min_lod(0.0)
+            .max_lod(0.0);
+
+        let sampler = unsafe {
+            device
+                .logical_device
+                .create_sampler(&sampler_create_info, None)?
+        };
+
         let graphics_pipeline = GraphicsPipeline::new(&device, &swapchain)?;
         Ok(Self {
-            image_buffer,
             texture_image,
+            sampler,
             vertices: vec![],
             graphics_pipeline,
             projection: Self::ortho(2.0, swapchain.extent),
@@ -352,6 +405,10 @@ impl Draw2d {
 impl Drop for Draw2d {
     fn drop(&mut self) {
         unsafe {
+            self.device
+                .logical_device
+                .destroy_sampler(self.sampler, None);
+            self.sampler = vk::Sampler::null();
             self.device.logical_device.device_wait_idle().expect(
                 "error while waiting for the device to complete all work",
             );
