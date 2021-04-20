@@ -1,4 +1,4 @@
-use super::{UniformBufferObject, Vertex};
+use super::{descriptor_sets, Vertex};
 use crate::rendering::{Device, ShaderModule, Swapchain};
 
 use anyhow::{Context, Result};
@@ -123,20 +123,13 @@ impl GraphicsPipeline {
             .blend_constants([0.0, 0.0, 0.0, 0.0])
             .attachments(blend_attachments);
 
-        let descriptor_set_layout_bindings = [
-            UniformBufferObject::descriptor_set_layout_binding(),
-            UniformBufferObject::sampler_layout_binding(),
-        ];
-        let descriptor_set_layout_create_info =
-            vk::DescriptorSetLayoutCreateInfo::builder()
-                .bindings(&descriptor_set_layout_bindings);
-
-        let descriptor_set_layout = unsafe {
-            device.logical_device.create_descriptor_set_layout(
-                &descriptor_set_layout_create_info,
-                None,
-            )?
-        };
+        let descriptor_set_layout =
+            unsafe { descriptor_sets::create_descriptor_set_layout(&device)? };
+        device.name_vulkan_object(
+            "Graphics Pipeline Descriptor Set Layout",
+            vk::ObjectType::DESCRIPTOR_SET_LAYOUT,
+            &descriptor_set_layout,
+        )?;
 
         let layouts = [descriptor_set_layout];
         let push_constant_ranges = vec![];

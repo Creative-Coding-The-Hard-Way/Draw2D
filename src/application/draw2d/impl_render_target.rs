@@ -19,39 +19,31 @@ impl RenderTarget for Draw2d {
         frame: &mut Frame,
     ) -> Result<vk::Semaphore> {
         unsafe {
-            // safe because this method is only invoked after these resources
-            // are done being used by the gpu
-            frame
-                .uniform_buffer
-                .write_data(&[UniformBufferObject::new(self.projection)])?;
+            frame.descriptor.update_ubo(&UniformBufferObject {
+                projection: self.projection.into(),
+            })?;
+            frame.descriptor.write_texture_descriptor(
+                vk::DescriptorImageInfo {
+                    image_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
+                    image_view: self.texture_image.raw_view(),
+                    sampler: self.sampler,
+                },
+            );
             frame.vertex_buffer.write_data(&self.vertices)?;
-
-            let image_info = vk::DescriptorImageInfo::builder()
-                .image_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
-                .image_view(self.texture_image.raw_view())
-                .sampler(self.sampler)
-                .build();
-            let descriptor_write = vk::WriteDescriptorSet::builder()
-                .dst_set(frame.descriptor_set)
-                .dst_binding(1)
-                .dst_array_element(0)
-                .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-                .image_info(&[image_info])
-                .build();
-            self.device
-                .logical_device
-                .update_descriptor_sets(&[descriptor_write], &[]);
         }
 
         let render_buffer = record_buffer_commands(
             &self,
-            frame.request_command_buffer()?,
+            frame.command_pool.request_command_buffer()?,
             &frame.framebuffer,
+            // SAFE:  because the vertex buffer is host-coherent
             unsafe { frame.vertex_buffer.raw() },
-            frame.descriptor_set,
+            // SAFE:  because the descriptor set is not currently being
+            //        modified at this point in execution
+            unsafe { frame.descriptor.raw_descriptor_set() },
         )?;
 
-        frame.submit_command_buffers(image_available, &[render_buffer])
+        frame.submit_graphics_commands(image_available, &[render_buffer])
     }
 }
 

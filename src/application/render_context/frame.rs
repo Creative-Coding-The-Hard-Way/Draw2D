@@ -1,31 +1,27 @@
+mod descriptor;
 mod sync;
 
-use self::sync::FrameSync;
-use crate::application::draw2d::UniformBufferObject;
+use self::{descriptor::FrameDescriptor, sync::FrameSync};
+
 use crate::rendering::{
-    buffer::{Buffer, CpuBuffer},
-    command_pool::TransientCommandPool,
-    Device,
+    buffer::CpuBuffer, command_pool::TransientCommandPool, Device,
 };
 
 use anyhow::{Context, Result};
 use ash::{version::DeviceV1_0, vk};
 use std::sync::Arc;
 
-type Mat4 = nalgebra::Matrix4<f32>;
-
 /// All per-frame resources and synchronization for this application.
 pub struct Frame {
     pub sync: FrameSync,
-    pub framebuffer: vk::Framebuffer,
-    command_pool: TransientCommandPool,
-    device: Arc<Device>,
-    pub vertex_buffer: CpuBuffer,
-    pub uniform_buffer: CpuBuffer,
+    pub descriptor: FrameDescriptor,
 
-    descriptor_pool: vk::DescriptorPool,
-    descriptor_set_layout: vk::DescriptorSetLayout,
-    pub descriptor_set: vk::DescriptorSet,
+    pub vertex_buffer: CpuBuffer,
+
+    pub command_pool: TransientCommandPool,
+
+    pub framebuffer: vk::Framebuffer,
+    device: Arc<Device>,
 }
 
 impl Frame {
@@ -59,77 +55,6 @@ impl Frame {
     where
         Name: Into<String> + Clone,
     {
-        let pool_sizes = [
-            vk::DescriptorPoolSize::builder()
-                .descriptor_count(1)
-                .ty(vk::DescriptorType::UNIFORM_BUFFER)
-                .build(),
-            vk::DescriptorPoolSize::builder()
-                .descriptor_count(1)
-                .ty(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-                .build(),
-        ];
-        let pool_create_info = vk::DescriptorPoolCreateInfo::builder()
-            .pool_sizes(&pool_sizes)
-            .max_sets(1)
-            .flags(vk::DescriptorPoolCreateFlags::empty());
-        let descriptor_pool = unsafe {
-            device
-                .logical_device
-                .create_descriptor_pool(&pool_create_info, None)?
-        };
-
-        let descriptor_set_layout_bindings = [
-            UniformBufferObject::descriptor_set_layout_binding(),
-            UniformBufferObject::sampler_layout_binding(),
-        ];
-        let descriptor_set_layout_create_info =
-            vk::DescriptorSetLayoutCreateInfo::builder()
-                .bindings(&descriptor_set_layout_bindings);
-        let descriptor_set_layout = unsafe {
-            device.logical_device.create_descriptor_set_layout(
-                &descriptor_set_layout_create_info,
-                None,
-            )?
-        };
-        let descriptor_set_layouts = [descriptor_set_layout];
-        let descriptor_set_allocate_info =
-            vk::DescriptorSetAllocateInfo::builder()
-                .descriptor_pool(descriptor_pool)
-                .set_layouts(&descriptor_set_layouts);
-
-        let descriptor_set = unsafe {
-            device
-                .logical_device
-                .allocate_descriptor_sets(&descriptor_set_allocate_info)?[0]
-        };
-
-        let mut uniform_buffer = CpuBuffer::new(
-            device.clone(),
-            vk::BufferUsageFlags::UNIFORM_BUFFER,
-        )?;
-        let ubo = UniformBufferObject::new(Mat4::identity());
-        unsafe { uniform_buffer.write_data(&[ubo])? };
-
-        let buffer_info = [vk::DescriptorBufferInfo::builder()
-            .buffer(unsafe { uniform_buffer.raw() })
-            .offset(0)
-            .range(std::mem::size_of::<UniformBufferObject>() as u64)
-            .build()];
-        let write_descriptor_set = [vk::WriteDescriptorSet::builder()
-            .dst_set(descriptor_set)
-            .dst_binding(0)
-            .dst_array_element(0)
-            .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER)
-            .buffer_info(&buffer_info)
-            .build()];
-
-        unsafe {
-            device
-                .logical_device
-                .update_descriptor_sets(&write_descriptor_set, &[]);
-        }
-
         Ok(Self {
             sync: FrameSync::new(&device, name.clone())?,
             framebuffer,
@@ -141,15 +66,16 @@ impl Frame {
                 device.clone(),
                 vk::BufferUsageFlags::VERTEX_BUFFER,
             )?,
-            uniform_buffer,
-            descriptor_pool,
-            descriptor_set_layout,
-            descriptor_set,
+            descriptor: FrameDescriptor::new(device.clone(), name.clone())?,
+
             device,
         })
     }
 
     /// Begin the frame's rendering operations.
+    ///
+    /// Blocks until the previous render with this frame has finished.
+    /// Resets the command pool used by this frame.
     pub fn begin_frame(&mut self) -> Result<()> {
         unsafe {
             self.wait_for_graphics_to_complete()?;
@@ -158,22 +84,14 @@ impl Frame {
         Ok(())
     }
 
-    /// Request a command buffer which can be used to submit graphics commands.
+    /// Submit all graphics commands for this frame.
     ///
-    /// The command buffer is only valid until this frame ends and the caller
-    /// must not retain a reference or attempt to free the buffer.
-    pub fn request_command_buffer(&mut self) -> Result<vk::CommandBuffer> {
-        self.command_pool.request_command_buffer()
-    }
-
-    /// Submit all command buffers for this frame.
-    ///
-    /// The submission signals the `sync.graphics_finished_fence` for use the
-    /// next time this frame is started.
+    /// The submission signals the `sync.graphics_finished_fence` which will
+    /// block the next call to `begin_frame`.
     ///
     /// This command yields a semaphore which can be used for scheduling work
     /// on the GPU - like presenting the swapchain image.
-    pub fn submit_command_buffers(
+    pub fn submit_graphics_commands(
         &mut self,
         wait_semaphore: vk::Semaphore,
         command_buffers: &[vk::CommandBuffer],
@@ -233,13 +151,6 @@ impl Drop for Frame {
             self.wait_for_graphics_to_complete()
                 .expect("error while waiting for resources to clear");
             self.sync.destroy(&self.device);
-            self.device
-                .logical_device
-                .destroy_descriptor_pool(self.descriptor_pool, None);
-            self.device.logical_device.destroy_descriptor_set_layout(
-                self.descriptor_set_layout,
-                None,
-            );
         }
     }
 }

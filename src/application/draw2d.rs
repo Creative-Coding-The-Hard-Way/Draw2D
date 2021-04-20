@@ -1,9 +1,9 @@
+pub mod descriptor_sets;
 mod graphics_pipeline;
 mod impl_render_target;
-mod uniforms;
 mod vertex;
 
-pub use self::{uniforms::UniformBufferObject, vertex::Vertex};
+pub use self::{descriptor_sets::UniformBufferObject, vertex::Vertex};
 
 use self::graphics_pipeline::GraphicsPipeline;
 use crate::rendering::{
