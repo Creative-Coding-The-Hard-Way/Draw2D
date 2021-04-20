@@ -26,4 +26,13 @@ impl UniformBufferObject {
             .stage_flags(vk::ShaderStageFlags::VERTEX)
             .build()
     }
+
+    pub fn sampler_layout_binding() -> vk::DescriptorSetLayoutBinding {
+        vk::DescriptorSetLayoutBinding::builder()
+            .binding(1)
+            .descriptor_count(1)
+            .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
+            .stage_flags(vk::ShaderStageFlags::FRAGMENT)
+            .build()
+    }
 }

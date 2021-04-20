@@ -1,11 +1,8 @@
 use super::Buffer;
 use crate::rendering::Device;
 
-use anyhow::{Context, Result};
-use ash::{
-    version::{DeviceV1_0, InstanceV1_0},
-    vk,
-};
+use anyhow::Result;
+use ash::{version::DeviceV1_0, vk};
 use std::sync::Arc;
 
 /// A static chunk of real GPU memory. Each instance is backed by a GPU
@@ -63,40 +60,13 @@ impl StaticBuffer {
             device.logical_device.get_buffer_memory_requirements(raw)
         };
 
-        let memory_properties = unsafe {
-            device
-                .instance
-                .ash
-                .get_physical_device_memory_properties(device.physical_device)
-        };
-
-        let memory_type_index = memory_properties
-            .memory_types
-            .iter()
-            .enumerate()
-            .find(|(i, memory_type)| {
-                let type_supported =
-                    buffer_memory_requirements.memory_type_bits & (1 << i) != 0;
-                let properties_supported =
-                    memory_type.property_flags.contains(properties);
-                type_supported & properties_supported
-            })
-            .map(|(i, _memory_type)| i as u32)
-            .with_context(|| {
-                "unable to find a suitable memory type for this gpu buffer!"
-            })?;
-
-        let allocate_info = vk::MemoryAllocateInfo::builder()
-            .allocation_size(buffer_memory_requirements.size)
-            .memory_type_index(memory_type_index);
-
         let memory = unsafe {
-            let memory = device
-                .logical_device
-                .allocate_memory(&allocate_info, None)?;
-            device.logical_device.bind_buffer_memory(raw, memory, 0)?;
-            memory
+            device.allocate_memory(buffer_memory_requirements, properties)?
         };
+
+        unsafe {
+            device.logical_device.bind_buffer_memory(raw, memory, 0)?;
+        }
 
         Ok(Self {
             raw,

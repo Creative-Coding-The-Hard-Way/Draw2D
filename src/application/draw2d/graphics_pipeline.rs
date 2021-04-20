@@ -123,8 +123,10 @@ impl GraphicsPipeline {
             .blend_constants([0.0, 0.0, 0.0, 0.0])
             .attachments(blend_attachments);
 
-        let descriptor_set_layout_bindings =
-            [UniformBufferObject::descriptor_set_layout_binding()];
+        let descriptor_set_layout_bindings = [
+            UniformBufferObject::descriptor_set_layout_binding(),
+            UniformBufferObject::sampler_layout_binding(),
+        ];
         let descriptor_set_layout_create_info =
             vk::DescriptorSetLayoutCreateInfo::builder()
                 .bindings(&descriptor_set_layout_bindings);
