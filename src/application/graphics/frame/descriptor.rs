@@ -1,5 +1,5 @@
 use crate::{
-    application::{draw2d, draw2d::UniformBufferObject},
+    application::graphics::draw2d,
     rendering::{
         buffer::{Buffer, CpuBuffer},
         Device,
@@ -99,7 +99,7 @@ impl FrameDescriptor {
             device.clone(),
             vk::BufferUsageFlags::UNIFORM_BUFFER,
         )?;
-        let ubo = UniformBufferObject {
+        let ubo = draw2d::UniformBufferObject {
             projection: nalgebra::Matrix4::<f32>::identity().into(),
         };
         unsafe { uniform_buffer.write_data(&[ubo])? };
@@ -113,7 +113,7 @@ impl FrameDescriptor {
         let buffer_info = [vk::DescriptorBufferInfo::builder()
             .buffer(unsafe { uniform_buffer.raw() })
             .offset(0)
-            .range(std::mem::size_of::<UniformBufferObject>() as u64)
+            .range(std::mem::size_of::<draw2d::UniformBufferObject>() as u64)
             .build()];
         let write_descriptor_set = [vk::WriteDescriptorSet::builder()
             .dst_set(descriptor_set)
@@ -147,7 +147,7 @@ impl FrameDescriptor {
     ///          of a frame's draw call.
     pub unsafe fn update_ubo(
         &mut self,
-        ubo: &UniformBufferObject,
+        ubo: &draw2d::UniformBufferObject,
     ) -> Result<()> {
         self.uniform_buffer.write_data(&[*ubo])?;
         Ok(())

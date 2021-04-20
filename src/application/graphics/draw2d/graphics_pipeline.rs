@@ -25,12 +25,12 @@ impl GraphicsPipeline {
         let vertex_module = ShaderModule::new(
             device,
             "Vertex Shader",
-            std::include_bytes!("../../../shaders/sprv/texture2d.vert.sprv"),
+            std::include_bytes!("../../../../shaders/sprv/texture2d.vert.sprv"),
         )?;
         let fragment_module = ShaderModule::new(
             device,
             "Fragment Shader",
-            std::include_bytes!("../../../shaders/sprv/texture2d.frag.sprv"),
+            std::include_bytes!("../../../../shaders/sprv/texture2d.frag.sprv"),
         )?;
 
         // Dynamic parts of the pipeline

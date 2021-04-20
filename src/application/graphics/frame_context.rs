@@ -1,13 +1,14 @@
-mod frame;
-mod render_target;
-
-pub use self::{frame::Frame, render_target::RenderTarget};
-use crate::rendering::{Device, Swapchain};
+use crate::{
+    application::graphics::{Draw2d, Frame},
+    rendering::{Device, Swapchain},
+};
 
 use anyhow::Result;
 use ash::{version::DeviceV1_0, vk};
 use std::sync::Arc;
 
+/// An enum used by the frame context to signal when the swapchain needs to be
+/// rebuilt.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum SwapchainState {
     Ok,
@@ -15,58 +16,32 @@ pub enum SwapchainState {
 }
 
 #[cfg_attr(doc, aquamarine::aquamarine)]
-/// The RenderContext is responsible for requesting an image from the
-/// swapchain, picking the corresponding Frame instance, and dispatching to the
-/// RenderTarget.
+/// This struct is responsible for requesting a framebuffer from the swapchain,
+/// rendering, and presenting the buffer for presentation.
 ///
-/// # Sequence Diagram
-/// ```mermaid
-/// sequenceDiagram
-///     participant app as Application
-///     participant rc as Render Context
-///     participant rt as Render Target
-///     participant frame as Frame <br> (Index)
-///     participant swap as Swapchain
+/// This app associates resources with each framebuffer to minimize sharing and
+/// synchronization between frames.
 ///
-///     app ->>+ rc: Draw Frame(RenderTarget)
-///
-///     rc ->> swap: Acquire Frame
-///     activate swap
-///     swap -->> rc: (Index, Acquired)
-///
-///     rc ->>+frame: Begin Frame (Index)
-///     frame ->> frame: wait for fences from last submit
-///     frame ->> frame: reset resources
-///
-///
-///     rc ->>+ rt: draw_to_frame(Acquired, Current Frame)
-///
-///     rt ->> frame: request <br> command buffer
-///     rt ->> rt: fill command buffer
-///     rt ->> frame: submit <br> command buffer
-///     rt -->>- rc: finish frame
-///
-///
-///     deactivate frame
-///
-///     rc ->> swap: Present
-///     deactivate swap
-///
-///     rc -->>- app: Ok()
-/// ```
-pub struct RenderContext {
+pub struct FrameContext {
+    ///! There is one frame per swapchain framebuffer.
     frames_in_flight: Vec<Frame>,
+
+    ///! The index of the last frame presented via the swapchain.
     previous_frame: usize,
+
+    ///! An enum indicating when the swapchain needs to be reconstructed.
     swapchain_state: SwapchainState,
+
+    ///! An owning reference to the application swapchain.
     swapchain: Arc<Swapchain>,
+
+    ///! An owning reference to the application's vulkan device resources.
     device: Arc<Device>,
 }
 
-impl RenderContext {
-    pub fn new(
-        device: &Arc<Device>,
-        swapchain: &Arc<Swapchain>,
-    ) -> Result<Self> {
+impl FrameContext {
+    /// Create a new Frame context.
+    pub fn new(device: Arc<Device>, swapchain: Arc<Swapchain>) -> Result<Self> {
         Ok(Self {
             frames_in_flight: Frame::create_n_frames(
                 &device,
@@ -74,25 +49,15 @@ impl RenderContext {
             )?,
             swapchain_state: SwapchainState::Ok,
             previous_frame: 0, // always 'start' on frame 0
-            swapchain: swapchain.clone(),
-            device: device.clone(),
+            swapchain,
+            device,
         })
     }
 
-    /// Signal that the swapchain needs to be rebuilt before the next frame
-    /// is rendered.
-    pub fn needs_rebuild(&mut self) {
-        self.swapchain_state = SwapchainState::NeedsRebuild;
-    }
-
     /// Render a single application frame.
-    pub fn draw_frame<Target>(
-        &mut self,
-        render_target: &mut Target,
-    ) -> Result<SwapchainState>
-    where
-        Target: RenderTarget,
-    {
+    /// Synchronization between frames is kept to a minimum because each frame
+    /// maintains its own resources.
+    pub fn draw_frame(&mut self, draw2d: &Draw2d) -> Result<SwapchainState> {
         if self.swapchain_state == SwapchainState::NeedsRebuild {
             return Ok(SwapchainState::NeedsRebuild);
         }
@@ -122,10 +87,10 @@ impl RenderContext {
         self.previous_frame = index as usize;
 
         let render_finished_semaphore = {
-            let mut current_frame = &mut self.frames_in_flight[index as usize];
+            let current_frame = &mut self.frames_in_flight[index as usize];
             current_frame.begin_frame()?;
-            render_target
-                .render_to_frame(acquired_semaphore, &mut current_frame)?
+            draw2d.draw_frame(current_frame)?;
+            current_frame.finish_frame(acquired_semaphore)?
         };
 
         let render_finished_semaphores = &[render_finished_semaphore];
@@ -151,6 +116,8 @@ impl RenderContext {
 
     /// Wait for all rendering operations to complete on every frame, then
     /// rebuild the swapchain.
+    ///
+    /// Returns a clone of the swapchain which can be used by other systems.
     pub fn rebuild_swapchain(&mut self) -> Result<Arc<Swapchain>> {
         unsafe {
             self.device.logical_device.device_wait_idle()?;
@@ -165,7 +132,7 @@ impl RenderContext {
     }
 }
 
-impl Drop for RenderContext {
+impl Drop for FrameContext {
     fn drop(&mut self) {
         unsafe {
             // don't delete anything until the GPU has stoped using our

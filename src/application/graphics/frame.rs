@@ -15,12 +15,12 @@ use std::sync::Arc;
 pub struct Frame {
     pub sync: FrameSync,
     pub descriptor: FrameDescriptor,
-
     pub vertex_buffer: CpuBuffer,
-
     pub command_pool: TransientCommandPool,
-
     pub framebuffer: vk::Framebuffer,
+
+    command_buffers: Vec<vk::CommandBuffer>,
+
     device: Arc<Device>,
 }
 
@@ -57,16 +57,18 @@ impl Frame {
     {
         Ok(Self {
             sync: FrameSync::new(&device, name.clone())?,
-            framebuffer,
-            command_pool: TransientCommandPool::new(
-                device.clone(),
-                name.clone(),
-            )?,
+            descriptor: FrameDescriptor::new(device.clone(), name.clone())?,
             vertex_buffer: CpuBuffer::new(
                 device.clone(),
                 vk::BufferUsageFlags::VERTEX_BUFFER,
             )?,
-            descriptor: FrameDescriptor::new(device.clone(), name.clone())?,
+            command_pool: TransientCommandPool::new(
+                device.clone(),
+                name.clone(),
+            )?,
+            framebuffer,
+
+            command_buffers: vec![],
 
             device,
         })
@@ -81,32 +83,36 @@ impl Frame {
             self.wait_for_graphics_to_complete()?;
             self.command_pool.reset()?;
         }
+        self.command_buffers.clear();
         Ok(())
     }
 
-    /// Submit all graphics commands for this frame.
-    ///
-    /// The submission signals the `sync.graphics_finished_fence` which will
-    /// block the next call to `begin_frame`.
-    ///
-    /// This command yields a semaphore which can be used for scheduling work
-    /// on the GPU - like presenting the swapchain image.
+    /// Submit command buffers to be added to the graphics queue when the frame
+    /// is finished by the frame context.
     pub fn submit_graphics_commands(
         &mut self,
-        wait_semaphore: vk::Semaphore,
         command_buffers: &[vk::CommandBuffer],
+    ) {
+        self.command_buffers.extend_from_slice(command_buffers);
+    }
+
+    /// Finish the frame by submitting all command buffers to the graphics
+    /// queue and a semaphore which signals when rendering to the framebuffer
+    /// is complete.
+    pub fn finish_frame(
+        &mut self,
+        image_available: vk::Semaphore,
     ) -> Result<vk::Semaphore> {
-        let wait_semaphores = [wait_semaphore];
+        let wait_semaphores = [image_available];
         let wait_stages = [vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT];
         let render_finished_signal_semaphores =
             [self.sync.render_finished_semaphore];
         let submit_info = [vk::SubmitInfo::builder()
             .wait_semaphores(&wait_semaphores)
             .wait_dst_stage_mask(&wait_stages)
-            .command_buffers(&command_buffers)
+            .command_buffers(&self.command_buffers)
             .signal_semaphores(&render_finished_signal_semaphores)
             .build()];
-
         unsafe {
             let graphics_queue = self.device.graphics_queue.acquire();
             self.device

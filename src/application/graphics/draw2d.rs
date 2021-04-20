@@ -1,11 +1,13 @@
+mod commands;
 pub mod descriptor_sets;
 mod graphics_pipeline;
-mod impl_render_target;
 mod vertex;
 
 pub use self::{descriptor_sets::UniformBufferObject, vertex::Vertex};
 
 use self::graphics_pipeline::GraphicsPipeline;
+use super::Frame;
+
 use crate::rendering::{
     buffer::{Buffer, CpuBuffer},
     command_pool::TransientCommandPool,
@@ -21,6 +23,7 @@ type Mat4 = nalgebra::Matrix4<f32>;
 
 /// Resources used to render triangles
 pub struct Draw2d {
+    projection: Mat4,
     pub vertices: Vec<Vertex>,
 
     texture_image: TextureImage,
@@ -29,7 +32,6 @@ pub struct Draw2d {
     graphics_pipeline: Arc<GraphicsPipeline>,
     swapchain: Arc<Swapchain>,
     device: Arc<Device>,
-    projection: Mat4,
 }
 
 impl Draw2d {
@@ -137,8 +139,6 @@ impl Draw2d {
         })
     }
 
-    /// Replace the swapchain and all dependent resources in the Triangle
-    /// subsystem.
     pub fn replace_swapchain(
         &mut self,
         swapchain: Arc<Swapchain>,
@@ -147,6 +147,30 @@ impl Draw2d {
         self.graphics_pipeline =
             GraphicsPipeline::new(&self.device, &self.swapchain)?;
         self.projection = Self::ortho(2.0, self.swapchain.extent);
+        Ok(())
+    }
+
+    /// Render to a single application frame.
+    pub fn draw_frame(&self, frame: &mut Frame) -> Result<()> {
+        // Fill per-frame gpu resources with the relevant data.
+        // SAFE: because resources are not shared between frames.
+        unsafe {
+            frame.descriptor.update_ubo(&UniformBufferObject {
+                projection: self.projection.into(),
+            })?;
+            frame.descriptor.write_texture_descriptor(
+                vk::DescriptorImageInfo {
+                    image_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
+                    image_view: self.texture_image.raw_view(),
+                    sampler: self.sampler,
+                },
+            );
+            frame.vertex_buffer.write_data(&self.vertices)?;
+        }
+
+        let graphics_commands = commands::record(self, frame)?;
+        frame.submit_graphics_commands(&[graphics_commands]);
+
         Ok(())
     }
 
@@ -169,13 +193,13 @@ impl Draw2d {
 impl Drop for Draw2d {
     fn drop(&mut self) {
         unsafe {
+            self.device.logical_device.device_wait_idle().expect(
+                "error while waiting for the device to complete all work",
+            );
             self.device
                 .logical_device
                 .destroy_sampler(self.sampler, None);
             self.sampler = vk::Sampler::null();
-            self.device.logical_device.device_wait_idle().expect(
-                "error while waiting for the device to complete all work",
-            );
         }
     }
 }

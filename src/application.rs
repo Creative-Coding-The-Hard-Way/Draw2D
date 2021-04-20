@@ -7,13 +7,9 @@
 //! app.run()?;
 //! ```
 
-mod draw2d;
-pub mod render_context;
+mod graphics;
 
-pub use self::{
-    draw2d::{Draw2d, Vertex},
-    render_context::{RenderContext, SwapchainState},
-};
+use self::graphics::{Graphics, Vertex};
 use crate::rendering::{glfw_window::GlfwWindow, Device, Swapchain};
 
 use anyhow::{Context, Result};
@@ -25,9 +21,7 @@ use std::sync::Arc;
 /// which can render to a frame when presented by the render context.
 pub struct Application {
     window_surface: Arc<GlfwWindow>,
-    render_context: RenderContext,
-    swapchain: Arc<Swapchain>,
-    draw2d: Draw2d,
+    graphics: Graphics,
 }
 
 impl Application {
@@ -67,61 +61,58 @@ impl Application {
         let device = Device::new(window_surface.clone())?;
         let swapchain =
             Swapchain::new(device.clone(), window_surface.clone(), None)?;
-        let render_context = RenderContext::new(&device, &swapchain)?;
-        let draw2d = Draw2d::new(device.clone(), swapchain.clone())?;
+        let graphics = Graphics::new(device, swapchain)?;
 
         Ok(Self {
             window_surface,
-            render_context,
-            swapchain: swapchain.clone(),
-            draw2d,
+            graphics,
         })
     }
 
     fn init(&mut self) {
-        self.draw2d.vertices = vec![];
+        self.graphics.draw2d.vertices = vec![];
     }
 
     fn update(&mut self) {
-        self.draw2d.vertices.clear();
+        self.graphics.draw2d.vertices.clear();
 
         // top left
-        self.draw2d.vertices.push(Vertex {
+        self.graphics.draw2d.vertices.push(Vertex {
             pos: [-0.75, -0.75],
             uv: [0.0, 0.0],
             ..Default::default()
         });
 
         // top right
-        self.draw2d.vertices.push(Vertex {
+        self.graphics.draw2d.vertices.push(Vertex {
             pos: [0.75, -0.75],
             uv: [1.0, 0.0],
             ..Default::default()
         });
 
         // bottom right
-        self.draw2d.vertices.push(Vertex {
+        self.graphics.draw2d.vertices.push(Vertex {
             pos: [0.75, 0.75],
             uv: [1.0, 1.0],
             ..Default::default()
         });
 
         // top left
-        self.draw2d.vertices.push(Vertex {
+        self.graphics.draw2d.vertices.push(Vertex {
             pos: [-0.75, -0.75],
             uv: [0.0, 0.0],
             ..Default::default()
         });
 
         // bottom right
-        self.draw2d.vertices.push(Vertex {
+        self.graphics.draw2d.vertices.push(Vertex {
             pos: [0.75, 0.75],
             uv: [1.0, 1.0],
             ..Default::default()
         });
 
         // bottom left
-        self.draw2d.vertices.push(Vertex {
+        self.graphics.draw2d.vertices.push(Vertex {
             pos: [-0.75, 0.75],
             uv: [0.0, 1.0],
             ..Default::default()
@@ -144,21 +135,8 @@ impl Application {
                 self.handle_event(event)?;
             }
             self.update();
-            let status = self.render_context.draw_frame(&mut self.draw2d)?;
-            match status {
-                SwapchainState::Ok => {}
-                SwapchainState::NeedsRebuild => {
-                    self.replace_swapchain()?;
-                }
-            }
+            self.graphics.render()?;
         }
-        Ok(())
-    }
-
-    /// Update all systems which depend on the swapchain
-    fn replace_swapchain(&mut self) -> Result<()> {
-        self.swapchain = self.render_context.rebuild_swapchain()?;
-        self.draw2d.replace_swapchain(self.swapchain.clone())?;
         Ok(())
     }
 
@@ -179,7 +157,7 @@ impl Application {
 
             glfw::WindowEvent::FramebufferSize(_, _) => {
                 log::info!("resized");
-                self.render_context.needs_rebuild();
+                self.graphics.rebuild_swapchain()?;
             }
 
             _ => {}
