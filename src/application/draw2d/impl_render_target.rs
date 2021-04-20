@@ -25,6 +25,22 @@ impl RenderTarget for Draw2d {
                 .uniform_buffer
                 .write_data(&[UniformBufferObject::new(self.projection)])?;
             frame.vertex_buffer.write_data(&self.vertices)?;
+
+            let image_info = vk::DescriptorImageInfo::builder()
+                .image_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
+                .image_view(self.texture_image.view)
+                .sampler(self.sampler)
+                .build();
+            let descriptor_write = vk::WriteDescriptorSet::builder()
+                .dst_set(frame.descriptor_set)
+                .dst_binding(1)
+                .dst_array_element(0)
+                .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
+                .image_info(&[image_info])
+                .build();
+            self.device
+                .logical_device
+                .update_descriptor_sets(&[descriptor_write], &[]);
         }
 
         let render_buffer = record_buffer_commands(

@@ -59,9 +59,16 @@ impl Frame {
     where
         Name: Into<String> + Clone,
     {
-        let pool_sizes = [vk::DescriptorPoolSize::builder()
-            .descriptor_count(1)
-            .build()];
+        let pool_sizes = [
+            vk::DescriptorPoolSize::builder()
+                .descriptor_count(1)
+                .ty(vk::DescriptorType::UNIFORM_BUFFER)
+                .build(),
+            vk::DescriptorPoolSize::builder()
+                .descriptor_count(1)
+                .ty(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
+                .build(),
+        ];
         let pool_create_info = vk::DescriptorPoolCreateInfo::builder()
             .pool_sizes(&pool_sizes)
             .max_sets(1)
@@ -72,8 +79,10 @@ impl Frame {
                 .create_descriptor_pool(&pool_create_info, None)?
         };
 
-        let descriptor_set_layout_bindings =
-            [UniformBufferObject::descriptor_set_layout_binding()];
+        let descriptor_set_layout_bindings = [
+            UniformBufferObject::descriptor_set_layout_binding(),
+            UniformBufferObject::sampler_layout_binding(),
+        ];
         let descriptor_set_layout_create_info =
             vk::DescriptorSetLayoutCreateInfo::builder()
                 .bindings(&descriptor_set_layout_bindings);
