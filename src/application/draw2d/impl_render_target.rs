@@ -28,7 +28,7 @@ impl RenderTarget for Draw2d {
 
             let image_info = vk::DescriptorImageInfo::builder()
                 .image_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
-                .image_view(self.texture_image.view)
+                .image_view(self.texture_image.raw_view())
                 .sampler(self.sampler)
                 .build();
             let descriptor_write = vk::WriteDescriptorSet::builder()

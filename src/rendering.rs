@@ -7,6 +7,7 @@ pub mod device;
 pub mod instance;
 pub mod shader_module;
 pub mod swapchain;
+pub mod texture;
 pub mod window_surface;
 
 pub use self::{
