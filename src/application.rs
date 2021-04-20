@@ -86,34 +86,46 @@ impl Application {
         self.draw2d.vertices.clear();
 
         // top left
-        self.draw2d
-            .vertices
-            .push(Vertex::new([-0.75, -0.75], [0.0, 0.0]));
+        self.draw2d.vertices.push(Vertex {
+            pos: [-0.75, -0.75],
+            uv: [0.0, 0.0],
+            ..Default::default()
+        });
 
         // top right
-        self.draw2d
-            .vertices
-            .push(Vertex::new([0.75, -0.75], [1.0, 0.0]));
+        self.draw2d.vertices.push(Vertex {
+            pos: [0.75, -0.75],
+            uv: [1.0, 0.0],
+            ..Default::default()
+        });
 
         // bottom right
-        self.draw2d
-            .vertices
-            .push(Vertex::new([0.75, 0.75], [1.0, 1.0]));
+        self.draw2d.vertices.push(Vertex {
+            pos: [0.75, 0.75],
+            uv: [1.0, 1.0],
+            ..Default::default()
+        });
 
         // top left
-        self.draw2d
-            .vertices
-            .push(Vertex::new([-0.75, -0.75], [0.0, 0.0]));
+        self.draw2d.vertices.push(Vertex {
+            pos: [-0.75, -0.75],
+            uv: [0.0, 0.0],
+            ..Default::default()
+        });
 
         // bottom right
-        self.draw2d
-            .vertices
-            .push(Vertex::new([0.75, 0.75], [1.0, 1.0]));
+        self.draw2d.vertices.push(Vertex {
+            pos: [0.75, 0.75],
+            uv: [1.0, 1.0],
+            ..Default::default()
+        });
 
         // bottom left
-        self.draw2d
-            .vertices
-            .push(Vertex::new([-0.75, 0.75], [0.0, 1.0]));
+        self.draw2d.vertices.push(Vertex {
+            pos: [-0.75, 0.75],
+            uv: [0.0, 1.0],
+            ..Default::default()
+        });
     }
 
     /// Run the application, blocks until the main event loop exits.
