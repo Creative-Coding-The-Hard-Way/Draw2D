@@ -7,16 +7,12 @@
 //! app.run()?;
 //! ```
 
-mod draw2d;
-pub mod render_context;
+mod glfw_window;
 
-pub use self::{
-    draw2d::{Draw2d, Vertex},
-    render_context::{RenderContext, SwapchainState},
-};
-use crate::rendering::{glfw_window::GlfwWindow, Device, Swapchain};
+use crate::graphics::{Graphics, Vertex};
+use glfw_window::GlfwWindow;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::sync::Arc;
 
 /// The main application.
@@ -25,95 +21,71 @@ use std::sync::Arc;
 /// which can render to a frame when presented by the render context.
 pub struct Application {
     window_surface: Arc<GlfwWindow>,
-    render_context: RenderContext,
-    swapchain: Arc<Swapchain>,
-    draw2d: Draw2d,
+    graphics: Graphics,
 }
 
 impl Application {
     /// Build a new instance of the application.
-    ///
-    /// Returns `Err()` if anything goes wrong while building the app.
     pub fn new() -> Result<Self> {
-        let window_surface = GlfwWindow::new(|glfw| {
-            let (mut window, event_receiver) = glfw
-                .with_primary_monitor(|glfw, _main_monitor| {
-                    //if let Some(monitor) = main_monitor {
-                    //    let (width, height) = monitor.get_physical_size();
-                    //    let (sw, sh) = monitor.get_content_scale();
-                    //    let (w, h) = (width as f32 * sw, height as f32 * sh);
-                    //    glfw.create_window(
-                    //        w as u32,
-                    //        h as u32,
-                    //        "Ash Starter",
-                    //        glfw::WindowMode::FullScreen(monitor),
-                    //    )
-                    //} else {
-                    glfw.create_window(
-                        1366,
-                        768,
-                        "Ash Starter",
-                        glfw::WindowMode::Windowed,
-                    )
-                    //}
-                })
-                .context("unable to create the glfw window")?;
+        let window_surface = GlfwWindow::windowed("Draw2D", 1366, 768)?;
+        window_surface.with_window(|window| {
             window.set_resizable(true);
             window.set_key_polling(true);
             window.set_size_polling(true);
-            Ok((window, event_receiver))
+            Ok(())
         })?;
-
-        let device = Device::new(window_surface.clone())?;
-        let swapchain =
-            Swapchain::new(device.clone(), window_surface.clone(), None)?;
-        let render_context = RenderContext::new(&device, &swapchain)?;
-        let draw2d = Draw2d::new(device.clone(), swapchain.clone())?;
-
         Ok(Self {
+            graphics: Graphics::new(window_surface.clone())?,
             window_surface,
-            render_context,
-            swapchain: swapchain.clone(),
-            draw2d,
         })
     }
 
-    fn init(&mut self) {
-        self.draw2d.vertices = vec![];
-    }
+    fn init(&mut self) {}
 
     fn update(&mut self) {
-        self.draw2d.vertices.clear();
+        self.graphics.draw2d.vertices.clear();
 
         // top left
-        self.draw2d
-            .vertices
-            .push(Vertex::new([-0.75, -0.75], [0.0, 0.0]));
+        self.graphics.draw2d.vertices.push(Vertex {
+            pos: [-0.75, -0.75],
+            uv: [0.0, 0.0],
+            ..Default::default()
+        });
 
         // top right
-        self.draw2d
-            .vertices
-            .push(Vertex::new([0.75, -0.75], [1.0, 0.0]));
+        self.graphics.draw2d.vertices.push(Vertex {
+            pos: [0.75, -0.75],
+            uv: [1.0, 0.0],
+            ..Default::default()
+        });
 
         // bottom right
-        self.draw2d
-            .vertices
-            .push(Vertex::new([0.75, 0.75], [1.0, 1.0]));
+        self.graphics.draw2d.vertices.push(Vertex {
+            pos: [0.75, 0.75],
+            uv: [1.0, 1.0],
+            ..Default::default()
+        });
 
         // top left
-        self.draw2d
-            .vertices
-            .push(Vertex::new([-0.75, -0.75], [0.0, 0.0]));
+        self.graphics.draw2d.vertices.push(Vertex {
+            pos: [-0.75, -0.75],
+            uv: [0.0, 0.0],
+            ..Default::default()
+        });
 
         // bottom right
-        self.draw2d
-            .vertices
-            .push(Vertex::new([0.75, 0.75], [1.0, 1.0]));
+        self.graphics.draw2d.vertices.push(Vertex {
+            pos: [0.75, 0.75],
+            uv: [1.0, 1.0],
+            ..Default::default()
+        });
 
         // bottom left
-        self.draw2d
-            .vertices
-            .push(Vertex::new([-0.75, 0.75], [0.0, 1.0]));
+        self.graphics.draw2d.vertices.push(Vertex {
+            pos: [-0.75, 0.75],
+            uv: [0.0, 1.0],
+            ..Default::default()
+        });
     }
 
     /// Run the application, blocks until the main event loop exits.
@@ -132,21 +104,8 @@ impl Application {
                 self.handle_event(event)?;
             }
             self.update();
-            let status = self.render_context.draw_frame(&mut self.draw2d)?;
-            match status {
-                SwapchainState::Ok => {}
-                SwapchainState::NeedsRebuild => {
-                    self.replace_swapchain()?;
-                }
-            }
+            self.graphics.render()?;
         }
-        Ok(())
-    }
-
-    /// Update all systems which depend on the swapchain
-    fn replace_swapchain(&mut self) -> Result<()> {
-        self.swapchain = self.render_context.rebuild_swapchain()?;
-        self.draw2d.replace_swapchain(self.swapchain.clone())?;
         Ok(())
     }
 
@@ -167,7 +126,7 @@ impl Application {
 
             glfw::WindowEvent::FramebufferSize(_, _) => {
                 log::info!("resized");
-                self.render_context.needs_rebuild();
+                self.graphics.rebuild_swapchain()?;
             }
 
             _ => {}
