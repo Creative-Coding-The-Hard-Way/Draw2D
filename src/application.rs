@@ -40,9 +40,7 @@ impl Application {
         })
     }
 
-    fn init(&mut self) {
-        self.graphics.draw2d.vertices = vec![];
-    }
+    fn init(&mut self) {}
 
     fn update(&mut self) {
         self.graphics.draw2d.vertices.clear();

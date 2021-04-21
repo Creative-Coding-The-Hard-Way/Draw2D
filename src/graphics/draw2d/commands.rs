@@ -1,4 +1,7 @@
-use crate::graphics::{vulkan::buffer::Buffer, Draw2d, Frame};
+use crate::graphics::{
+    draw2d::descriptor_sets::PushConsts, vulkan::buffer::Buffer,
+    vulkan::ffi::any_as_u8_slice, Draw2d, Frame,
+};
 
 use anyhow::Result;
 use ash::{version::DeviceV1_0, vk};
@@ -44,6 +47,16 @@ pub fn record(draw2d: &Draw2d, frame: &mut Frame) -> Result<vk::CommandBuffer> {
             draw2d.graphics_pipeline.pipeline,
         );
 
+        let descriptor_sets = [frame.descriptor.raw_descriptor_set()];
+        draw2d.device.logical_device.cmd_bind_descriptor_sets(
+            command_buffer,
+            vk::PipelineBindPoint::GRAPHICS,
+            draw2d.graphics_pipeline.pipeline_layout,
+            0,
+            &descriptor_sets,
+            &[],
+        );
+
         let buffers = [frame.vertex_buffer.raw()];
         let offsets = [0];
         draw2d.device.logical_device.cmd_bind_vertex_buffers(
@@ -53,14 +66,13 @@ pub fn record(draw2d: &Draw2d, frame: &mut Frame) -> Result<vk::CommandBuffer> {
             &offsets,
         );
 
-        let descriptor_sets = [frame.descriptor.raw_descriptor_set()];
-        draw2d.device.logical_device.cmd_bind_descriptor_sets(
+        let consts = PushConsts { texture_index: 2 };
+        draw2d.device.logical_device.cmd_push_constants(
             command_buffer,
-            vk::PipelineBindPoint::GRAPHICS,
             draw2d.graphics_pipeline.pipeline_layout,
+            vk::ShaderStageFlags::FRAGMENT,
             0,
-            &descriptor_sets,
-            &[],
+            any_as_u8_slice(&consts),
         );
 
         // draw

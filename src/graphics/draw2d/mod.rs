@@ -26,6 +26,7 @@ pub struct Draw2d {
     projection: Mat4,
     pub vertices: Vec<Vertex>,
 
+    white_image: TextureImage,
     texture_image: TextureImage,
     sampler: vk::Sampler,
 
@@ -71,6 +72,29 @@ impl Draw2d {
             vk::MemoryPropertyFlags::DEVICE_LOCAL,
         )?;
 
+        let mut white_image = TextureImage::new(
+            device.clone(),
+            vk::ImageCreateInfo {
+                image_type: vk::ImageType::TYPE_2D,
+                extent: vk::Extent3D {
+                    width: 1,
+                    height: 1,
+                    depth: 1,
+                },
+                mip_levels: 1,
+                array_layers: 1,
+                format: vk::Format::R8G8B8A8_SRGB,
+                tiling: vk::ImageTiling::OPTIMAL,
+                initial_layout: vk::ImageLayout::UNDEFINED,
+                usage: vk::ImageUsageFlags::TRANSFER_DST
+                    | vk::ImageUsageFlags::SAMPLED,
+                samples: vk::SampleCountFlags::TYPE_1,
+                sharing_mode: vk::SharingMode::EXCLUSIVE,
+                ..Default::default()
+            },
+            vk::MemoryPropertyFlags::DEVICE_LOCAL,
+        )?;
+
         device.name_vulkan_object(
             "Example Texture",
             vk::ObjectType::IMAGE,
@@ -83,25 +107,22 @@ impl Draw2d {
             CpuBuffer::new(device.clone(), vk::BufferUsageFlags::TRANSFER_SRC)?;
 
         unsafe {
-            image_buffer.write_data(&example.into_raw())?;
-        }
-
-        device.name_vulkan_object(
-            "Image Data",
-            vk::ObjectType::BUFFER,
-            &unsafe { image_buffer.raw() },
-        )?;
-
-        log::info!("gpu image buffer size: {}", image_buffer.size_in_bytes());
-
-        unsafe {
             let mut command_pool = TransientCommandPool::new(
                 device.clone(),
                 "texture setup pool",
             )?;
+
+            image_buffer.write_data(&example.into_raw())?;
             texture_image.upload_from_buffer(
                 command_pool.request_command_buffer()?,
-                image_buffer,
+                &image_buffer,
+            )?;
+
+            let color: [u8; 4] = [255, 255, 255, 255];
+            image_buffer.write_data(&color)?;
+            white_image.upload_from_buffer(
+                command_pool.request_command_buffer()?,
+                &image_buffer,
             )?;
         }
 
@@ -129,6 +150,7 @@ impl Draw2d {
 
         let graphics_pipeline = GraphicsPipeline::new(&device, &swapchain)?;
         Ok(Self {
+            white_image,
             texture_image,
             sampler,
             vertices: vec![],
@@ -164,7 +186,18 @@ impl Draw2d {
                     image_view: self.texture_image.raw_view(),
                     sampler: self.sampler,
                 },
+                0,
             );
+            for i in 1..80 {
+                frame.descriptor.write_texture_descriptor(
+                    vk::DescriptorImageInfo {
+                        image_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
+                        image_view: self.white_image.raw_view(),
+                        sampler: self.sampler,
+                    },
+                    i,
+                );
+            }
             frame.vertex_buffer.write_data(&self.vertices)?;
         }
 

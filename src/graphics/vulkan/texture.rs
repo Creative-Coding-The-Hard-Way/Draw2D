@@ -102,7 +102,7 @@ impl TextureImage {
     pub unsafe fn upload_from_buffer<Buf>(
         &mut self,
         command_buffer: vk::CommandBuffer,
-        src: Buf,
+        src: &Buf,
     ) -> Result<()>
     where
         Buf: Buffer,

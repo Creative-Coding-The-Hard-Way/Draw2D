@@ -132,7 +132,8 @@ impl GraphicsPipeline {
         )?;
 
         let layouts = [descriptor_set_layout];
-        let push_constant_ranges = vec![];
+        let push_constant_ranges =
+            vec![descriptor_sets::create_push_constant_range()];
         let pipeline_layout_create_info =
             vk::PipelineLayoutCreateInfo::builder()
                 .set_layouts(&layouts)

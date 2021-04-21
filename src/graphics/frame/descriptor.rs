@@ -50,7 +50,7 @@ impl FrameDescriptor {
                 .ty(vk::DescriptorType::UNIFORM_BUFFER)
                 .build(),
             vk::DescriptorPoolSize::builder()
-                .descriptor_count(1)
+                .descriptor_count(80)
                 .ty(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
                 .build(),
         ];
@@ -161,11 +161,12 @@ impl FrameDescriptor {
     pub unsafe fn write_texture_descriptor(
         &mut self,
         image_info: vk::DescriptorImageInfo,
+        index: u32,
     ) {
         let descriptor_write = vk::WriteDescriptorSet::builder()
             .dst_set(self.descriptor_set)
             .dst_binding(1)
-            .dst_array_element(0)
+            .dst_array_element(index)
             .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
             .image_info(&[image_info])
             .build();

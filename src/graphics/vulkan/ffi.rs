@@ -4,6 +4,16 @@
 
 use std::{convert::TryInto, ffi::CString, os::raw::c_char};
 
+/// Zero-Copy transformation of a type to a &[u8].
+///
+/// UNSAFE:  because behavior depends on how the input data structure is packed
+pub unsafe fn any_as_u8_slice<T: Sized>(p: &T) -> &[u8] {
+    ::std::slice::from_raw_parts(
+        (p as *const T) as *const u8,
+        ::std::mem::size_of::<T>(),
+    )
+}
+
 /// Build a vector of pointers to c-style strings from a vector of rust strings.
 ///
 /// Unsafe because the returned vector of pointers is only valid while the
