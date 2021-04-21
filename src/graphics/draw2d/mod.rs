@@ -9,10 +9,8 @@ use self::graphics_pipeline::GraphicsPipeline;
 use super::Frame;
 
 use crate::graphics::vulkan::{
-    buffer::{Buffer, CpuBuffer},
-    command_pool::TransientCommandPool,
-    texture::TextureImage,
-    Device, Swapchain,
+    buffer::CpuBuffer, command_pool::TransientCommandPool,
+    texture::TextureImage, Device, Swapchain,
 };
 
 use anyhow::Result;

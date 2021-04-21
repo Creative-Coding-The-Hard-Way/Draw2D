@@ -15,12 +15,6 @@ pub struct TextureImage {
     device: Arc<Device>,
 }
 
-#[derive(Clone, Copy)]
-enum TransitionType {
-    READ,
-    WRITE,
-}
-
 impl TextureImage {
     /// The raw image handle used by this texture.
     ///
@@ -91,10 +85,8 @@ impl TextureImage {
         Ok(Self {
             image,
             extent: image_create_info.extent,
-
             view,
             memory,
-
             device,
         })
     }
@@ -113,22 +105,23 @@ impl TextureImage {
                 .flags(vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT),
         )?;
 
-        self.transition_image_layout(
-            command_buffer,
-            vk::ImageLayout::UNDEFINED,
-            vk::ImageLayout::TRANSFER_DST_OPTIMAL,
-        )?;
+        let required_size = (self.extent.width * self.extent.height * 4) as u64;
+        if required_size > src.size_in_bytes() {
+            bail!(
+                "The texture expects {:?} bytes, but the provided buffer includes only {:?} bytes of data!",
+                required_size,
+                src.size_in_bytes()
+            );
+        }
+
+        self.write_barrier(command_buffer);
         self.copy_buffer_to_image(
             command_buffer,
             src.raw(),
             self.extent.width,
             self.extent.height,
-        )?;
-        self.transition_image_layout(
-            command_buffer,
-            vk::ImageLayout::TRANSFER_DST_OPTIMAL,
-            vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
-        )?;
+        );
+        self.read_barrier(command_buffer);
 
         self.device
             .logical_device
@@ -141,55 +134,12 @@ impl TextureImage {
         Ok(())
     }
 
-    /// Transition this command buffer's layout.
-    /// Commands are executed synchronously. The provided command buffer must
-    /// be new and can safely be discarded when this function returns.
-    ///
-    /// Unsafe because the image must not otherwise be in use when this method
-    /// is invoked.
-    pub unsafe fn transition_image_layout(
-        &mut self,
-        command_buffer: vk::CommandBuffer,
-        old_layout: vk::ImageLayout,
-        new_layout: vk::ImageLayout,
-    ) -> Result<()> {
-        let transition_type = if old_layout == vk::ImageLayout::UNDEFINED
-            && new_layout == vk::ImageLayout::TRANSFER_DST_OPTIMAL
-        {
-            TransitionType::WRITE
-        } else if old_layout == vk::ImageLayout::TRANSFER_DST_OPTIMAL
-            && new_layout == vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL
-        {
-            TransitionType::READ
-        } else {
-            bail!("invalid layout combinations!")
-        };
-
-        let (src_access_mask, src_stage_mask) = match transition_type {
-            TransitionType::WRITE => (
-                vk::AccessFlags::empty(),
-                vk::PipelineStageFlags::TOP_OF_PIPE,
-            ),
-            TransitionType::READ => (
-                vk::AccessFlags::TRANSFER_WRITE,
-                vk::PipelineStageFlags::TRANSFER,
-            ),
-        };
-
-        let (dst_access_mask, dst_stage_mask) = match transition_type {
-            TransitionType::WRITE => (
-                vk::AccessFlags::TRANSFER_WRITE,
-                vk::PipelineStageFlags::TRANSFER,
-            ),
-            TransitionType::READ => (
-                vk::AccessFlags::SHADER_READ,
-                vk::PipelineStageFlags::FRAGMENT_SHADER,
-            ),
-        };
-
-        let image_memory_barrier = vk::ImageMemoryBarrier::builder()
-            .old_layout(old_layout)
-            .new_layout(new_layout)
+    /// Transition the image memory layout such that it is an optimal transfer
+    /// target.
+    pub unsafe fn write_barrier(&self, command_buffer: vk::CommandBuffer) {
+        let write_barrier = vk::ImageMemoryBarrier::builder()
+            .old_layout(vk::ImageLayout::UNDEFINED)
+            .new_layout(vk::ImageLayout::TRANSFER_DST_OPTIMAL)
             .image(self.image)
             .subresource_range(
                 vk::ImageSubresourceRange::builder()
@@ -200,30 +150,58 @@ impl TextureImage {
                     .layer_count(1)
                     .build(),
             )
-            .src_access_mask(src_access_mask)
-            .dst_access_mask(dst_access_mask)
+            .src_access_mask(vk::AccessFlags::empty())
+            .dst_access_mask(vk::AccessFlags::TRANSFER_WRITE)
             .build();
-
         self.device.logical_device.cmd_pipeline_barrier(
             command_buffer,
-            src_stage_mask,
-            dst_stage_mask,
+            vk::PipelineStageFlags::TOP_OF_PIPE,
+            vk::PipelineStageFlags::TRANSFER,
             vk::DependencyFlags::empty(),
             &[],
             &[],
-            &[image_memory_barrier],
+            &[write_barrier],
         );
-
-        Ok(())
     }
 
-    pub unsafe fn copy_buffer_to_image(
-        &mut self,
+    /// Transition the image memory layout such that is is optimal for reading
+    /// within the fragment shader.
+    unsafe fn read_barrier(&self, command_buffer: vk::CommandBuffer) {
+        let read_barrier = vk::ImageMemoryBarrier::builder()
+            .old_layout(vk::ImageLayout::TRANSFER_DST_OPTIMAL)
+            .new_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
+            .image(self.image)
+            .subresource_range(
+                vk::ImageSubresourceRange::builder()
+                    .aspect_mask(vk::ImageAspectFlags::COLOR)
+                    .base_mip_level(0)
+                    .level_count(1)
+                    .base_array_layer(0)
+                    .layer_count(1)
+                    .build(),
+            )
+            .src_access_mask(vk::AccessFlags::TRANSFER_WRITE)
+            .dst_access_mask(vk::AccessFlags::SHADER_READ)
+            .build();
+        self.device.logical_device.cmd_pipeline_barrier(
+            command_buffer,
+            vk::PipelineStageFlags::TRANSFER,
+            vk::PipelineStageFlags::FRAGMENT_SHADER,
+            vk::DependencyFlags::empty(),
+            &[],
+            &[],
+            &[read_barrier],
+        );
+    }
+
+    /// Copy a buffer's memory into the image memory.
+    unsafe fn copy_buffer_to_image(
+        &self,
         command_buffer: vk::CommandBuffer,
         src_buffer: vk::Buffer,
         width: u32,
         height: u32,
-    ) -> Result<()> {
+    ) {
         let region = vk::BufferImageCopy::builder()
             .buffer_offset(0)
             .buffer_row_length(0)
@@ -243,7 +221,6 @@ impl TextureImage {
                 depth: 1,
             })
             .build();
-
         self.device.logical_device.cmd_copy_buffer_to_image(
             command_buffer,
             src_buffer,
@@ -251,8 +228,6 @@ impl TextureImage {
             vk::ImageLayout::TRANSFER_DST_OPTIMAL,
             &[region],
         );
-
-        Ok(())
     }
 }
 
