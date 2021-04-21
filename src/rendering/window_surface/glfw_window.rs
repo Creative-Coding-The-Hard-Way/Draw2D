@@ -83,6 +83,57 @@ impl GlfwWindow {
         }))
     }
 
+    /// Create a new fullscreen window using the primary monitor.
+    #[allow(dead_code)]
+    pub fn fullscreen(title: &str) -> Result<Arc<Self>> {
+        GlfwWindow::new(|glfw| {
+            let (window, event_receiver) = glfw
+                .with_primary_monitor(|glfw, main_monitor| {
+                    if let Some(monitor) = main_monitor {
+                        let (width, height) = monitor.get_physical_size();
+                        let (sw, sh) = monitor.get_content_scale();
+                        let (w, h) = (width as f32 * sw, height as f32 * sh);
+                        glfw.create_window(
+                            w as u32,
+                            h as u32,
+                            title,
+                            glfw::WindowMode::FullScreen(monitor),
+                        )
+                    } else {
+                        glfw.create_window(
+                            1366,
+                            768,
+                            title,
+                            glfw::WindowMode::Windowed,
+                        )
+                    }
+                })
+                .context("unable to create the glfw window")?;
+            Ok((window, event_receiver))
+        })
+    }
+
+    /// Create a new non-fullscreen window.
+    #[allow(dead_code)]
+    pub fn windowed(title: &str, width: u32, height: u32) -> Result<Arc<Self>> {
+        GlfwWindow::new(|glfw| {
+            glfw.create_window(width, height, title, glfw::WindowMode::Windowed)
+                .context("unable to create glfw window")
+        })
+    }
+
+    /// Apply some operation to the glfw window.
+    ///
+    /// Typically this is used to configure GLFW's polling and other window
+    /// settings.
+    pub fn with_window<F>(&self, action: F) -> Result<()>
+    where
+        F: FnOnce(&mut glfw::Window) -> Result<()>,
+    {
+        let mut window = self.window.borrow_mut();
+        action(&mut window)
+    }
+
     /// Build a vulkan-enabled glfw window, using the provided create_window
     /// function.
     fn build_vulkan_window<F>(

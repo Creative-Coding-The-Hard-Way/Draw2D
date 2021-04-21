@@ -9,6 +9,7 @@ use ash::{version::DeviceV1_0, vk};
 /// Unsafe because this method does not check the destination's size. It is
 /// the responsibility of the application to ensure the destination buffer is
 /// at least as large as the source buffer.
+#[allow(dead_code)]
 pub unsafe fn copy_full_buffer<Source, Destination>(
     device: &Device,
     command_buffer: vk::CommandBuffer,

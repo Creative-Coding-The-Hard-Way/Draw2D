@@ -8,7 +8,7 @@ pub use self::{
     frame_context::{FrameContext, SwapchainState},
 };
 
-use crate::rendering::{Device, Swapchain};
+use crate::rendering::{Device, Swapchain, WindowSurface};
 
 use std::sync::Arc;
 
@@ -25,7 +25,11 @@ pub struct Graphics {
 
 impl Graphics {
     /// Instantiate the graphics subsystem.
-    pub fn new(device: Arc<Device>, swapchain: Arc<Swapchain>) -> Result<Self> {
+    pub fn new(window_surface: Arc<dyn WindowSurface>) -> Result<Self> {
+        let device = Device::new(window_surface.clone())?;
+        let swapchain =
+            Swapchain::new(device.clone(), window_surface.clone(), None)?;
+
         let frame_context =
             FrameContext::new(device.clone(), swapchain.clone())?;
         let draw2d = Draw2d::new(device.clone(), swapchain.clone())?;
