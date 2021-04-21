@@ -8,11 +8,11 @@
 //!
 
 mod application;
-mod ffi;
-mod rendering;
+mod graphics;
+
+use application::Application;
 
 use anyhow::{Context, Result};
-use application::Application;
 use flexi_logger::{DeferredNow, Logger, Record};
 use std::fmt::Write as FmtWrite;
 use textwrap::{termwidth, Options};

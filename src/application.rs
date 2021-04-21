@@ -7,10 +7,10 @@
 //! app.run()?;
 //! ```
 
-mod graphics;
+mod glfw_window;
 
-use self::graphics::{Graphics, Vertex};
-use crate::rendering::{glfw_window::GlfwWindow, Device};
+use crate::graphics::{Graphics, Vertex};
+use glfw_window::GlfwWindow;
 
 use anyhow::Result;
 use std::sync::Arc;
