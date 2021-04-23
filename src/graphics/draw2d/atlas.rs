@@ -16,7 +16,7 @@ use anyhow::{Context, Result};
 use ash::{version::DeviceV1_0, vk};
 use std::{path::Path, sync::Arc};
 
-pub const MAX_SUPPORTED_TEXTURES: usize = 80;
+pub const MAX_SUPPORTED_TEXTURES: usize = 64;
 
 /// A struct which represents the texture atlas's binding revision.
 #[derive(Copy, Clone, Debug)]

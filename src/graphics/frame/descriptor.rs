@@ -44,16 +44,25 @@ impl FrameDescriptor {
         Name: Into<String>,
     {
         let owned_name = name.into();
-        let pool_sizes = [
-            vk::DescriptorPoolSize::builder()
-                .descriptor_count(1)
-                .ty(vk::DescriptorType::UNIFORM_BUFFER)
-                .build(),
-            vk::DescriptorPoolSize::builder()
-                .descriptor_count(80)
-                .ty(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-                .build(),
-        ];
+        let (descriptor_set_layout, bindings) = unsafe {
+            draw2d::descriptor_sets::create_descriptor_set_layout(&device)?
+        };
+        device.name_vulkan_object(
+            format!("{} - DescriptorSetLayout", owned_name.clone()),
+            vk::ObjectType::DESCRIPTOR_SET_LAYOUT,
+            &descriptor_set_layout,
+        )?;
+
+        // create a descriptor pool which exactly matches the number of bindings
+        let pool_sizes: Vec<vk::DescriptorPoolSize> = bindings
+            .iter()
+            .map(|binding| {
+                vk::DescriptorPoolSize::builder()
+                    .ty(binding.descriptor_type)
+                    .descriptor_count(binding.descriptor_count)
+                    .build()
+            })
+            .collect();
         let pool_create_info = vk::DescriptorPoolCreateInfo::builder()
             .pool_sizes(&pool_sizes)
             .max_sets(1)
@@ -67,15 +76,6 @@ impl FrameDescriptor {
             format!("{} - DescriptorPool", owned_name.clone()),
             vk::ObjectType::DESCRIPTOR_POOL,
             &descriptor_pool,
-        )?;
-
-        let descriptor_set_layout = unsafe {
-            draw2d::descriptor_sets::create_descriptor_set_layout(&device)?
-        };
-        device.name_vulkan_object(
-            format!("{} - DescriptorSetLayout", owned_name.clone()),
-            vk::ObjectType::DESCRIPTOR_SET_LAYOUT,
-            &descriptor_set_layout,
         )?;
 
         let descriptor_set_layouts = [descriptor_set_layout];
