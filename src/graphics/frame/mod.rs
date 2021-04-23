@@ -3,9 +3,8 @@ mod sync;
 
 use self::{descriptor::FrameDescriptor, sync::FrameSync};
 
-use crate::graphics::{
-    draw2d::atlas,
-    vulkan::{buffer::CpuBuffer, command_pool::TransientCommandPool, Device},
+use crate::graphics::vulkan::{
+    buffer::CpuBuffer, command_pool::TransientCommandPool, Device,
 };
 
 use anyhow::{Context, Result};
