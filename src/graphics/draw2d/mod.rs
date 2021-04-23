@@ -1,4 +1,4 @@
-mod atlas;
+pub mod atlas;
 mod commands;
 pub mod descriptor_sets;
 mod graphics_pipeline;
@@ -64,9 +64,7 @@ impl Draw2d {
             frame.descriptor.update_ubo(&UniformBufferObject {
                 projection: self.projection.into(),
             })?;
-            frame.descriptor.write_texture_descriptor(
-                &self.texture_atlas.build_descriptor_image_info(),
-            );
+            frame.descriptor.update_texture_atlas(&self.texture_atlas);
             frame.vertex_buffer.write_data(&self.vertices)?;
         }
 

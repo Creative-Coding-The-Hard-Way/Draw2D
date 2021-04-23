@@ -20,7 +20,17 @@ pub const MAX_SUPPORTED_TEXTURES: usize = 64;
 
 /// A struct which represents the texture atlas's binding revision.
 #[derive(Copy, Clone, Debug)]
-pub struct BindingRevision(usize);
+pub struct BindingRevision {
+    revision_count: u32,
+}
+
+impl BindingRevision {
+    /// A binding revision which will always be considered 'out_of_date'
+    /// relative to the atlas.
+    pub fn out_of_date() -> Self {
+        Self { revision_count: 0 }
+    }
+}
 
 /// A handle which can provide the texture index for a push constant.
 pub struct TextureHandle(u32);
@@ -49,6 +59,10 @@ pub struct TextureAtlas {
     /// This buffer is used to transfer data to the GPU when a texture is first
     /// added to the atlas.
     transfer_buffer: CpuBuffer,
+
+    /// The binding revision can be used to determine when a frame's
+    /// descriptors need to be updated.
+    binding_revision: BindingRevision,
 
     /// A handle to the vulkan device.
     device: Arc<Device>,
@@ -86,6 +100,7 @@ impl TextureAtlas {
                 "Texture Atlas Command Pool",
             )?,
             textures: vec![],
+            binding_revision: BindingRevision { revision_count: 1 },
             sampler,
             device,
         };
@@ -107,6 +122,17 @@ impl TextureAtlas {
     /// texel.
     pub fn default_texture(&self) -> TextureHandle {
         TextureHandle(0)
+    }
+
+    /// Get the current binding revision for the atlas.
+    pub fn current_revision(&self) -> BindingRevision {
+        self.binding_revision
+    }
+
+    /// Returns true when the provided revision is out of date when compared
+    /// to the atlas.
+    pub fn is_out_of_date(&self, revision: BindingRevision) -> bool {
+        self.binding_revision.revision_count != revision.revision_count
     }
 
     /// Add a texture to the atlas and return a texture handle.
@@ -146,6 +172,8 @@ impl TextureAtlas {
 
         self.textures.push(texture);
         let index = (self.textures.len() - 1) as u32;
+
+        self.binding_revision.revision_count += 1;
 
         Ok(TextureHandle(index))
     }

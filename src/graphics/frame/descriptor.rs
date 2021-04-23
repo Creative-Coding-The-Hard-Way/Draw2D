@@ -1,5 +1,6 @@
 use crate::graphics::{
     draw2d,
+    draw2d::atlas::{self, TextureAtlas},
     vulkan::{
         buffer::{Buffer, CpuBuffer},
         Device,
@@ -18,6 +19,8 @@ use ash::{version::DeviceV1_0, vk};
 /// because things like the uniform buffer can be updated in the render loop
 /// without any additional synchronization.
 pub struct FrameDescriptor {
+    atlas_revision: atlas::BindingRevision,
+
     ///! A Descriptor Pool is required for allocating a Descriptor Set.
     descriptor_pool: vk::DescriptorPool,
 
@@ -133,6 +136,7 @@ impl FrameDescriptor {
             descriptor_pool,
             descriptor_set_layout,
             descriptor_set,
+            atlas_revision: atlas::BindingRevision::out_of_date(),
 
             uniform_buffer,
 
@@ -153,12 +157,29 @@ impl FrameDescriptor {
         Ok(())
     }
 
+    /// Update the combined image sampler descriptor based on a texture atlas.
+    ///
+    /// Unsafe:  it is up to the caller to make sure the image sampler is not
+    ///          currently in use by the gpu. This should be safe to invoke in
+    ///          the middle of a frame's draw call.
+    pub unsafe fn update_texture_atlas(
+        &mut self,
+        texture_atlas: &TextureAtlas,
+    ) {
+        if texture_atlas.is_out_of_date(self.atlas_revision) {
+            self.write_texture_descriptor(
+                &texture_atlas.build_descriptor_image_info(),
+            );
+            self.atlas_revision = texture_atlas.current_revision();
+        }
+    }
+
     /// Update the combined image sampler descriptor.
     ///
     /// Unsafe:  it is up to the caller to make sure the image sampler is not
     ///          currently in use by the gpu. This should be safe to invoke in
     ///          the middle of a frame's draw call.
-    pub unsafe fn write_texture_descriptor(
+    unsafe fn write_texture_descriptor(
         &mut self,
         image_infos: &[vk::DescriptorImageInfo],
     ) {
