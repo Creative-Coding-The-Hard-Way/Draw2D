@@ -233,6 +233,7 @@ impl TextureImage {
 
 impl Drop for TextureImage {
     fn drop(&mut self) {
+        log::trace!("DESTROY TEXTURE");
         unsafe {
             self.device
                 .logical_device

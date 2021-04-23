@@ -160,15 +160,14 @@ impl FrameDescriptor {
     ///          the middle of a frame's draw call.
     pub unsafe fn write_texture_descriptor(
         &mut self,
-        image_info: vk::DescriptorImageInfo,
-        index: u32,
+        image_infos: &[vk::DescriptorImageInfo],
     ) {
         let descriptor_write = vk::WriteDescriptorSet::builder()
             .dst_set(self.descriptor_set)
             .dst_binding(1)
-            .dst_array_element(index)
+            .dst_array_element(0)
             .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-            .image_info(&[image_info])
+            .image_info(image_infos)
             .build();
         self.device
             .logical_device

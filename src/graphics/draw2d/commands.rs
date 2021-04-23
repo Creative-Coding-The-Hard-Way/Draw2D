@@ -66,7 +66,7 @@ pub fn record(draw2d: &Draw2d, frame: &mut Frame) -> Result<vk::CommandBuffer> {
             &offsets,
         );
 
-        let consts = PushConsts { texture_index: 2 };
+        let consts = PushConsts { texture_index: 1 };
         draw2d.device.logical_device.cmd_push_constants(
             command_buffer,
             draw2d.graphics_pipeline.pipeline_layout,
