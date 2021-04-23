@@ -1,5 +1,8 @@
 use crate::graphics::{
-    draw2d,
+    draw2d::{
+        self,
+        texture_atlas::{self, TextureAtlas},
+    },
     vulkan::{
         buffer::{Buffer, CpuBuffer},
         Device,
@@ -18,6 +21,8 @@ use ash::{version::DeviceV1_0, vk};
 /// because things like the uniform buffer can be updated in the render loop
 /// without any additional synchronization.
 pub struct FrameDescriptor {
+    atlas_revision: texture_atlas::BindingRevision,
+
     ///! A Descriptor Pool is required for allocating a Descriptor Set.
     descriptor_pool: vk::DescriptorPool,
 
@@ -44,16 +49,25 @@ impl FrameDescriptor {
         Name: Into<String>,
     {
         let owned_name = name.into();
-        let pool_sizes = [
-            vk::DescriptorPoolSize::builder()
-                .descriptor_count(1)
-                .ty(vk::DescriptorType::UNIFORM_BUFFER)
-                .build(),
-            vk::DescriptorPoolSize::builder()
-                .descriptor_count(80)
-                .ty(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-                .build(),
-        ];
+        let (descriptor_set_layout, bindings) = unsafe {
+            draw2d::descriptor_sets::create_descriptor_set_layout(&device)?
+        };
+        device.name_vulkan_object(
+            format!("{} - DescriptorSetLayout", owned_name.clone()),
+            vk::ObjectType::DESCRIPTOR_SET_LAYOUT,
+            &descriptor_set_layout,
+        )?;
+
+        // create a descriptor pool which exactly matches the number of bindings
+        let pool_sizes: Vec<vk::DescriptorPoolSize> = bindings
+            .iter()
+            .map(|binding| {
+                vk::DescriptorPoolSize::builder()
+                    .ty(binding.descriptor_type)
+                    .descriptor_count(binding.descriptor_count)
+                    .build()
+            })
+            .collect();
         let pool_create_info = vk::DescriptorPoolCreateInfo::builder()
             .pool_sizes(&pool_sizes)
             .max_sets(1)
@@ -67,15 +81,6 @@ impl FrameDescriptor {
             format!("{} - DescriptorPool", owned_name.clone()),
             vk::ObjectType::DESCRIPTOR_POOL,
             &descriptor_pool,
-        )?;
-
-        let descriptor_set_layout = unsafe {
-            draw2d::descriptor_sets::create_descriptor_set_layout(&device)?
-        };
-        device.name_vulkan_object(
-            format!("{} - DescriptorSetLayout", owned_name.clone()),
-            vk::ObjectType::DESCRIPTOR_SET_LAYOUT,
-            &descriptor_set_layout,
         )?;
 
         let descriptor_set_layouts = [descriptor_set_layout];
@@ -133,6 +138,7 @@ impl FrameDescriptor {
             descriptor_pool,
             descriptor_set_layout,
             descriptor_set,
+            atlas_revision: texture_atlas::BindingRevision::out_of_date(),
 
             uniform_buffer,
 
@@ -153,22 +159,38 @@ impl FrameDescriptor {
         Ok(())
     }
 
+    /// Update the combined image sampler descriptor based on a texture atlas.
+    ///
+    /// Unsafe:  it is up to the caller to make sure the image sampler is not
+    ///          currently in use by the gpu. This should be safe to invoke in
+    ///          the middle of a frame's draw call.
+    pub unsafe fn update_texture_atlas(
+        &mut self,
+        texture_atlas: &TextureAtlas,
+    ) {
+        if texture_atlas.is_out_of_date(self.atlas_revision) {
+            self.write_texture_descriptor(
+                &texture_atlas.build_descriptor_image_info(),
+            );
+            self.atlas_revision = texture_atlas.current_revision();
+        }
+    }
+
     /// Update the combined image sampler descriptor.
     ///
     /// Unsafe:  it is up to the caller to make sure the image sampler is not
     ///          currently in use by the gpu. This should be safe to invoke in
     ///          the middle of a frame's draw call.
-    pub unsafe fn write_texture_descriptor(
+    unsafe fn write_texture_descriptor(
         &mut self,
-        image_info: vk::DescriptorImageInfo,
-        index: u32,
+        image_infos: &[vk::DescriptorImageInfo],
     ) {
         let descriptor_write = vk::WriteDescriptorSet::builder()
             .dst_set(self.descriptor_set)
             .dst_binding(1)
-            .dst_array_element(index)
+            .dst_array_element(0)
             .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-            .image_info(&[image_info])
+            .image_info(image_infos)
             .build();
         self.device
             .logical_device

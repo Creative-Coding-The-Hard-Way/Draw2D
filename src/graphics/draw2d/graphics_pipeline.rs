@@ -1,5 +1,7 @@
-use super::{descriptor_sets, Vertex};
-use crate::graphics::vulkan::{shader_module::ShaderModule, Device, Swapchain};
+use super::{descriptor_sets, texture_atlas, Vertex};
+use crate::graphics::vulkan::{
+    ffi, shader_module::ShaderModule, Device, Swapchain,
+};
 
 use anyhow::{Context, Result};
 use ash::{version::DeviceV1_0, vk};
@@ -40,9 +42,22 @@ impl GraphicsPipeline {
             .stage(vk::ShaderStageFlags::VERTEX)
             .module(vertex_module.shader_module)
             .name(&entry);
+
+        let fragment_specialization_info = vk::SpecializationInfo::builder()
+            .map_entries(&[vk::SpecializationMapEntry {
+                constant_id: 0,
+                offset: 0,
+                size: std::mem::size_of::<u32>(),
+                ..Default::default()
+            }])
+            .data(unsafe {
+                ffi::any_as_u8_slice(&texture_atlas::MAX_SUPPORTED_TEXTURES)
+            })
+            .build();
         let fragment_create_info = vk::PipelineShaderStageCreateInfo::builder()
             .stage(vk::ShaderStageFlags::FRAGMENT)
             .module(fragment_module.shader_module)
+            .specialization_info(&fragment_specialization_info)
             .name(&entry);
 
         // Fixed Function Configuration
@@ -123,7 +138,7 @@ impl GraphicsPipeline {
             .blend_constants([0.0, 0.0, 0.0, 0.0])
             .attachments(blend_attachments);
 
-        let descriptor_set_layout =
+        let (descriptor_set_layout, _bindings) =
             unsafe { descriptor_sets::create_descriptor_set_layout(&device)? };
         device.name_vulkan_object(
             "Graphics Pipeline Descriptor Set Layout",

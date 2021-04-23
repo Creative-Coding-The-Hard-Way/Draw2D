@@ -1,5 +1,7 @@
 use std::mem::size_of;
 
+use super::texture_atlas;
+
 use crate::graphics::vulkan::Device;
 
 use anyhow::Result;
@@ -30,15 +32,14 @@ pub struct PushConsts {
 ///          destroying it when it is no longer being used.
 pub unsafe fn create_descriptor_set_layout(
     device: &Device,
-) -> Result<vk::DescriptorSetLayout> {
-    let bindings = [ubo_layout_binding(), sampler_layout_binding()];
+) -> Result<(vk::DescriptorSetLayout, Vec<vk::DescriptorSetLayoutBinding>)> {
+    let bindings = vec![ubo_layout_binding(), sampler_layout_binding()];
     let descriptor_set_layout =
         device.logical_device.create_descriptor_set_layout(
             &vk::DescriptorSetLayoutCreateInfo::builder().bindings(&bindings),
             None,
         )?;
-
-    Ok(descriptor_set_layout)
+    Ok((descriptor_set_layout, bindings))
 }
 
 /// Create the push constant range definition for the graphics pipeline.
@@ -64,7 +65,7 @@ fn ubo_layout_binding() -> vk::DescriptorSetLayoutBinding {
 fn sampler_layout_binding() -> vk::DescriptorSetLayoutBinding {
     vk::DescriptorSetLayoutBinding::builder()
         .binding(1)
-        .descriptor_count(80)
+        .descriptor_count(texture_atlas::MAX_SUPPORTED_TEXTURES as u32)
         .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
         .stage_flags(vk::ShaderStageFlags::FRAGMENT)
         .build()
