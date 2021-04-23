@@ -1,4 +1,4 @@
-use super::{atlas, descriptor_sets, Vertex};
+use super::{descriptor_sets, texture_atlas, Vertex};
 use crate::graphics::vulkan::{
     ffi, shader_module::ShaderModule, Device, Swapchain,
 };
@@ -51,7 +51,7 @@ impl GraphicsPipeline {
                 ..Default::default()
             }])
             .data(unsafe {
-                ffi::any_as_u8_slice(&atlas::MAX_SUPPORTED_TEXTURES)
+                ffi::any_as_u8_slice(&texture_atlas::MAX_SUPPORTED_TEXTURES)
             })
             .build();
         let fragment_create_info = vk::PipelineShaderStageCreateInfo::builder()

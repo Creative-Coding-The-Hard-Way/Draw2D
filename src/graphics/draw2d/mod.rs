@@ -1,12 +1,12 @@
-pub mod atlas;
 mod commands;
 pub mod descriptor_sets;
 mod graphics_pipeline;
+pub mod texture_atlas;
 mod vertex;
 
 pub use self::{descriptor_sets::UniformBufferObject, vertex::Vertex};
 
-use self::{atlas::TextureAtlas, graphics_pipeline::GraphicsPipeline};
+use self::{graphics_pipeline::GraphicsPipeline, texture_atlas::TextureAtlas};
 use super::Frame;
 
 use crate::graphics::vulkan::{Device, Swapchain};
