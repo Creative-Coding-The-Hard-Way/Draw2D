@@ -1,5 +1,5 @@
 use crate::graphics::{
-    vulkan::{Device, Swapchain},
+    vulkan::{Device, Swapchain, WindowSurface},
     Draw2d, Frame,
 };
 
@@ -118,12 +118,15 @@ impl FrameContext {
     /// rebuild the swapchain.
     ///
     /// Returns a clone of the swapchain which can be used by other systems.
-    pub fn rebuild_swapchain(&mut self) -> Result<Arc<Swapchain>> {
+    pub fn rebuild_swapchain(
+        &mut self,
+        window_surface: &dyn WindowSurface,
+    ) -> Result<Arc<Swapchain>> {
         unsafe {
             self.device.logical_device.device_wait_idle()?;
             self.frames_in_flight.clear();
         }
-        self.swapchain = self.swapchain.rebuild()?;
+        self.swapchain = self.swapchain.rebuild(window_surface)?;
         self.frames_in_flight =
             Frame::create_n_frames(&self.device, &self.swapchain.framebuffers)?;
         self.swapchain_state = SwapchainState::Ok;

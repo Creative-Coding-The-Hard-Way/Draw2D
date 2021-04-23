@@ -27,8 +27,6 @@ pub struct Swapchain {
     pub format: vk::Format,
     pub color_space: vk::ColorSpaceKHR,
 
-    pub window_surface: Arc<dyn WindowSurface>,
-
     device: Arc<Device>,
 }
 
@@ -37,23 +35,23 @@ impl Swapchain {
     /// current size of the framebuffer.
     pub fn new(
         device: Arc<Device>,
-        window_surface: Arc<dyn WindowSurface>,
+        window_surface: &dyn WindowSurface,
         previous: Option<&Swapchain>,
     ) -> Result<Arc<Self>> {
         let image_format = selection::choose_surface_format(
-            window_surface.as_ref(),
+            window_surface,
             &device.physical_device,
         );
         let present_mode = selection::choose_present_mode(
-            window_surface.as_ref(),
+            window_surface,
             &device.physical_device,
         );
         let extent = selection::choose_swap_extent(
-            window_surface.as_ref(),
+            window_surface,
             &device.physical_device,
         )?;
         let image_count = selection::choose_image_count(
-            window_surface.as_ref(),
+            window_surface,
             &device.physical_device,
         )?;
 
@@ -131,18 +129,16 @@ impl Swapchain {
             extent,
             format: image_format.format,
             color_space: image_format.color_space,
-            window_surface,
             device,
         }))
     }
 
     /// Rebuild a new swapchain using this swapchain as a reference.
-    pub fn rebuild(&self) -> Result<Arc<Self>> {
-        Self::new(
-            self.device.clone(),
-            self.window_surface.clone(),
-            Some(&self),
-        )
+    pub fn rebuild(
+        &self,
+        window_surface: &dyn WindowSurface,
+    ) -> Result<Arc<Self>> {
+        Self::new(self.device.clone(), window_surface, Some(&self))
     }
 }
 
