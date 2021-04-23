@@ -3,7 +3,6 @@ use crate::graphics::{vulkan, vulkan::Instance};
 use anyhow::{bail, Context, Result};
 use ash::{extensions::khr::Surface, version::InstanceV1_0, vk, vk::Handle};
 use std::{
-    cell::RefCell,
     ptr::null,
     sync::{mpsc::Receiver, Arc},
 };
@@ -12,23 +11,23 @@ pub type EventReceiver = Receiver<(f64, glfw::WindowEvent)>;
 
 /// Resources required for rendering to a single GLFW window.
 pub struct GlfwWindow {
+    /// The glfw library instance
+    pub glfw: glfw::Glfw,
+
+    /// The glfw window
+    pub window: glfw::Window,
+
+    /// The event reciever. Usually consumed by the application's main loop.
+    pub event_receiver: EventReceiver,
+
     /// The raw vulkan surface handle
     surface: vk::SurfaceKHR,
 
     /// Extension functions for interacting with the surface
     surface_loader: Surface,
 
-    /// The glfw library instance
-    pub glfw: RefCell<glfw::Glfw>,
-
-    /// The glfw window
-    pub window: RefCell<glfw::Window>,
-
-    /// The event reciever. Usually consumed by the application's main loop.
-    pub event_receiver: RefCell<Option<EventReceiver>>,
-
     /// The instance must not be destroyed before the WindowSurface
-    pub instance: Arc<Instance>,
+    instance: Arc<Instance>,
 }
 
 impl GlfwWindow {
@@ -53,7 +52,7 @@ impl GlfwWindow {
     ///     Ok((window, event_receiver))
     /// })?;
     /// ```
-    pub fn new<F>(create_window: F) -> Result<Arc<Self>>
+    pub fn new<F>(create_window: F) -> Result<Self>
     where
         F: FnOnce(&mut glfw::Glfw) -> Result<(glfw::Window, EventReceiver)>,
     {
@@ -71,21 +70,21 @@ impl GlfwWindow {
         let surface = Self::create_surface(&instance, &window)?;
         let surface_loader = Surface::new(&instance.entry, &instance.ash);
 
-        Ok(Arc::new(Self {
+        Ok(Self {
             surface,
             surface_loader,
 
-            glfw: RefCell::new(glfw),
-            window: RefCell::new(window),
-            event_receiver: RefCell::new(Some(event_receiver)),
+            glfw,
+            window,
+            event_receiver,
 
             instance,
-        }))
+        })
     }
 
     /// Create a new fullscreen window using the primary monitor.
     #[allow(dead_code)]
-    pub fn fullscreen(title: &str) -> Result<Arc<Self>> {
+    pub fn fullscreen(title: &str) -> Result<Self> {
         GlfwWindow::new(|glfw| {
             let (window, event_receiver) = glfw
                 .with_primary_monitor(|glfw, main_monitor| {
@@ -115,23 +114,19 @@ impl GlfwWindow {
 
     /// Create a new non-fullscreen window.
     #[allow(dead_code)]
-    pub fn windowed(title: &str, width: u32, height: u32) -> Result<Arc<Self>> {
+    pub fn windowed(title: &str, width: u32, height: u32) -> Result<Self> {
         GlfwWindow::new(|glfw| {
             glfw.create_window(width, height, title, glfw::WindowMode::Windowed)
                 .context("unable to create glfw window")
         })
     }
 
-    /// Apply some operation to the glfw window.
-    ///
-    /// Typically this is used to configure GLFW's polling and other window
-    /// settings.
-    pub fn with_window<F>(&self, action: F) -> Result<()>
-    where
-        F: FnOnce(&mut glfw::Window) -> Result<()>,
-    {
-        let mut window = self.window.borrow_mut();
-        action(&mut window)
+    /// Poll glfw for window events
+    pub fn poll_events(&mut self) -> Vec<(f64, glfw::WindowEvent)> {
+        self.glfw.poll_events();
+        glfw::flush_messages(&self.event_receiver)
+            .into_iter()
+            .collect()
     }
 
     /// Build a vulkan-enabled glfw window, using the provided create_window
@@ -182,7 +177,7 @@ impl vulkan::WindowSurface for GlfwWindow {
     /// The size is in physical pixels and is meant to be used directly in the
     /// swapchain extent.
     fn framebuffer_size(&self) -> (u32, u32) {
-        let (iwidth, iheight) = self.window.borrow().get_framebuffer_size();
+        let (iwidth, iheight) = self.window.get_framebuffer_size();
         (iwidth as u32, iheight as u32)
     }
 

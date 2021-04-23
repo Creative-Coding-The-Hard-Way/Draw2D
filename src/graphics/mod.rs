@@ -12,8 +12,6 @@ pub use self::{
 
 use self::vulkan::{Device, Swapchain, WindowSurface};
 
-use std::sync::Arc;
-
 use anyhow::Result;
 
 /// The application's graphics subsystem.
@@ -27,10 +25,9 @@ pub struct Graphics {
 
 impl Graphics {
     /// Instantiate the graphics subsystem.
-    pub fn new(window_surface: Arc<dyn WindowSurface>) -> Result<Self> {
-        let device = Device::new(window_surface.clone())?;
-        let swapchain =
-            Swapchain::new(device.clone(), window_surface.clone(), None)?;
+    pub fn new(window_surface: &dyn WindowSurface) -> Result<Self> {
+        let device = Device::new(window_surface)?;
+        let swapchain = Swapchain::new(device.clone(), window_surface, None)?;
 
         let frame_context =
             FrameContext::new(device.clone(), swapchain.clone())?;
@@ -43,18 +40,21 @@ impl Graphics {
     }
 
     /// Render a single frame to the screen.
-    pub fn render(&mut self) -> Result<()> {
+    pub fn render(&mut self, window_surface: &dyn WindowSurface) -> Result<()> {
         let swapchain_state = self.frame_context.draw_frame(&self.draw2d)?;
         if swapchain_state == SwapchainState::NeedsRebuild {
-            self.rebuild_swapchain()?;
+            self.rebuild_swapchain(window_surface)?;
         }
         Ok(())
     }
 
     /// Replace the swapchain and all dependent resources in the Triangle
     /// subsystem.
-    pub fn rebuild_swapchain(&mut self) -> Result<()> {
-        let swapchain = self.frame_context.rebuild_swapchain()?;
+    pub fn rebuild_swapchain(
+        &mut self,
+        window_surface: &dyn WindowSurface,
+    ) -> Result<()> {
+        let swapchain = self.frame_context.rebuild_swapchain(window_surface)?;
         self.draw2d.replace_swapchain(swapchain)?;
         Ok(())
     }

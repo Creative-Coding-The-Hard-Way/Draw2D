@@ -13,29 +13,25 @@ use crate::graphics::{Graphics, Vertex};
 use glfw_window::GlfwWindow;
 
 use anyhow::Result;
-use std::sync::Arc;
 
 /// The main application.
 ///
 /// The Application has a window, a render context, and one or more systems
 /// which can render to a frame when presented by the render context.
 pub struct Application {
-    window_surface: Arc<GlfwWindow>,
     graphics: Graphics,
+    window_surface: GlfwWindow,
 }
 
 impl Application {
     /// Build a new instance of the application.
     pub fn new() -> Result<Self> {
-        let window_surface = GlfwWindow::windowed("Draw2D", 1366, 768)?;
-        window_surface.with_window(|window| {
-            window.set_resizable(true);
-            window.set_key_polling(true);
-            window.set_size_polling(true);
-            Ok(())
-        })?;
+        let mut window_surface = GlfwWindow::windowed("Draw2D", 1366, 768)?;
+        window_surface.window.set_resizable(true);
+        window_surface.window.set_key_polling(true);
+        window_surface.window.set_size_polling(true);
         Ok(Self {
-            graphics: Graphics::new(window_surface.clone())?,
+            graphics: Graphics::new(&window_surface)?,
             window_surface,
         })
     }
@@ -90,21 +86,13 @@ impl Application {
 
     /// Run the application, blocks until the main event loop exits.
     pub fn run(mut self) -> Result<()> {
-        let events = self
-            .window_surface
-            .event_receiver
-            .borrow_mut()
-            .take()
-            .unwrap();
         self.init();
-        while !self.window_surface.window.borrow().should_close() {
-            self.window_surface.glfw.borrow_mut().poll_events();
-            for (_, event) in glfw::flush_messages(&events) {
-                log::debug!("{:?}", event);
+        while !self.window_surface.window.should_close() {
+            for (_, event) in self.window_surface.poll_events() {
                 self.handle_event(event)?;
             }
             self.update();
-            self.graphics.render()?;
+            self.graphics.render(&self.window_surface)?;
         }
         Ok(())
     }
@@ -118,15 +106,11 @@ impl Application {
                 glfw::Action::Press,
                 _,
             ) => {
-                self.window_surface
-                    .window
-                    .borrow_mut()
-                    .set_should_close(true);
+                self.window_surface.window.set_should_close(true);
             }
 
             glfw::WindowEvent::FramebufferSize(_, _) => {
-                log::info!("resized");
-                self.graphics.rebuild_swapchain()?;
+                self.graphics.rebuild_swapchain(&self.window_surface)?;
             }
 
             _ => {}

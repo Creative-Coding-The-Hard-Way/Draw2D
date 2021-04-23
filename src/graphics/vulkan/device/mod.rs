@@ -28,9 +28,6 @@ pub struct Device {
     pub graphics_queue: Arc<Queue>,
     pub present_queue: Arc<Queue>,
 
-    /// A reference to the window surface used to create this device
-    pub window_surface: Arc<dyn WindowSurface>,
-
     /// The Vulkan library instance used to create this device
     pub instance: Arc<Instance>,
 }
@@ -38,14 +35,13 @@ pub struct Device {
 impl Device {
     /// Create a new device based on this application's required features and
     /// properties.
-    pub fn new(window_surface: Arc<dyn WindowSurface>) -> Result<Arc<Device>> {
+    pub fn new(window_surface: &dyn WindowSurface) -> Result<Arc<Device>> {
         let instance = window_surface.clone_vulkan_instance();
-        let physical_device =
-            pick_physical_device(&instance, window_surface.as_ref())?;
+        let physical_device = pick_physical_device(&instance, window_surface)?;
         let queue_family_indices = QueueFamilyIndices::find(
             &physical_device,
             &instance.ash,
-            window_surface.as_ref(),
+            window_surface,
         )?;
         let logical_device = create_logical_device(
             &instance,
@@ -60,7 +56,6 @@ impl Device {
             logical_device,
             graphics_queue,
             present_queue,
-            window_surface,
             instance,
         });
 
