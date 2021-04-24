@@ -9,7 +9,7 @@
 
 mod glfw_window;
 
-use crate::graphics::{Graphics, Vertex};
+use crate::graphics::{draw2d::Layer, Graphics, Vertex};
 use glfw_window::GlfwWindow;
 
 use anyhow::Result;
@@ -36,57 +36,106 @@ impl Application {
         })
     }
 
-    fn init(&mut self) {}
+    fn init(&mut self) -> Result<()> {
+        let add_square = |layer: &mut Layer, size: f32| {
+            layer.push_vertices(&[
+                // top left
+                Vertex {
+                    pos: [-size, -size],
+                    uv: [0.0, 0.0],
+                    ..Default::default()
+                },
+                // top right
+                Vertex {
+                    pos: [size, -size],
+                    uv: [1.0, 0.0],
+                    ..Default::default()
+                },
+                // bottom right
+                Vertex {
+                    pos: [size, size],
+                    uv: [1.0, 1.0],
+                    ..Default::default()
+                },
+                // top left
+                Vertex {
+                    pos: [-size, -size],
+                    uv: [0.0, 0.0],
+                    ..Default::default()
+                },
+                // bottom right
+                Vertex {
+                    pos: [size, size],
+                    uv: [1.0, 1.0],
+                    ..Default::default()
+                },
+                // bottom left
+                Vertex {
+                    pos: [-size, size],
+                    uv: [0.0, 1.0],
+                    ..Default::default()
+                },
+            ]);
+        };
 
-    fn update(&mut self) {
-        self.graphics.draw2d.vertices.clear();
+        let texture_handle = self
+            .graphics
+            .draw2d
+            .texture_atlas
+            .add_texture("assets/example.png")?;
 
-        // top left
-        self.graphics.draw2d.vertices.push(Vertex {
-            pos: [-0.75, -0.75],
-            uv: [0.0, 0.0],
-            ..Default::default()
-        });
+        // background
+        {
+            let layer_handle =
+                self.graphics.draw2d.layer_stack.add_layer_to_bottom();
+            let layer = self
+                .graphics
+                .draw2d
+                .layer_stack
+                .get_layer_mut(&layer_handle)
+                .unwrap();
+            layer.set_texture(texture_handle);
 
-        // top right
-        self.graphics.draw2d.vertices.push(Vertex {
-            pos: [0.75, -0.75],
-            uv: [1.0, 0.0],
-            ..Default::default()
-        });
+            add_square(layer, 0.75);
+        }
 
-        // bottom right
-        self.graphics.draw2d.vertices.push(Vertex {
-            pos: [0.75, 0.75],
-            uv: [1.0, 1.0],
-            ..Default::default()
-        });
+        // foreground
+        {
+            let layer_handle =
+                self.graphics.draw2d.layer_stack.add_layer_to_top();
+            let layer = self
+                .graphics
+                .draw2d
+                .layer_stack
+                .get_layer_mut(&layer_handle)
+                .unwrap();
 
-        // top left
-        self.graphics.draw2d.vertices.push(Vertex {
-            pos: [-0.75, -0.75],
-            uv: [0.0, 0.0],
-            ..Default::default()
-        });
+            add_square(layer, 0.36);
+        }
 
-        // bottom right
-        self.graphics.draw2d.vertices.push(Vertex {
-            pos: [0.75, 0.75],
-            uv: [1.0, 1.0],
-            ..Default::default()
-        });
+        // (even more) foreground
+        {
+            let layer_handle =
+                self.graphics.draw2d.layer_stack.add_layer_to_top();
+            let layer = self
+                .graphics
+                .draw2d
+                .layer_stack
+                .get_layer_mut(&layer_handle)
+                .unwrap();
+            layer.set_texture(texture_handle);
 
-        // bottom left
-        self.graphics.draw2d.vertices.push(Vertex {
-            pos: [-0.75, 0.75],
-            uv: [0.0, 1.0],
-            ..Default::default()
-        });
+            add_square(layer, 0.15);
+        }
+
+        Ok(())
     }
+
+    fn update(&mut self) {}
 
     /// Run the application, blocks until the main event loop exits.
     pub fn run(mut self) -> Result<()> {
-        self.init();
+        self.init()?;
         while !self.window_surface.window.should_close() {
             for (_, event) in self.window_surface.poll_events() {
                 self.handle_event(event)?;

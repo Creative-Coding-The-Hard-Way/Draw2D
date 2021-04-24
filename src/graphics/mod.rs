@@ -1,6 +1,6 @@
 pub mod vulkan;
 
-mod draw2d;
+pub mod draw2d;
 mod frame;
 mod frame_context;
 

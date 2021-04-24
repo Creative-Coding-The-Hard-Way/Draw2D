@@ -33,6 +33,7 @@ impl BindingRevision {
 }
 
 /// A handle which can provide the texture index for a push constant.
+#[derive(Copy, Clone, Debug)]
 pub struct TextureHandle(u32);
 
 impl TextureHandle {
@@ -41,6 +42,13 @@ impl TextureHandle {
     pub fn texture_index(&self) -> u32 {
         let TextureHandle(index) = self;
         *index
+    }
+}
+
+impl Default for TextureHandle {
+    /// Return a texture handle which will always refer to a all-white texture
+    fn default() -> Self {
+        TextureHandle(0)
     }
 }
 
@@ -116,12 +124,6 @@ impl TextureAtlas {
         atlas.textures.push(default_texture);
 
         Ok(atlas)
-    }
-
-    /// Return a handle to the default texture which is just a single white
-    /// texel.
-    pub fn default_texture(&self) -> TextureHandle {
-        TextureHandle(0)
     }
 
     /// Get the current binding revision for the atlas.

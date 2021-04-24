@@ -1,10 +1,16 @@
 mod commands;
 pub mod descriptor_sets;
 mod graphics_pipeline;
+mod layer;
 pub mod texture_atlas;
 mod vertex;
 
-pub use self::{descriptor_sets::UniformBufferObject, vertex::Vertex};
+pub use self::{
+    descriptor_sets::UniformBufferObject,
+    layer::{Layer, LayerHandle, StackedLayers},
+    texture_atlas::TextureHandle,
+    vertex::Vertex,
+};
 
 use self::{graphics_pipeline::GraphicsPipeline, texture_atlas::TextureAtlas};
 use super::Frame;
@@ -19,10 +25,11 @@ type Mat4 = nalgebra::Matrix4<f32>;
 
 /// Resources used to render triangles
 pub struct Draw2d {
-    projection: Mat4,
-    pub vertices: Vec<Vertex>,
+    pub layer_stack: StackedLayers,
+    pub texture_atlas: TextureAtlas,
 
-    texture_atlas: TextureAtlas,
+    projection: Mat4,
+
     graphics_pipeline: Arc<GraphicsPipeline>,
     swapchain: Arc<Swapchain>,
     device: Arc<Device>,
@@ -33,11 +40,10 @@ impl Draw2d {
     /// single frame.
     pub fn new(device: Arc<Device>, swapchain: Arc<Swapchain>) -> Result<Self> {
         let graphics_pipeline = GraphicsPipeline::new(&device, &swapchain)?;
-        let mut texture_atlas = TextureAtlas::new(device.clone())?;
-        texture_atlas.add_texture("assets/example.png")?;
+        let texture_atlas = TextureAtlas::new(device.clone())?;
         Ok(Self {
             texture_atlas,
-            vertices: vec![],
+            layer_stack: StackedLayers::default(),
             graphics_pipeline,
             projection: Self::ortho(2.0, swapchain.extent),
             swapchain,
@@ -65,7 +71,13 @@ impl Draw2d {
                 projection: self.projection.into(),
             })?;
             frame.descriptor.update_texture_atlas(&self.texture_atlas);
-            frame.vertex_buffer.write_data(&self.vertices)?;
+            let all_vertices: Vec<&[Vertex]> = self
+                .layer_stack
+                .layers()
+                .iter()
+                .map(|layer| layer.vertices())
+                .collect();
+            frame.vertex_buffer.write_data_arrays(&all_vertices)?;
         }
 
         let graphics_commands = commands::record(self, frame)?;
