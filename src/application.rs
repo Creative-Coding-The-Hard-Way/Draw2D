@@ -9,7 +9,7 @@
 
 mod glfw_window;
 
-use crate::graphics::{draw2d::Layer, Graphics, Vertex};
+use crate::graphics::{Graphics, Layer, Vertex};
 use glfw_window::GlfwWindow;
 
 use anyhow::Result;
@@ -78,54 +78,29 @@ impl Application {
             ]);
         };
 
-        let texture_handle = self
-            .graphics
-            .draw2d
-            .texture_atlas
-            .add_texture("assets/example.png")?;
+        let texture_handle = self.graphics.add_texture("assets/example.png")?;
 
         // background
         {
-            let layer_handle =
-                self.graphics.draw2d.layer_stack.add_layer_to_bottom();
-            let layer = self
-                .graphics
-                .draw2d
-                .layer_stack
-                .get_layer_mut(&layer_handle)
-                .unwrap();
+            let layer_handle = self.graphics.add_layer_to_bottom();
+            let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
             layer.set_texture(texture_handle);
-
-            add_square(layer, 0.75);
+            add_square(layer, 200.0);
         }
 
         // foreground
         {
-            let layer_handle =
-                self.graphics.draw2d.layer_stack.add_layer_to_top();
-            let layer = self
-                .graphics
-                .draw2d
-                .layer_stack
-                .get_layer_mut(&layer_handle)
-                .unwrap();
-
-            add_square(layer, 0.36);
+            let layer_handle = self.graphics.add_layer_to_top();
+            let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
+            add_square(layer, 128.0);
         }
 
         // (even more) foreground
         {
-            let layer_handle =
-                self.graphics.draw2d.layer_stack.add_layer_to_top();
-            let layer = self
-                .graphics
-                .draw2d
-                .layer_stack
-                .get_layer_mut(&layer_handle)
-                .unwrap();
+            let layer_handle = self.graphics.add_layer_to_top();
+            let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
             layer.set_texture(texture_handle);
-
-            add_square(layer, 0.15);
+            add_square(layer, 40.0);
         }
 
         Ok(())

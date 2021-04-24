@@ -1,8 +1,9 @@
+pub(super) mod descriptor_sets;
+pub(super) mod layer;
+pub(super) mod texture_atlas;
+
 mod commands;
-pub mod descriptor_sets;
 mod graphics_pipeline;
-mod layer;
-pub mod texture_atlas;
 mod vertex;
 
 pub use self::{
@@ -45,7 +46,7 @@ impl Draw2d {
             texture_atlas,
             layer_stack: StackedLayers::default(),
             graphics_pipeline,
-            projection: Self::ortho(2.0, swapchain.extent),
+            projection: Self::ortho(swapchain.extent),
             swapchain,
             device,
         })
@@ -58,7 +59,7 @@ impl Draw2d {
         self.swapchain = swapchain;
         self.graphics_pipeline =
             GraphicsPipeline::new(&self.device, &self.swapchain)?;
-        self.projection = Self::ortho(2.0, self.swapchain.extent);
+        self.projection = Self::ortho(self.swapchain.extent);
         Ok(())
     }
 
@@ -89,13 +90,14 @@ impl Draw2d {
     /// Build a orthographic projection using an extent to compute the aspect
     /// ratio for the screen. The height is fixed and the width varies to account
     /// for the aspect ratio.
-    fn ortho(screen_height: f32, extent: vk::Extent2D) -> Mat4 {
-        let aspect = extent.width as f32 / extent.height as f32;
+    fn ortho(extent: vk::Extent2D) -> Mat4 {
+        let width = extent.width as f32;
+        let height = extent.height as f32;
         Mat4::new_orthographic(
-            -aspect * screen_height / 2.0,
-            aspect * screen_height / 2.0,
-            -screen_height / 2.0,
-            screen_height / 2.0,
+            -width / 2.0,
+            width / 2.0,
+            -height / 2.0,
+            height / 2.0,
             1.0,
             -1.0,
         )
