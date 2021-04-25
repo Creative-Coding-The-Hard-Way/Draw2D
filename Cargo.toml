@@ -1,8 +1,9 @@
 [package]
-name = "ash_starter"
+name = "draw2d"
 version = "0.1.0"
 authors = ["Bradley Lyman <lyman.brad3211@gmail.com>"]
 edition = "2018"
+build = "build.rs"
 
 [dependencies]
 anyhow = "1.0.38"

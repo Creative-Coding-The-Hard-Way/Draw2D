@@ -59,22 +59,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ash_starter"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "aquamarine",
- "ash",
- "flexi_logger",
- "glfw",
- "image",
- "log",
- "memoffset",
- "nalgebra",
- "textwrap",
-]
-
-[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -211,6 +195,22 @@ checksum = "73770f8e1fe7d64df17ca66ad28994a0a623ea497fa69486e14984e715c5d174"
 dependencies = [
  "adler32",
  "byteorder",
+]
+
+[[package]]
+name = "draw2d"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "aquamarine",
+ "ash",
+ "flexi_logger",
+ "glfw",
+ "image",
+ "log",
+ "memoffset",
+ "nalgebra",
+ "textwrap",
 ]
 
 [[package]]
