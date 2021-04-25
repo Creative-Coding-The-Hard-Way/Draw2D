@@ -1,6 +1,6 @@
-pub(super) mod descriptor_sets;
-pub(super) mod layer;
-pub(super) mod texture_atlas;
+pub(crate) mod descriptor_sets;
+pub(crate) mod layer;
+pub(crate) mod texture_atlas;
 
 mod commands;
 mod graphics_pipeline;

@@ -4,14 +4,6 @@
 //! debug callback. This is convenient because the application needs to hold
 //! references to all of this data, but it's unwieldy to have separate handles
 //! to each constantly floating around.
-//!
-//! # Example
-//!
-//! ```
-//! let instance = Instance::new(
-//!     &glfw.get_required_instance_extensions().unwrap()
-//! )?;
-//! ```
 
 mod extensions;
 mod layers;
