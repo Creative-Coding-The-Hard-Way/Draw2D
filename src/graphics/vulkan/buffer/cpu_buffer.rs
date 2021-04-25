@@ -42,18 +42,39 @@ impl CpuBuffer {
     /// HOST_COHERENT.
     pub unsafe fn write_data<T>(&mut self, data: &[T]) -> Result<()>
     where
-        T: Sized,
+        T: Sized + Copy + std::fmt::Debug,
     {
-        self.resize((std::mem::size_of::<T>() * data.len()) as u64)?;
+        self.write_data_arrays(&[data])?;
 
-        let ptr = self.buffer.device.logical_device.map_memory(
+        Ok(())
+    }
+
+    pub unsafe fn write_data_arrays<T>(
+        &mut self,
+        data_arrays: &[&[T]],
+    ) -> Result<()>
+    where
+        T: Sized + Copy + std::fmt::Debug,
+    {
+        let entry_size = std::mem::size_of::<T>();
+        let total_count: usize =
+            data_arrays.iter().map(|entry| entry.len()).sum();
+        let total_size = total_count * entry_size;
+
+        self.resize(total_size as u64)?;
+
+        let mut ptr = self.buffer.device.logical_device.map_memory(
             self.buffer.memory(),
             0,
             self.written_size,
             vk::MemoryMapFlags::empty(),
-        )?;
+        )? as *mut T;
 
-        std::ptr::copy_nonoverlapping(data.as_ptr(), ptr as *mut T, data.len());
+        for entry in data_arrays {
+            let mapped_slice = std::slice::from_raw_parts_mut(ptr, entry.len());
+            mapped_slice.copy_from_slice(entry);
+            ptr = ptr.offset(entry.len() as isize);
+        }
 
         self.buffer
             .device

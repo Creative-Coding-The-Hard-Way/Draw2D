@@ -9,7 +9,7 @@
 
 mod glfw_window;
 
-use crate::graphics::{Graphics, Vertex};
+use crate::graphics::{Graphics, Layer, LayerHandle, Vertex};
 use glfw_window::GlfwWindow;
 
 use anyhow::Result;
@@ -21,6 +21,7 @@ use anyhow::Result;
 pub struct Application {
     graphics: Graphics,
     window_surface: GlfwWindow,
+    layer: Option<LayerHandle>,
 }
 
 impl Application {
@@ -33,60 +34,45 @@ impl Application {
         Ok(Self {
             graphics: Graphics::new(&window_surface)?,
             window_surface,
+            layer: None,
         })
     }
 
-    fn init(&mut self) {}
+    fn init(&mut self) -> Result<()> {
+        let texture_handle = self.graphics.add_texture("assets/example.png")?;
 
-    fn update(&mut self) {
-        self.graphics.draw2d.vertices.clear();
+        // background
+        {
+            let layer_handle = self.graphics.add_layer_to_bottom();
+            let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
+            layer.set_texture(texture_handle);
+            layer.add_square(200.0);
+        }
 
-        // top left
-        self.graphics.draw2d.vertices.push(Vertex {
-            pos: [-0.75, -0.75],
-            uv: [0.0, 0.0],
-            ..Default::default()
-        });
+        // foreground
+        {
+            let layer_handle = self.graphics.add_layer_to_top();
+            let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
+            layer.add_square(128.0);
+        }
 
-        // top right
-        self.graphics.draw2d.vertices.push(Vertex {
-            pos: [0.75, -0.75],
-            uv: [1.0, 0.0],
-            ..Default::default()
-        });
+        // (even more) foreground
+        {
+            let layer_handle = self.graphics.add_layer_to_top();
+            self.layer = Some(layer_handle);
+            let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
+            layer.set_texture(texture_handle);
+            layer.add_square(40.0);
+        }
 
-        // bottom right
-        self.graphics.draw2d.vertices.push(Vertex {
-            pos: [0.75, 0.75],
-            uv: [1.0, 1.0],
-            ..Default::default()
-        });
-
-        // top left
-        self.graphics.draw2d.vertices.push(Vertex {
-            pos: [-0.75, -0.75],
-            uv: [0.0, 0.0],
-            ..Default::default()
-        });
-
-        // bottom right
-        self.graphics.draw2d.vertices.push(Vertex {
-            pos: [0.75, 0.75],
-            uv: [1.0, 1.0],
-            ..Default::default()
-        });
-
-        // bottom left
-        self.graphics.draw2d.vertices.push(Vertex {
-            pos: [-0.75, 0.75],
-            uv: [0.0, 1.0],
-            ..Default::default()
-        });
+        Ok(())
     }
+
+    fn update(&mut self) {}
 
     /// Run the application, blocks until the main event loop exits.
     pub fn run(mut self) -> Result<()> {
-        self.init();
+        self.init()?;
         while !self.window_surface.window.should_close() {
             for (_, event) in self.window_surface.poll_events() {
                 self.handle_event(event)?;
@@ -117,5 +103,52 @@ impl Application {
         }
 
         Ok(())
+    }
+}
+
+trait Quads {
+    fn add_square(&mut self, size: f32);
+}
+
+impl Quads for Layer {
+    fn add_square(&mut self, size: f32) {
+        self.push_vertices(&[
+            // top left
+            Vertex {
+                pos: [-size, -size],
+                uv: [0.0, 0.0],
+                ..Default::default()
+            },
+            // top right
+            Vertex {
+                pos: [size, -size],
+                uv: [1.0, 0.0],
+                ..Default::default()
+            },
+            // bottom right
+            Vertex {
+                pos: [size, size],
+                uv: [1.0, 1.0],
+                ..Default::default()
+            },
+            // top left
+            Vertex {
+                pos: [-size, -size],
+                uv: [0.0, 0.0],
+                ..Default::default()
+            },
+            // bottom right
+            Vertex {
+                pos: [size, size],
+                uv: [1.0, 1.0],
+                ..Default::default()
+            },
+            // bottom left
+            Vertex {
+                pos: [-size, size],
+                uv: [0.0, 1.0],
+                ..Default::default()
+            },
+        ]);
     }
 }

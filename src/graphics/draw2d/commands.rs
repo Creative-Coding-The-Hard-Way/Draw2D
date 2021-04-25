@@ -66,23 +66,27 @@ pub fn record(draw2d: &Draw2d, frame: &mut Frame) -> Result<vk::CommandBuffer> {
             &offsets,
         );
 
-        let consts = PushConsts { texture_index: 1 };
-        draw2d.device.logical_device.cmd_push_constants(
-            command_buffer,
-            draw2d.graphics_pipeline.pipeline_layout,
-            vk::ShaderStageFlags::FRAGMENT,
-            0,
-            any_as_u8_slice(&consts),
-        );
-
-        // draw
-        draw2d.device.logical_device.cmd_draw(
-            command_buffer,
-            draw2d.vertices.len() as u32, // vertex count
-            1,                            // instance count
-            0,                            // first vertex
-            0,                            // first instance
-        );
+        let mut offset: u32 = 0;
+        for layer in draw2d.layer_stack.layers() {
+            let consts = PushConsts {
+                texture_index: layer.texture_handle().texture_index(),
+            };
+            draw2d.device.logical_device.cmd_push_constants(
+                command_buffer,
+                draw2d.graphics_pipeline.pipeline_layout,
+                vk::ShaderStageFlags::FRAGMENT,
+                0,
+                any_as_u8_slice(&consts),
+            );
+            draw2d.device.logical_device.cmd_draw(
+                command_buffer,
+                layer.vertices().len() as u32, // vertex count
+                1,                             // instance count
+                offset,                        // first vertex
+                0,                             // first instance
+            );
+            offset += layer.vertices().len() as u32;
+        }
 
         // end the render pass
         draw2d

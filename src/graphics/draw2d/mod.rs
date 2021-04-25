@@ -1,10 +1,17 @@
+pub(super) mod descriptor_sets;
+pub(super) mod layer;
+pub(super) mod texture_atlas;
+
 mod commands;
-pub mod descriptor_sets;
 mod graphics_pipeline;
-pub mod texture_atlas;
 mod vertex;
 
-pub use self::{descriptor_sets::UniformBufferObject, vertex::Vertex};
+pub use self::{
+    descriptor_sets::UniformBufferObject,
+    layer::{Layer, LayerHandle, StackedLayers},
+    texture_atlas::TextureHandle,
+    vertex::Vertex,
+};
 
 use self::{graphics_pipeline::GraphicsPipeline, texture_atlas::TextureAtlas};
 use super::Frame;
@@ -19,10 +26,11 @@ type Mat4 = nalgebra::Matrix4<f32>;
 
 /// Resources used to render triangles
 pub struct Draw2d {
-    projection: Mat4,
-    pub vertices: Vec<Vertex>,
+    pub layer_stack: StackedLayers,
+    pub texture_atlas: TextureAtlas,
 
-    texture_atlas: TextureAtlas,
+    projection: Mat4,
+
     graphics_pipeline: Arc<GraphicsPipeline>,
     swapchain: Arc<Swapchain>,
     device: Arc<Device>,
@@ -33,13 +41,12 @@ impl Draw2d {
     /// single frame.
     pub fn new(device: Arc<Device>, swapchain: Arc<Swapchain>) -> Result<Self> {
         let graphics_pipeline = GraphicsPipeline::new(&device, &swapchain)?;
-        let mut texture_atlas = TextureAtlas::new(device.clone())?;
-        texture_atlas.add_texture("assets/example.png")?;
+        let texture_atlas = TextureAtlas::new(device.clone())?;
         Ok(Self {
             texture_atlas,
-            vertices: vec![],
+            layer_stack: StackedLayers::default(),
             graphics_pipeline,
-            projection: Self::ortho(2.0, swapchain.extent),
+            projection: Self::ortho(swapchain.extent),
             swapchain,
             device,
         })
@@ -52,7 +59,7 @@ impl Draw2d {
         self.swapchain = swapchain;
         self.graphics_pipeline =
             GraphicsPipeline::new(&self.device, &self.swapchain)?;
-        self.projection = Self::ortho(2.0, self.swapchain.extent);
+        self.projection = Self::ortho(self.swapchain.extent);
         Ok(())
     }
 
@@ -65,7 +72,13 @@ impl Draw2d {
                 projection: self.projection.into(),
             })?;
             frame.descriptor.update_texture_atlas(&self.texture_atlas);
-            frame.vertex_buffer.write_data(&self.vertices)?;
+            let all_vertices: Vec<&[Vertex]> = self
+                .layer_stack
+                .layers()
+                .iter()
+                .map(|layer| layer.vertices())
+                .collect();
+            frame.vertex_buffer.write_data_arrays(&all_vertices)?;
         }
 
         let graphics_commands = commands::record(self, frame)?;
@@ -77,13 +90,14 @@ impl Draw2d {
     /// Build a orthographic projection using an extent to compute the aspect
     /// ratio for the screen. The height is fixed and the width varies to account
     /// for the aspect ratio.
-    fn ortho(screen_height: f32, extent: vk::Extent2D) -> Mat4 {
-        let aspect = extent.width as f32 / extent.height as f32;
+    fn ortho(extent: vk::Extent2D) -> Mat4 {
+        let width = extent.width as f32;
+        let height = extent.height as f32;
         Mat4::new_orthographic(
-            -aspect * screen_height / 2.0,
-            aspect * screen_height / 2.0,
-            -screen_height / 2.0,
-            screen_height / 2.0,
+            -width / 2.0,
+            width / 2.0,
+            -height / 2.0,
+            height / 2.0,
             1.0,
             -1.0,
         )
