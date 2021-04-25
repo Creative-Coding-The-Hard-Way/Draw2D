@@ -1,26 +1,24 @@
-//! A Vulkan demo written in Rust.
-//!
-//! # How To Run
-//!
-//! ```
-//! cargo run --release
-//! ```
-//!
-
 mod application;
-mod graphics;
-
-use application::Application;
 
 use anyhow::{Context, Result};
 use flexi_logger::{DeferredNow, Logger, Record};
 use std::fmt::Write as FmtWrite;
 use textwrap::{termwidth, Options};
 
-/// Application entry point. Execute the run() function and print a
-/// human-readable error on the terminal if anything goes wrong.
 fn main() -> Result<()> {
-    let result = run();
+    Logger::with_env_or_str("info")
+        .format(multiline_format)
+        .start()?;
+
+    log::info!(
+        "adjust log level by setting the RUST_LOG env var - RUST_LOG = 'info'"
+    );
+
+    let result = application::Application::new()
+        .context("failed to construct the application!")?
+        .run()
+        .context("application exited with an error");
+
     if let Err(ref error) = result {
         log::error!(
             "Application exited unsuccessfully!\n{:?}\n\nroot cause: {:?}",
@@ -31,24 +29,6 @@ fn main() -> Result<()> {
     result
 }
 
-/// All application logic. Typically just setup the logger and any other
-/// static resources, then build an application instance of some sort.
-fn run() -> Result<()> {
-    Logger::with_env_or_str("info")
-        .format(multiline_format)
-        .start()?;
-    log::info!(
-        "adjust log level by setting the RUST_LOG env var - RUST_LOG = 'info'"
-    );
-
-    Application::new()
-        .context("failed to construct the application!")?
-        .run()
-        .context("application exited with an error")
-}
-
-/// A formatting function for logs which automaticaly wrap to the terminal
-/// width.
 fn multiline_format(
     w: &mut dyn std::io::Write,
     now: &mut DeferredNow,

@@ -7,10 +7,7 @@
 //! app.run()?;
 //! ```
 
-mod glfw_window;
-
-use crate::graphics::{Graphics, Layer, LayerHandle, Vertex};
-use glfw_window::GlfwWindow;
+use draw2d::{GlfwWindow, Graphics, Layer, LayerHandle, Vertex};
 
 use anyhow::Result;
 

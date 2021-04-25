@@ -7,10 +7,8 @@ build = "build.rs"
 
 [dependencies]
 anyhow = "1.0.38"
-flexi_logger = "0.17.1"
 log = "0.4.13"
 ash = "0.31.0"
-aquamarine = "*"
 nalgebra = "*"
 memoffset = "*"
 image = "0.23.14"
@@ -19,6 +17,11 @@ image = "0.23.14"
 version = "0.41.0"
 features = [ "vulkan" ]
 
-[dependencies.textwrap]
+[dev-dependencies]
+aquamarine = "*"
+flexi_logger = "0.17.1"
+
+
+[dev-dependencies.textwrap]
 features = ["terminal_size"]
 version = "0.13.2"
