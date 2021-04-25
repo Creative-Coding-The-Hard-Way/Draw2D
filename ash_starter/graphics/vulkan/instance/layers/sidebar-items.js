@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["check_layers","Bail if any of the required layers is not supported by the instance."],["missing_layers","Get a list of all layers which are required but not avaialable for this vulkan instance."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["MAX_SUPPORTED_TEXTURES",""]],"struct":[["BindingRevision","A struct which represents the texture atlas's binding revision."],["TextureAtlas","A collection of textures which can be bound as a texture array and indexed via push constants."],["TextureHandle","A handle which can provide the texture index for a push constant."]]});

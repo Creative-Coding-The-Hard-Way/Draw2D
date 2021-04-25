@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["QueueFamilyIndices","This struct holds all of the queue indices required by this application."]]});

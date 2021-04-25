@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["create_render_pass","Create a render pass for the graphics pipeline."]]});
