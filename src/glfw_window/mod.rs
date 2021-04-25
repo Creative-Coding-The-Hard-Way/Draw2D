@@ -39,21 +39,6 @@ impl GlfwWindow {
     /// glfw window functions from any thread but the main thread. (the thread
     /// where this `new` function was invoked).
     ///
-    /// # Example
-    ///
-    /// ```
-    /// GlfwWindow::new(|&mut glfw| {
-    ///     let (mut window, event_receiver) = glfw
-    ///         .create_window(
-    ///             1366,
-    ///             768,
-    ///             "My GLFW Window",
-    ///             glfw::WindowMode::Windowed,
-    ///         )
-    ///         .context("unable to create the glfw window")?;
-    ///     Ok((window, event_receiver))
-    /// })?;
-    /// ```
     pub fn new<F>(create_window: F) -> Result<Self>
     where
         F: FnOnce(&mut glfw::Glfw) -> Result<(glfw::Window, EventReceiver)>,

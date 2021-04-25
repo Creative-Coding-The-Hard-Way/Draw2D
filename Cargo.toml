@@ -12,13 +12,13 @@ ash = "0.31.0"
 nalgebra = "*"
 memoffset = "*"
 image = "0.23.14"
+aquamarine = "*"
 
 [dependencies.glfw]
 version = "0.41.0"
 features = [ "vulkan" ]
 
 [dev-dependencies]
-aquamarine = "*"
 flexi_logger = "0.17.1"
 
 

@@ -85,17 +85,6 @@ impl Device {
     ///
     /// Whatever name is provided here will show up in the debug logs if there
     /// are any issues detected by the validation layers.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// device.name_vulkan_object(
-    ///     "Graphics Queue",
-    ///     vk::ObjectType::QUEUE,
-    ///     &device.graphics_queue()
-    /// )?;
-    /// ```
-    ///
     pub fn name_vulkan_object<Name, Handle>(
         &self,
         name: Name,

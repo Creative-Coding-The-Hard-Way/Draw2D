@@ -1,4 +1,4 @@
-name: Build, Test, Document
+name: Build and Test, Document
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
       run: cargo build --all-targets --verbose
 
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --all-targets --verbose
 
     - name: Build Docs
       run: cargo doc --verbose
