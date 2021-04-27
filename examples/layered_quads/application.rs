@@ -36,6 +36,8 @@ impl Application {
     }
 
     fn init(&mut self) -> Result<()> {
+        self.update_projection();
+
         let texture_handle = self.graphics.add_texture("assets/example.png")?;
 
         // background
@@ -92,14 +94,30 @@ impl Application {
                 self.window_surface.window.set_should_close(true);
             }
 
-            glfw::WindowEvent::FramebufferSize(_, _) => {
-                self.graphics.rebuild_swapchain(&self.window_surface)?;
+            glfw::WindowEvent::Size(_, _) => {
+                self.update_projection();
             }
 
             _ => {}
         }
 
         Ok(())
+    }
+
+    fn update_projection(&mut self) {
+        let (iwidth, iheight) = self.window_surface.window.get_size();
+        let half_width = iwidth as f32 / 2.0;
+        let half_height = iheight as f32 / 2.0;
+        self.graphics.set_projection(
+            &nalgebra::Matrix4::<f32>::new_orthographic(
+                -half_width,
+                half_width,
+                half_height,
+                -half_height,
+                -1.0,
+                1.0,
+            ),
+        );
     }
 }
 
@@ -112,37 +130,37 @@ impl Quads for Layer {
         self.push_vertices(&[
             // top left
             Vertex {
-                pos: [-size, -size],
+                pos: [-size, size],
                 uv: [0.0, 0.0],
                 ..Default::default()
             },
             // top right
             Vertex {
-                pos: [size, -size],
+                pos: [size, size],
                 uv: [1.0, 0.0],
                 ..Default::default()
             },
             // bottom right
             Vertex {
-                pos: [size, size],
+                pos: [size, -size],
                 uv: [1.0, 1.0],
                 ..Default::default()
             },
             // top left
             Vertex {
-                pos: [-size, -size],
+                pos: [-size, size],
                 uv: [0.0, 0.0],
                 ..Default::default()
             },
             // bottom right
             Vertex {
-                pos: [size, size],
+                pos: [size, -size],
                 uv: [1.0, 1.0],
                 ..Default::default()
             },
             // bottom left
             Vertex {
-                pos: [-size, size],
+                pos: [-size, -size],
                 uv: [0.0, 1.0],
                 ..Default::default()
             },

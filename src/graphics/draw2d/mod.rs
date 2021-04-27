@@ -19,17 +19,17 @@ use super::Frame;
 use crate::graphics::vulkan::{Device, Swapchain};
 
 use anyhow::Result;
-use ash::{version::DeviceV1_0, vk};
+use ash::version::DeviceV1_0;
 use std::sync::Arc;
 
 type Mat4 = nalgebra::Matrix4<f32>;
 
 /// Resources used to render triangles
 pub struct Draw2d {
-    pub layer_stack: StackedLayers,
-    pub texture_atlas: TextureAtlas,
+    pub(super) layer_stack: StackedLayers,
+    pub(super) texture_atlas: TextureAtlas,
 
-    projection: Mat4,
+    pub(super) projection: Mat4,
 
     graphics_pipeline: Arc<GraphicsPipeline>,
     swapchain: Arc<Swapchain>,
@@ -46,7 +46,7 @@ impl Draw2d {
             texture_atlas,
             layer_stack: StackedLayers::default(),
             graphics_pipeline,
-            projection: Self::ortho(swapchain.extent),
+            projection: Mat4::identity(),
             swapchain,
             device,
         })
@@ -59,7 +59,6 @@ impl Draw2d {
         self.swapchain = swapchain;
         self.graphics_pipeline =
             GraphicsPipeline::new(&self.device, &self.swapchain)?;
-        self.projection = Self::ortho(self.swapchain.extent);
         Ok(())
     }
 
@@ -85,22 +84,6 @@ impl Draw2d {
         frame.submit_graphics_commands(&[graphics_commands]);
 
         Ok(())
-    }
-
-    /// Build a orthographic projection using an extent to compute the aspect
-    /// ratio for the screen. The height is fixed and the width varies to account
-    /// for the aspect ratio.
-    fn ortho(extent: vk::Extent2D) -> Mat4 {
-        let width = extent.width as f32;
-        let height = extent.height as f32;
-        Mat4::new_orthographic(
-            -width / 2.0,
-            width / 2.0,
-            -height / 2.0,
-            height / 2.0,
-            1.0,
-            -1.0,
-        )
     }
 }
 
