@@ -55,14 +55,14 @@ impl Application {
             let layer_handle = self.graphics.add_layer_to_bottom();
             let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
             layer.set_texture(texture_handle);
-            layer.add_square(200.0);
+            layer.add_square(200.0, 1.0);
         }
 
         // foreground
         {
             let layer_handle = self.graphics.add_layer_to_top();
             let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
-            layer.add_square(128.0);
+            layer.add_square(128.0, 0.5);
         }
 
         // (even more) foreground
@@ -71,7 +71,7 @@ impl Application {
             self.layer = Some(layer_handle);
             let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
             layer.set_texture(texture_handle);
-            layer.add_square(40.0);
+            layer.add_square(40.0, 0.4);
         }
 
         Ok(())
@@ -111,47 +111,47 @@ impl Application {
 }
 
 trait Quads {
-    fn add_square(&mut self, size: f32);
+    fn add_square(&mut self, size: f32, alpha: f32);
 }
 
 impl Quads for Layer {
-    fn add_square(&mut self, size: f32) {
+    fn add_square(&mut self, size: f32, alpha: f32) {
         self.push_vertices(&[
             // top left
             Vertex {
                 pos: [-size, size],
                 uv: [0.0, 0.0],
-                ..Default::default()
+                rgba: [1.0, 1.0, 1.0, alpha],
             },
             // top right
             Vertex {
                 pos: [size, size],
                 uv: [1.0, 0.0],
-                ..Default::default()
+                rgba: [1.0, 1.0, 1.0, alpha],
             },
             // bottom right
             Vertex {
                 pos: [size, -size],
                 uv: [1.0, 1.0],
-                ..Default::default()
+                rgba: [1.0, 1.0, 1.0, alpha],
             },
             // top left
             Vertex {
                 pos: [-size, size],
                 uv: [0.0, 0.0],
-                ..Default::default()
+                rgba: [1.0, 1.0, 1.0, alpha],
             },
             // bottom right
             Vertex {
                 pos: [size, -size],
                 uv: [1.0, 1.0],
-                ..Default::default()
+                rgba: [1.0, 1.0, 1.0, alpha],
             },
             // bottom left
             Vertex {
                 pos: [-size, -size],
                 uv: [0.0, 1.0],
-                ..Default::default()
+                rgba: [1.0, 1.0, 1.0, alpha],
             },
         ]);
     }
