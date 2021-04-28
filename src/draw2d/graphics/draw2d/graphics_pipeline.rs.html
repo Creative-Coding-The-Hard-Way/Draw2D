@@ -357,9 +357,9 @@
                         <span class="op">|</span> <span class="ident">vk</span>::<span class="ident">ColorComponentFlags</span>::<span class="ident">B</span>
                         <span class="op">|</span> <span class="ident">vk</span>::<span class="ident">ColorComponentFlags</span>::<span class="ident">A</span>,
                 )
-                .<span class="ident">blend_enable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">src_color_blend_factor</span>(<span class="ident">vk</span>::<span class="ident">BlendFactor</span>::<span class="ident">ONE</span>)
-                .<span class="ident">dst_color_blend_factor</span>(<span class="ident">vk</span>::<span class="ident">BlendFactor</span>::<span class="ident">ZERO</span>)
+                .<span class="ident">blend_enable</span>(<span class="bool-val">true</span>)
+                .<span class="ident">src_color_blend_factor</span>(<span class="ident">vk</span>::<span class="ident">BlendFactor</span>::<span class="ident">SRC_ALPHA</span>)
+                .<span class="ident">dst_color_blend_factor</span>(<span class="ident">vk</span>::<span class="ident">BlendFactor</span>::<span class="ident">ONE_MINUS_SRC_ALPHA</span>)
                 .<span class="ident">color_blend_op</span>(<span class="ident">vk</span>::<span class="ident">BlendOp</span>::<span class="ident">ADD</span>)
                 .<span class="ident">src_alpha_blend_factor</span>(<span class="ident">vk</span>::<span class="ident">BlendFactor</span>::<span class="ident">ONE</span>)
                 .<span class="ident">dst_alpha_blend_factor</span>(<span class="ident">vk</span>::<span class="ident">BlendFactor</span>::<span class="ident">ZERO</span>)
