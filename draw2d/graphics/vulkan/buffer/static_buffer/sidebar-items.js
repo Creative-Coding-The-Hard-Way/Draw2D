@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["StaticBuffer","A static chunk of real GPU memory. Each instance is backed by a GPU allocation."]]});

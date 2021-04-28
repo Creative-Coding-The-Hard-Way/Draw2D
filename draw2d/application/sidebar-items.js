@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["glfw_window",""]],"struct":[["Application","The main application."]],"trait":[["Quads",""]]});

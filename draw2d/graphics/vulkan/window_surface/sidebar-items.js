@@ -1,1 +1,0 @@
-initSidebarItems({"trait":[["WindowSurface","The WindowSurface trait defines what other parts of the application require of a window + Vulkan Surface pair."]]});

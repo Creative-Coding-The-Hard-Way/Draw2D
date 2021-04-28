@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["CpuBuffer","A CPU-accessible buffer."]]});

@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["TransientCommandPool","This struct holds a command pool and tracks which buffers have been allocated."]]});

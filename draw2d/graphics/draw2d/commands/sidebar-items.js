@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["record","Use Frame resources to record a one-time use CommandBuffer which actually renders the draw2d render pass."]]});

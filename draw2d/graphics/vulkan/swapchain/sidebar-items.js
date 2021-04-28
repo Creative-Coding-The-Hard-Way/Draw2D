@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["images",""],["render_pass","Functions to create a proper render pass for this application's graphics pipeline."],["selection","Functions for selecting correct swapchain properties for this application."]],"struct":[["Swapchain","Manage the swapchain and all dependent resources."]]});

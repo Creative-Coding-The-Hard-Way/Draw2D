@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Layer",""],["LayerHandle","A layer handle is a unique reference to a layer. Handles can be used to efficiently get a reference to a layer while rendering."],["StackedLayers","Stacked Layers is a datastructure which owns all currently available layers. It is responsible for maintaining the render-order for layers when they are added or removed."]]});

@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["create_framebuffers","Create one framebuffer for each swapchain image view"],["create_image_views","Create image views for each of the swapchain images"]]});

@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["SwapchainState","An enum used by the frame context to signal when the swapchain needs to be rebuilt."]],"struct":[["FrameContext","This struct is responsible for requesting a framebuffer from the swapchain, rendering, and presenting the buffer for presentation."]]});

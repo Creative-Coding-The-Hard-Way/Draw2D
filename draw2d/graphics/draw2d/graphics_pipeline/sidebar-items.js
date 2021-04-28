@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["GraphicsPipeline","All vulkan resources related to the graphics pipeline."]]});

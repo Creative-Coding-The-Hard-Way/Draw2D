@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["check_extensions","Bail if any of the required extensions is not supported by the instance."],["missing_extensions","Get a list of all extensions which are required but not available for this vulkan instance."]]});

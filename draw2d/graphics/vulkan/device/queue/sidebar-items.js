@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Queue","A wrapper of the raw vulkan queue handle which prevents different threads from accessing the queue concurrently using a mutex."]]});
