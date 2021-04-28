@@ -7,7 +7,10 @@
 //! app.run()?;
 //! ```
 
-use draw2d::{GlfwWindow, Graphics, Layer, LayerHandle, Vertex};
+use draw2d::{
+    camera::{default_camera_controls, OrthoCamera},
+    GlfwWindow, Graphics, Layer, LayerHandle, Vertex,
+};
 
 use anyhow::Result;
 
@@ -19,6 +22,7 @@ pub struct Application {
     graphics: Graphics,
     window_surface: GlfwWindow,
     layer: Option<LayerHandle>,
+    camera: OrthoCamera,
 }
 
 impl Application {
@@ -28,15 +32,21 @@ impl Application {
         window_surface.window.set_resizable(true);
         window_surface.window.set_key_polling(true);
         window_surface.window.set_size_polling(true);
+        window_surface.window.set_scroll_polling(true);
+        let (iw, ih) = window_surface.window.get_size();
         Ok(Self {
             graphics: Graphics::new(&window_surface)?,
             window_surface,
             layer: None,
+            camera: OrthoCamera::with_viewport(
+                ih as f32,
+                iw as f32 / ih as f32,
+            ),
         })
     }
 
     fn init(&mut self) -> Result<()> {
-        self.update_projection();
+        self.graphics.set_projection(&self.camera.as_matrix());
 
         let texture_handle = self.graphics.add_texture("assets/example.png")?;
 
@@ -84,40 +94,19 @@ impl Application {
 
     /// Handle window events and update the application state as needed.
     fn handle_event(&mut self, event: glfw::WindowEvent) -> Result<()> {
+        use glfw::{Action, Key, WindowEvent};
         match event {
-            glfw::WindowEvent::Key(
-                glfw::Key::Escape,
-                _,
-                glfw::Action::Press,
-                _,
-            ) => {
+            WindowEvent::Key(Key::Escape, _, Action::Press, _) => {
                 self.window_surface.window.set_should_close(true);
             }
-
-            glfw::WindowEvent::Size(_, _) => {
-                self.update_projection();
-            }
-
             _ => {}
         }
 
-        Ok(())
-    }
+        if default_camera_controls(&mut self.camera, &event) {
+            self.graphics.set_projection(&self.camera.as_matrix());
+        }
 
-    fn update_projection(&mut self) {
-        let (iwidth, iheight) = self.window_surface.window.get_size();
-        let half_width = iwidth as f32 / 2.0;
-        let half_height = iheight as f32 / 2.0;
-        self.graphics.set_projection(
-            &nalgebra::Matrix4::<f32>::new_orthographic(
-                -half_width,
-                half_width,
-                half_height,
-                -half_height,
-                -1.0,
-                1.0,
-            ),
-        );
+        Ok(())
     }
 }
 

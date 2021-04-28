@@ -86,4 +86,9 @@ impl Graphics {
         self.draw2d.replace_swapchain(swapchain)?;
         Ok(())
     }
+
+    /// Set the projection matrix for all graphics when they are rendered.
+    pub fn set_projection(&mut self, projection: &nalgebra::Matrix4<f32>) {
+        self.draw2d.projection = *projection;
+    }
 }
