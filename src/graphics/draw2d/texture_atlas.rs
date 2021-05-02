@@ -93,7 +93,7 @@ impl TextureAtlas {
                 .mipmap_mode(vk::SamplerMipmapMode::LINEAR)
                 .mip_lod_bias(0.0)
                 .min_lod(0.0)
-                .max_lod(0.0);
+                .max_lod(vk::LOD_CLAMP_NONE);
             device
                 .logical_device
                 .create_sampler(&sampler_create_info, None)?
@@ -114,7 +114,7 @@ impl TextureAtlas {
         };
 
         let mut default_texture =
-            atlas.create_empty_2d_texture("default texture", 1, 1)?;
+            atlas.create_empty_2d_texture("default texture", 1, 1, 1)?;
         unsafe {
             // SAFE: because the texture was just created and is not being used
             //       elsewhere.
@@ -162,9 +162,14 @@ impl TextureAtlas {
 
         let image_file = image::open(path)?.into_rgba8();
         let (width, height) = (image_file.width(), image_file.height());
+        let mip_levels = 1; //(height.max(width) as f32).log2().floor() as u32 + 1;
 
-        let mut texture =
-            self.create_empty_2d_texture(path_string, width, height)?;
+        let mut texture = self.create_empty_2d_texture(
+            path_string,
+            width,
+            height,
+            mip_levels,
+        )?;
 
         unsafe {
             // SAFE: the transfer buffer is only used/considered valid within
@@ -227,6 +232,7 @@ impl TextureAtlas {
         name: Name,
         width: u32,
         height: u32,
+        mip_levels: u32,
     ) -> Result<TextureImage>
     where
         Name: Into<String>,
@@ -240,7 +246,7 @@ impl TextureAtlas {
                     height,
                     depth: 1,
                 },
-                mip_levels: 1,
+                mip_levels,
                 array_layers: 1,
                 format: vk::Format::R8G8B8A8_SRGB,
                 tiling: vk::ImageTiling::OPTIMAL,
@@ -256,12 +262,12 @@ impl TextureAtlas {
 
         let owned_name = name.into();
         self.device.name_vulkan_object(
-            owned_name.clone(),
+            format!("Image - {}", owned_name.clone()),
             vk::ObjectType::IMAGE,
             unsafe { &texture.raw_image() },
         )?;
         self.device.name_vulkan_object(
-            owned_name.clone(),
+            format!("Image view - {}", owned_name.clone()),
             vk::ObjectType::IMAGE_VIEW,
             unsafe { &texture.raw_view() },
         )?;

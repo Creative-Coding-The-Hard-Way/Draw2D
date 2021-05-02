@@ -15,6 +15,17 @@ pub struct TextureImage {
     device: Arc<Device>,
 }
 
+pub struct MipmapExtent {
+    pub width: u32,
+    pub height: u32,
+}
+
+impl MipmapExtent {
+    fn size_in_bytes(&self) -> u64 {
+        (self.width * self.height * 4) as u64
+    }
+}
+
 impl TextureImage {
     /// The raw image handle used by this texture.
     ///
@@ -64,7 +75,7 @@ impl TextureImage {
                 vk::ImageSubresourceRange::builder()
                     .aspect_mask(vk::ImageAspectFlags::COLOR)
                     .base_mip_level(0)
-                    .level_count(1)
+                    .level_count(image_create_info.mip_levels)
                     .base_array_layer(0)
                     .layer_count(1)
                     .build(),
@@ -99,13 +110,29 @@ impl TextureImage {
     where
         Buf: Buffer,
     {
+        let mipmap_extent = MipmapExtent {
+            width: self.extent.width,
+            height: self.extent.height,
+        };
+        self.upload_mipmaps_from_buffer(command_buffer, src, &[mipmap_extent])
+    }
+
+    pub unsafe fn upload_mipmaps_from_buffer(
+        &mut self,
+        command_buffer: vk::CommandBuffer,
+        src: &impl Buffer,
+        mipmap_sizes: &[MipmapExtent],
+    ) -> Result<()> {
         self.device.logical_device.begin_command_buffer(
             command_buffer,
             &vk::CommandBufferBeginInfo::builder()
                 .flags(vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT),
         )?;
 
-        let required_size = (self.extent.width * self.extent.height * 4) as u64;
+        let required_size: u64 = mipmap_sizes
+            .iter()
+            .map(|mipmap_size| mipmap_size.size_in_bytes())
+            .sum();
         if required_size > src.size_in_bytes() {
             bail!(
                 "The texture expects {:?} bytes, but the provided buffer includes only {:?} bytes of data!",
@@ -114,14 +141,23 @@ impl TextureImage {
             );
         }
 
-        self.write_barrier(command_buffer);
-        self.copy_buffer_to_image(
-            command_buffer,
-            src.raw(),
-            self.extent.width,
-            self.extent.height,
-        );
-        self.read_barrier(command_buffer);
+        let mut mip_level = 0;
+        let mut offset: u64 = 0;
+        for extent in mipmap_sizes {
+            self.write_barrier(command_buffer, mip_level);
+            self.copy_buffer_to_image(
+                command_buffer,
+                src.raw(),
+                offset,
+                extent.width,
+                extent.height,
+                mip_level,
+            );
+            self.read_barrier(command_buffer, mip_level);
+
+            mip_level += 1;
+            offset += extent.size_in_bytes();
+        }
 
         self.device
             .logical_device
@@ -136,7 +172,11 @@ impl TextureImage {
 
     /// Transition the image memory layout such that it is an optimal transfer
     /// target.
-    pub unsafe fn write_barrier(&self, command_buffer: vk::CommandBuffer) {
+    pub unsafe fn write_barrier(
+        &self,
+        command_buffer: vk::CommandBuffer,
+        mip_level: u32,
+    ) {
         let write_barrier = vk::ImageMemoryBarrier::builder()
             .old_layout(vk::ImageLayout::UNDEFINED)
             .new_layout(vk::ImageLayout::TRANSFER_DST_OPTIMAL)
@@ -144,7 +184,7 @@ impl TextureImage {
             .subresource_range(
                 vk::ImageSubresourceRange::builder()
                     .aspect_mask(vk::ImageAspectFlags::COLOR)
-                    .base_mip_level(0)
+                    .base_mip_level(mip_level)
                     .level_count(1)
                     .base_array_layer(0)
                     .layer_count(1)
@@ -166,7 +206,11 @@ impl TextureImage {
 
     /// Transition the image memory layout such that is is optimal for reading
     /// within the fragment shader.
-    unsafe fn read_barrier(&self, command_buffer: vk::CommandBuffer) {
+    unsafe fn read_barrier(
+        &self,
+        command_buffer: vk::CommandBuffer,
+        mip_level: u32,
+    ) {
         let read_barrier = vk::ImageMemoryBarrier::builder()
             .old_layout(vk::ImageLayout::TRANSFER_DST_OPTIMAL)
             .new_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
@@ -174,7 +218,7 @@ impl TextureImage {
             .subresource_range(
                 vk::ImageSubresourceRange::builder()
                     .aspect_mask(vk::ImageAspectFlags::COLOR)
-                    .base_mip_level(0)
+                    .base_mip_level(mip_level)
                     .level_count(1)
                     .base_array_layer(0)
                     .layer_count(1)
@@ -199,17 +243,19 @@ impl TextureImage {
         &self,
         command_buffer: vk::CommandBuffer,
         src_buffer: vk::Buffer,
+        offset: u64,
         width: u32,
         height: u32,
+        mip_level: u32,
     ) {
         let region = vk::BufferImageCopy::builder()
-            .buffer_offset(0)
+            .buffer_offset(offset)
             .buffer_row_length(0)
             .buffer_image_height(0)
             .image_subresource(
                 vk::ImageSubresourceLayers::builder()
                     .aspect_mask(vk::ImageAspectFlags::COLOR)
-                    .mip_level(0)
+                    .mip_level(mip_level)
                     .base_array_layer(0)
                     .layer_count(1)
                     .build(),
