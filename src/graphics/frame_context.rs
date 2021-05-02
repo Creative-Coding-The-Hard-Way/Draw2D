@@ -7,6 +7,8 @@ use anyhow::Result;
 use ash::{version::DeviceV1_0, vk};
 use std::sync::Arc;
 
+use super::texture_atlas::TextureAtlas;
+
 /// An enum used by the frame context to signal when the swapchain needs to be
 /// rebuilt.
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -57,7 +59,11 @@ impl FrameContext {
     /// Render a single application frame.
     /// Synchronization between frames is kept to a minimum because each frame
     /// maintains its own resources.
-    pub fn draw_frame(&mut self, draw2d: &Draw2d) -> Result<SwapchainState> {
+    pub fn draw_frame(
+        &mut self,
+        draw2d: &Draw2d,
+        texture_atlas: &impl TextureAtlas,
+    ) -> Result<SwapchainState> {
         if self.swapchain_state == SwapchainState::NeedsRebuild {
             return Ok(SwapchainState::NeedsRebuild);
         }
@@ -89,7 +95,7 @@ impl FrameContext {
         let render_finished_semaphore = {
             let current_frame = &mut self.frames_in_flight[index as usize];
             current_frame.begin_frame()?;
-            draw2d.draw_frame(current_frame)?;
+            draw2d.draw_frame(current_frame, texture_atlas)?;
             current_frame.finish_frame(acquired_semaphore)?
         };
 

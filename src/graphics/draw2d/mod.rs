@@ -1,6 +1,5 @@
 pub(crate) mod descriptor_sets;
 pub(crate) mod layer;
-pub(crate) mod texture_atlas;
 
 mod commands;
 mod graphics_pipeline;
@@ -9,14 +8,16 @@ mod vertex;
 pub use self::{
     descriptor_sets::UniformBufferObject,
     layer::{Layer, LayerHandle, StackedLayers},
-    texture_atlas::TextureHandle,
     vertex::Vertex,
 };
 
-use self::{graphics_pipeline::GraphicsPipeline, texture_atlas::TextureAtlas};
+use self::graphics_pipeline::GraphicsPipeline;
 use super::Frame;
 
-use crate::graphics::vulkan::{Device, Swapchain};
+use crate::graphics::{
+    texture_atlas::TextureAtlas,
+    vulkan::{Device, Swapchain},
+};
 
 use anyhow::Result;
 use ash::version::DeviceV1_0;
@@ -27,12 +28,11 @@ type Mat4 = nalgebra::Matrix4<f32>;
 /// Resources used to render triangles
 pub struct Draw2d {
     pub(super) layer_stack: StackedLayers,
-    pub(super) texture_atlas: TextureAtlas,
-
     pub(super) projection: Mat4,
 
     graphics_pipeline: Arc<GraphicsPipeline>,
     swapchain: Arc<Swapchain>,
+
     device: Arc<Device>,
 }
 
@@ -41,9 +41,7 @@ impl Draw2d {
     /// single frame.
     pub fn new(device: Arc<Device>, swapchain: Arc<Swapchain>) -> Result<Self> {
         let graphics_pipeline = GraphicsPipeline::new(&device, &swapchain)?;
-        let texture_atlas = TextureAtlas::new(device.clone())?;
         Ok(Self {
-            texture_atlas,
             layer_stack: StackedLayers::default(),
             graphics_pipeline,
             projection: Mat4::identity(),
@@ -63,14 +61,18 @@ impl Draw2d {
     }
 
     /// Render to a single application frame.
-    pub fn draw_frame(&self, frame: &mut Frame) -> Result<()> {
+    pub fn draw_frame(
+        &self,
+        frame: &mut Frame,
+        texture_atlas: &impl TextureAtlas,
+    ) -> Result<()> {
         // Fill per-frame gpu resources with the relevant data.
         // SAFE: because resources are not shared between frames.
         unsafe {
             frame.descriptor.update_ubo(&UniformBufferObject {
                 projection: self.projection.into(),
             })?;
-            frame.descriptor.update_texture_atlas(&self.texture_atlas);
+            frame.descriptor.update_texture_atlas(texture_atlas);
             let all_vertices: Vec<&[Vertex]> = self
                 .layer_stack
                 .layers()

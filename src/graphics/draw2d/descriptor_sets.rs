@@ -1,8 +1,6 @@
 use std::mem::size_of;
 
-use super::texture_atlas;
-
-use crate::graphics::vulkan::Device;
+use crate::graphics::{texture_atlas::MAX_SUPPORTED_TEXTURES, vulkan::Device};
 
 use anyhow::Result;
 use ash::{version::DeviceV1_0, vk};
@@ -65,7 +63,7 @@ fn ubo_layout_binding() -> vk::DescriptorSetLayoutBinding {
 fn sampler_layout_binding() -> vk::DescriptorSetLayoutBinding {
     vk::DescriptorSetLayoutBinding::builder()
         .binding(1)
-        .descriptor_count(texture_atlas::MAX_SUPPORTED_TEXTURES as u32)
+        .descriptor_count(MAX_SUPPORTED_TEXTURES as u32)
         .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
         .stage_flags(vk::ShaderStageFlags::FRAGMENT)
         .build()

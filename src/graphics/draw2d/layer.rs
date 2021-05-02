@@ -4,7 +4,9 @@
 //! Layers are inherently ordered by Draw2D. Layers are drawn from lowest to
 //! highest, so layer 5 will be drawn above layer 2.
 
-use super::{texture_atlas::TextureHandle, Vertex};
+use crate::graphics::texture_atlas::TextureHandle;
+
+use super::Vertex;
 
 use std::collections::HashMap;
 use std::sync::atomic::{self, AtomicI64};

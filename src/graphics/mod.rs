@@ -1,3 +1,5 @@
+pub mod texture_atlas;
+
 pub mod draw2d;
 pub mod frame;
 pub mod frame_context;
@@ -6,24 +8,29 @@ pub mod vulkan;
 pub use self::{
     draw2d::{
         layer::{Layer, LayerHandle},
-        texture_atlas::TextureHandle,
         Draw2d, Vertex,
     },
     frame::Frame,
     frame_context::{FrameContext, SwapchainState},
 };
 
-use self::vulkan::{Device, Swapchain, WindowSurface};
+use self::{
+    texture_atlas::{CachedAtlas, GpuAtlas, TextureAtlas, TextureHandle},
+    vulkan::{Device, Swapchain, WindowSurface},
+};
 
 use anyhow::Result;
 
 /// The application's graphics subsystem.
 pub struct Graphics {
+    /// This object owns the swapchain and all per-frame resources.
+    frame_context: FrameContext,
+
     /// This object manages resources and logic for rendering 2d graphics.
     draw2d: Draw2d,
 
-    /// This object owns the swapchain and all per-frame resources.
-    frame_context: FrameContext,
+    /// The graphic's subsystem's texture atlas.
+    texture_atlas: CachedAtlas<GpuAtlas>,
 }
 
 impl Graphics {
@@ -35,8 +42,10 @@ impl Graphics {
         let frame_context =
             FrameContext::new(device.clone(), swapchain.clone())?;
         let draw2d = Draw2d::new(device.clone(), swapchain.clone())?;
+        let texture_atlas = CachedAtlas::new(GpuAtlas::new(device.clone())?);
 
         Ok(Self {
+            texture_atlas,
             draw2d,
             frame_context,
         })
@@ -44,11 +53,11 @@ impl Graphics {
 
     /// Add a texture, the returned handle can be bound to a layer for
     /// rendering.
-    pub fn add_texture<P>(&mut self, path: P) -> Result<TextureHandle>
-    where
-        P: Into<String>,
-    {
-        self.draw2d.texture_atlas.add_texture(path)
+    pub fn add_texture(
+        &mut self,
+        path: impl Into<String>,
+    ) -> Result<TextureHandle> {
+        self.texture_atlas.add_texture(path)
     }
 
     pub fn add_layer_to_top(&mut self) -> LayerHandle {
@@ -69,7 +78,9 @@ impl Graphics {
 
     /// Render a single frame to the screen.
     pub fn render(&mut self, window_surface: &dyn WindowSurface) -> Result<()> {
-        let swapchain_state = self.frame_context.draw_frame(&self.draw2d)?;
+        let swapchain_state = self
+            .frame_context
+            .draw_frame(&self.draw2d, &self.texture_atlas)?;
         if swapchain_state == SwapchainState::NeedsRebuild {
             self.rebuild_swapchain(window_surface)?;
         }

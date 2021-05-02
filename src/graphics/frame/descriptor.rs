@@ -1,8 +1,6 @@
 use crate::graphics::{
-    draw2d::{
-        self,
-        texture_atlas::{self, TextureAtlas},
-    },
+    draw2d,
+    texture_atlas::{AtlasVersion, TextureAtlas},
     vulkan::{
         buffer::{Buffer, CpuBuffer},
         Device,
@@ -21,7 +19,7 @@ use ash::{version::DeviceV1_0, vk};
 /// because things like the uniform buffer can be updated in the render loop
 /// without any additional synchronization.
 pub struct FrameDescriptor {
-    atlas_revision: texture_atlas::BindingRevision,
+    atlas_version: AtlasVersion,
 
     ///! A Descriptor Pool is required for allocating a Descriptor Set.
     descriptor_pool: vk::DescriptorPool,
@@ -138,10 +136,8 @@ impl FrameDescriptor {
             descriptor_pool,
             descriptor_set_layout,
             descriptor_set,
-            atlas_revision: texture_atlas::BindingRevision::out_of_date(),
-
+            atlas_version: AtlasVersion::new_out_of_date(),
             uniform_buffer,
-
             device,
         })
     }
@@ -166,13 +162,13 @@ impl FrameDescriptor {
     ///          the middle of a frame's draw call.
     pub unsafe fn update_texture_atlas(
         &mut self,
-        texture_atlas: &TextureAtlas,
+        texture_atlas: &impl TextureAtlas,
     ) {
-        if texture_atlas.is_out_of_date(self.atlas_revision) {
+        if texture_atlas.version().is_out_of_date(&self.atlas_version) {
             self.write_texture_descriptor(
                 &texture_atlas.build_descriptor_image_info(),
             );
-            self.atlas_revision = texture_atlas.current_revision();
+            self.atlas_version = texture_atlas.version();
         }
     }
 
