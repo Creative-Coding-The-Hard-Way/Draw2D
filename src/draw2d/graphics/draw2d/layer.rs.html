@@ -112,6 +112,8 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A layer is a collection of vertices which are all rasterized with the same</span>
 <span class="doccomment">//! texture.</span>
@@ -119,7 +121,9 @@
 <span class="doccomment">//! Layers are inherently ordered by Draw2D. Layers are drawn from lowest to</span>
 <span class="doccomment">//! highest, so layer 5 will be drawn above layer 2.</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">texture_atlas</span>::<span class="ident">TextureHandle</span>, <span class="ident">Vertex</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::<span class="ident">texture_atlas</span>::<span class="ident">TextureHandle</span>;
+
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Vertex</span>;
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="self">self</span>, <span class="ident">AtomicI64</span>};

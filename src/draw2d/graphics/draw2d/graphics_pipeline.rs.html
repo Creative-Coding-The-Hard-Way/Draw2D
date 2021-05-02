@@ -230,11 +230,11 @@
 <span id="227">227</span>
 <span id="228">228</span>
 <span id="229">229</span>
-<span id="230">230</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">descriptor_sets</span>, <span class="ident">texture_atlas</span>, <span class="ident">Vertex</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::<span class="ident">vulkan</span>::{
-    <span class="ident">ffi</span>, <span class="ident">shader_module</span>::<span class="ident">ShaderModule</span>, <span class="ident">Device</span>, <span class="ident">Swapchain</span>,
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">descriptor_sets</span>, <span class="ident">Vertex</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::{
+    <span class="ident">texture_atlas</span>::<span class="ident">MAX_SUPPORTED_TEXTURES</span>,
+    <span class="ident">vulkan</span>::{<span class="ident">ffi</span>, <span class="ident">shader_module</span>::<span class="ident">ShaderModule</span>, <span class="ident">Device</span>, <span class="ident">Swapchain</span>},
 };
 
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">Context</span>, <span class="prelude-ty">Result</span>};
@@ -284,9 +284,7 @@
                 <span class="ident">size</span>: <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(),
                 ..<span class="ident">Default</span>::<span class="ident">default</span>()
             }])
-            .<span class="ident">data</span>(<span class="kw">unsafe</span> {
-                <span class="ident">ffi</span>::<span class="ident">any_as_u8_slice</span>(<span class="kw-2">&amp;</span><span class="ident">texture_atlas</span>::<span class="ident">MAX_SUPPORTED_TEXTURES</span>)
-            })
+            .<span class="ident">data</span>(<span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">any_as_u8_slice</span>(<span class="kw-2">&amp;</span><span class="ident">MAX_SUPPORTED_TEXTURES</span>) })
             .<span class="ident">build</span>();
         <span class="kw">let</span> <span class="ident">fragment_create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">PipelineShaderStageCreateInfo</span>::<span class="ident">builder</span>()
             .<span class="ident">stage</span>(<span class="ident">vk</span>::<span class="ident">ShaderStageFlags</span>::<span class="ident">FRAGMENT</span>)
