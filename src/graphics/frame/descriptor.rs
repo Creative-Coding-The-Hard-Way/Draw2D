@@ -136,7 +136,7 @@ impl FrameDescriptor {
             descriptor_pool,
             descriptor_set_layout,
             descriptor_set,
-            atlas_version: AtlasVersion::out_of_date(),
+            atlas_version: AtlasVersion::new_out_of_date(),
             uniform_buffer,
             device,
         })
@@ -164,7 +164,7 @@ impl FrameDescriptor {
         &mut self,
         texture_atlas: &impl TextureAtlas,
     ) {
-        if texture_atlas.is_out_of_date(self.atlas_version) {
+        if texture_atlas.version().is_out_of_date(&self.atlas_version) {
             self.write_texture_descriptor(
                 &texture_atlas.build_descriptor_image_info(),
             );

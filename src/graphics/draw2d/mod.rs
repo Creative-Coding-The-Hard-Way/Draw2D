@@ -28,11 +28,11 @@ type Mat4 = nalgebra::Matrix4<f32>;
 /// Resources used to render triangles
 pub struct Draw2d {
     pub(super) layer_stack: StackedLayers,
-
     pub(super) projection: Mat4,
 
     graphics_pipeline: Arc<GraphicsPipeline>,
     swapchain: Arc<Swapchain>,
+
     device: Arc<Device>,
 }
 

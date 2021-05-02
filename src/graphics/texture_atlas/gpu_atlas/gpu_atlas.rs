@@ -154,10 +154,6 @@ impl TextureAtlas for GpuAtlas {
         self.version
     }
 
-    fn is_out_of_date(&self, version: AtlasVersion) -> bool {
-        self.version.revision_count != version.revision_count
-    }
-
     /// Add a texture to the atlas and return a texture handle.
     ///
     /// Texture handles can be used when drawing to get the texture_index which

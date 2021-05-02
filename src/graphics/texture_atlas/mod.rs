@@ -16,10 +16,11 @@
 //! for the entire frame.
 
 mod atlas_version;
+mod cached_atlas;
 mod gpu_atlas;
 mod texture_handle;
 
-pub use self::gpu_atlas::GpuAtlas;
+pub use self::{cached_atlas::CachedAtlas, gpu_atlas::GpuAtlas};
 
 use anyhow::Result;
 use ash::vk;
@@ -33,10 +34,6 @@ pub const MAX_SUPPORTED_TEXTURES: usize = 64;
 pub trait TextureAtlas {
     /// The atlas's current version.
     fn version(&self) -> AtlasVersion;
-
-    /// Returns true when the provided version is out of date relative to the
-    /// atlas's current version.
-    fn is_out_of_date(&self, version: AtlasVersion) -> bool;
 
     /// Build the array of descriptor image info objects which can be used to
     /// write all of this atlas's textures into a descriptor set.
@@ -54,11 +51,11 @@ pub trait TextureAtlas {
 ///
 /// Typically this is used to detect when the atlas needs to update as shader's
 /// descriptor sets.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct AtlasVersion {
     revision_count: u32,
 }
 
 /// A handle which can provide the texture index for a push constant.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct TextureHandle(u32);

@@ -15,7 +15,7 @@ pub use self::{
 };
 
 use self::{
-    texture_atlas::{GpuAtlas, TextureAtlas, TextureHandle},
+    texture_atlas::{CachedAtlas, GpuAtlas, TextureAtlas, TextureHandle},
     vulkan::{Device, Swapchain, WindowSurface},
 };
 
@@ -30,7 +30,7 @@ pub struct Graphics {
     draw2d: Draw2d,
 
     /// The graphic's subsystem's texture atlas.
-    texture_atlas: GpuAtlas,
+    texture_atlas: CachedAtlas<GpuAtlas>,
 }
 
 impl Graphics {
@@ -42,7 +42,7 @@ impl Graphics {
         let frame_context =
             FrameContext::new(device.clone(), swapchain.clone())?;
         let draw2d = Draw2d::new(device.clone(), swapchain.clone())?;
-        let texture_atlas = GpuAtlas::new(device.clone())?;
+        let texture_atlas = CachedAtlas::new(GpuAtlas::new(device.clone())?);
 
         Ok(Self {
             texture_atlas,
