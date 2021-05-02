@@ -11,9 +11,8 @@ pub use self::{
     graphics::{
         draw2d::{
             layer::{Layer, LayerHandle},
-            texture_atlas::TextureHandle,
             Vertex,
         },
-        Graphics,
+        texture_atlas, Graphics,
     },
 };
