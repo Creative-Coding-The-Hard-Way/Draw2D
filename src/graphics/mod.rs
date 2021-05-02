@@ -46,7 +46,7 @@ impl Graphics {
     /// rendering.
     pub fn add_texture<P>(&mut self, path: P) -> Result<TextureHandle>
     where
-        P: AsRef<std::path::Path>,
+        P: Into<String>,
     {
         self.draw2d.texture_atlas.add_texture(path)
     }

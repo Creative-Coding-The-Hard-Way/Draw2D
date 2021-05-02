@@ -1,30 +1,11 @@
+use super::{MipmapExtent, TextureImage};
+
 use std::sync::Arc;
 
 use crate::graphics::vulkan::{buffer::Buffer, Device};
 
 use anyhow::{bail, Result};
 use ash::{version::DeviceV1_0, vk};
-
-pub struct TextureImage {
-    image: vk::Image,
-    extent: vk::Extent3D,
-
-    view: vk::ImageView,
-    memory: vk::DeviceMemory,
-
-    device: Arc<Device>,
-}
-
-pub struct MipmapExtent {
-    pub width: u32,
-    pub height: u32,
-}
-
-impl MipmapExtent {
-    fn size_in_bytes(&self) -> u64 {
-        (self.width * self.height * 4) as u64
-    }
-}
 
 impl TextureImage {
     /// The raw image handle used by this texture.
@@ -43,12 +24,16 @@ impl TextureImage {
         self.view
     }
 
-    /// Create a new texture image which manages all of the resources needed to
-    /// use an image as a gpu texture.
+    /// Create the image, allocate memory, create a view for the texture.
+    ///
+    /// Bytes per pixel is used by the various `upload_*` methods when copying
+    /// data from a buffer into the image. For example, if the image format
+    /// is R8G8B8A8_SRGB then the bytes per pixel is 4.
     pub fn new(
         device: Arc<Device>,
         image_create_info: vk::ImageCreateInfo,
         memory_property_flags: vk::MemoryPropertyFlags,
+        bytes_per_pixel: u64,
     ) -> Result<Self> {
         let image = unsafe {
             device
@@ -94,6 +79,7 @@ impl TextureImage {
         };
 
         Ok(Self {
+            bytes_per_pixel,
             image,
             extent: image_create_info.extent,
             view,
@@ -102,6 +88,11 @@ impl TextureImage {
         })
     }
 
+    /// Upload a texture's data from a buffer.
+    ///
+    /// This method is just an alias to [upload_mipmaps_from_buffer] which only
+    /// updates the first mipmap. It's particularly convenient for textures
+    /// which only have a single mipmap level.
     pub unsafe fn upload_from_buffer<Buf>(
         &mut self,
         command_buffer: vk::CommandBuffer,
@@ -117,6 +108,14 @@ impl TextureImage {
         self.upload_mipmaps_from_buffer(command_buffer, src, &[mipmap_extent])
     }
 
+    /// Upload a texture's mipmaps from a buffer.
+    ///
+    /// * This method assumes that each mipmap has the same [bytes_per_pixel]
+    ///   as the texture image.
+    /// * Order is super important. The first entry in [mipmap_sizes]
+    ///   corresponds to the first region of memory in the src bufer. The
+    ///   mipmap extents are used to compute the byte offset and size of each
+    ///   mipmap region.
     pub unsafe fn upload_mipmaps_from_buffer(
         &mut self,
         command_buffer: vk::CommandBuffer,
@@ -131,7 +130,7 @@ impl TextureImage {
 
         let required_size: u64 = mipmap_sizes
             .iter()
-            .map(|mipmap_size| mipmap_size.size_in_bytes())
+            .map(|mipmap_size| mipmap_size.size_in_bytes(self.bytes_per_pixel))
             .sum();
         if required_size > src.size_in_bytes() {
             bail!(
@@ -149,14 +148,13 @@ impl TextureImage {
                 command_buffer,
                 src.raw(),
                 offset,
-                extent.width,
-                extent.height,
+                extent,
                 mip_level,
             );
             self.read_barrier(command_buffer, mip_level);
 
             mip_level += 1;
-            offset += extent.size_in_bytes();
+            offset += extent.size_in_bytes(self.bytes_per_pixel);
         }
 
         self.device
@@ -238,14 +236,13 @@ impl TextureImage {
         );
     }
 
-    /// Copy a buffer's memory into the image memory.
+    /// Copy a region of the buffer's memory into the image mipmap.
     unsafe fn copy_buffer_to_image(
         &self,
         command_buffer: vk::CommandBuffer,
         src_buffer: vk::Buffer,
         offset: u64,
-        width: u32,
-        height: u32,
+        mipmap_extent: &MipmapExtent,
         mip_level: u32,
     ) {
         let region = vk::BufferImageCopy::builder()
@@ -262,8 +259,8 @@ impl TextureImage {
             )
             .image_offset(vk::Offset3D { x: 0, y: 0, z: 0 })
             .image_extent(vk::Extent3D {
-                width,
-                height,
+                width: mipmap_extent.width,
+                height: mipmap_extent.height,
                 depth: 1,
             })
             .build();

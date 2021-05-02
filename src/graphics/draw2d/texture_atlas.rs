@@ -8,12 +8,15 @@
 //! dependent.
 
 use crate::graphics::vulkan::{
-    buffer::CpuBuffer, command_pool::TransientCommandPool,
-    texture::TextureImage, Device,
+    buffer::CpuBuffer,
+    command_pool::TransientCommandPool,
+    texture::{MipmapExtent, TextureImage},
+    Device,
 };
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use ash::{version::DeviceV1_0, vk};
+use image::ImageBuffer;
 use std::{path::Path, sync::Arc};
 
 pub const MAX_SUPPORTED_TEXTURES: usize = 64;
@@ -119,7 +122,12 @@ impl TextureAtlas {
             // SAFE: because the texture was just created and is not being used
             //       elsewhere.
             let white_pixel: [u8; 4] = [255, 255, 255, 255];
-            atlas.upload_data_to_texture(&mut default_texture, &white_pixel)?;
+            atlas.transfer_buffer.write_data(&white_pixel)?;
+            default_texture.upload_from_buffer(
+                atlas.command_pool.request_command_buffer()?,
+                &atlas.transfer_buffer,
+            )?;
+            atlas.command_pool.reset()?;
         }
         atlas.textures.push(default_texture);
 
@@ -143,7 +151,7 @@ impl TextureAtlas {
     /// the shader uses to select this texture from the global array.
     pub fn add_texture<P>(&mut self, path: P) -> Result<TextureHandle>
     where
-        P: AsRef<Path>,
+        P: Into<String>,
     {
         if self.textures.len() >= MAX_SUPPORTED_TEXTURES {
             anyhow::bail!(
@@ -151,30 +159,41 @@ impl TextureAtlas {
                 MAX_SUPPORTED_TEXTURES
             );
         }
-
-        let path_string = path
-            .as_ref()
-            .file_name()
-            .context("texture path doesn't reference a file!")?
-            .to_str()
-            .context("unable to use texture path as a unicode string!")?
-            .to_owned();
-
-        let image_file = image::open(path)?.into_rgba8();
-        let (width, height) = (image_file.width(), image_file.height());
-        let mip_levels = 1; //(height.max(width) as f32).log2().floor() as u32 + 1;
-
+        let path_string = path.into();
+        let mipmaps = self.read_file_mipmaps(&path_string)?;
         let mut texture = self.create_empty_2d_texture(
             path_string,
-            width,
-            height,
-            mip_levels,
+            mipmaps[0].width(),
+            mipmaps[0].height(),
+            mipmaps.len() as u32,
         )?;
 
         unsafe {
             // SAFE: the transfer buffer is only used/considered valid within
             //       the scope of this function.
-            self.upload_data_to_texture(&mut texture, &image_file.into_raw())?;
+            let data: Vec<&[u8]> = mipmaps
+                .iter()
+                .map(|mipmap| mipmap.as_raw() as &[u8])
+                .collect();
+            self.transfer_buffer.write_data_arrays(&data)?;
+        }
+
+        unsafe {
+            let mipmap_sizes: Vec<MipmapExtent> = mipmaps
+                .iter()
+                .map(|mipmap| MipmapExtent {
+                    width: mipmap.width(),
+                    height: mipmap.height(),
+                })
+                .collect();
+
+            texture.upload_mipmaps_from_buffer(
+                self.command_pool.request_command_buffer()?,
+                &self.transfer_buffer,
+                &mipmap_sizes,
+            )?;
+
+            self.command_pool.reset()?;
         }
 
         self.textures.push(texture);
@@ -183,6 +202,30 @@ impl TextureAtlas {
         self.binding_revision.revision_count += 1;
 
         Ok(TextureHandle(index))
+    }
+
+    fn read_file_mipmaps<P: AsRef<Path>>(
+        &self,
+        path: &P,
+    ) -> Result<Vec<ImageBuffer<image::Rgba<u8>, Vec<u8>>>> {
+        let image_file = image::open(path)?.into_rgba8();
+        let (width, height) = (image_file.width(), image_file.height());
+        let mip_levels = (height.max(width) as f32).log2().floor() as u32 + 1;
+
+        let mut mipmaps = Vec::with_capacity(mip_levels as usize);
+        mipmaps.push(image_file.clone());
+        for mipmap_level in 1..mip_levels {
+            use image::imageops;
+            let mipmap = imageops::resize(
+                &image_file,
+                width >> mipmap_level,
+                height >> mipmap_level,
+                imageops::FilterType::Gaussian,
+            );
+            mipmaps.push(mipmap);
+        }
+
+        Ok(mipmaps)
     }
 
     /// Build a vector of descriptor image info entries. This can be used when
@@ -207,25 +250,6 @@ impl TextureAtlas {
         bindings
     }
 
-    /// Write the provided data into the texture's memory. All access to the
-    /// texture completes when this call finishes.
-    ///
-    /// UNSAFE: because the caller must synchronize access to the underlying
-    ///         texture.
-    unsafe fn upload_data_to_texture(
-        &mut self,
-        texture: &mut TextureImage,
-        data: &[u8],
-    ) -> Result<()> {
-        self.transfer_buffer.write_data(data)?;
-        texture.upload_from_buffer(
-            self.command_pool.request_command_buffer()?,
-            &self.transfer_buffer,
-        )?;
-        self.command_pool.reset()?;
-        Ok(())
-    }
-
     /// Directly create an empty 2d texture.
     fn create_empty_2d_texture<Name>(
         &self,
@@ -237,6 +261,7 @@ impl TextureAtlas {
     where
         Name: Into<String>,
     {
+        let (format, bytes_per_pixel) = (vk::Format::R8G8B8A8_SRGB, 4 as u64);
         let texture = TextureImage::new(
             self.device.clone(),
             vk::ImageCreateInfo {
@@ -248,7 +273,7 @@ impl TextureAtlas {
                 },
                 mip_levels,
                 array_layers: 1,
-                format: vk::Format::R8G8B8A8_SRGB,
+                format,
                 tiling: vk::ImageTiling::OPTIMAL,
                 initial_layout: vk::ImageLayout::UNDEFINED,
                 usage: vk::ImageUsageFlags::TRANSFER_DST
@@ -258,16 +283,17 @@ impl TextureAtlas {
                 ..Default::default()
             },
             vk::MemoryPropertyFlags::DEVICE_LOCAL,
+            bytes_per_pixel,
         )?;
 
         let owned_name = name.into();
         self.device.name_vulkan_object(
-            format!("Image - {}", owned_name.clone()),
+            format!("{} - Image", owned_name.clone()),
             vk::ObjectType::IMAGE,
             unsafe { &texture.raw_image() },
         )?;
         self.device.name_vulkan_object(
-            format!("Image view - {}", owned_name.clone()),
+            format!("{} - Image View", owned_name.clone()),
             vk::ObjectType::IMAGE_VIEW,
             unsafe { &texture.raw_view() },
         )?;
