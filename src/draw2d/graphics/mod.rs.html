@@ -144,7 +144,7 @@
     <span class="doccomment">/// rendering.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_texture</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TextureHandle</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span><span class="op">&gt;</span>,
+        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {
         <span class="self">self</span>.<span class="ident">draw2d</span>.<span class="ident">texture_atlas</span>.<span class="ident">add_texture</span>(<span class="ident">path</span>)
     }

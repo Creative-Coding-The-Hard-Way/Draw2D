@@ -282,6 +282,38 @@
 <span id="279">279</span>
 <span id="280">280</span>
 <span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module defines structures and functions for managing a &#39;global&#39;</span>
 <span class="doccomment">//! texture atlas which can be bound once per frame regardless of how many</span>
@@ -293,12 +325,15 @@
 <span class="doccomment">//! dependent.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::<span class="ident">vulkan</span>::{
-    <span class="ident">buffer</span>::<span class="ident">CpuBuffer</span>, <span class="ident">command_pool</span>::<span class="ident">TransientCommandPool</span>,
-    <span class="ident">texture</span>::<span class="ident">TextureImage</span>, <span class="ident">Device</span>,
+    <span class="ident">buffer</span>::<span class="ident">CpuBuffer</span>,
+    <span class="ident">command_pool</span>::<span class="ident">TransientCommandPool</span>,
+    <span class="ident">texture</span>::{<span class="ident">MipmapExtent</span>, <span class="ident">TextureImage</span>},
+    <span class="ident">Device</span>,
 };
 
-<span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">Context</span>, <span class="prelude-ty">Result</span>};
+<span class="kw">use</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span>;
 <span class="kw">use</span> <span class="ident">ash</span>::{<span class="ident">version</span>::<span class="ident">DeviceV1_0</span>, <span class="ident">vk</span>};
+<span class="kw">use</span> <span class="ident">image</span>::<span class="ident">ImageBuffer</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">path</span>::<span class="ident">Path</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>};
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_SUPPORTED_TEXTURES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span>;
@@ -378,7 +413,7 @@
                 .<span class="ident">mipmap_mode</span>(<span class="ident">vk</span>::<span class="ident">SamplerMipmapMode</span>::<span class="ident">LINEAR</span>)
                 .<span class="ident">mip_lod_bias</span>(<span class="number">0.0</span>)
                 .<span class="ident">min_lod</span>(<span class="number">0.0</span>)
-                .<span class="ident">max_lod</span>(<span class="number">0.0</span>);
+                .<span class="ident">max_lod</span>(<span class="ident">vk</span>::<span class="ident">LOD_CLAMP_NONE</span>);
             <span class="ident">device</span>
                 .<span class="ident">logical_device</span>
                 .<span class="ident">create_sampler</span>(<span class="kw-2">&amp;</span><span class="ident">sampler_create_info</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>
@@ -399,12 +434,17 @@
         };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">default_texture</span> <span class="op">=</span>
-            <span class="ident">atlas</span>.<span class="ident">create_empty_2d_texture</span>(<span class="string">&quot;default texture&quot;</span>, <span class="number">1</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+            <span class="ident">atlas</span>.<span class="ident">create_empty_2d_texture</span>(<span class="string">&quot;default texture&quot;</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
         <span class="kw">unsafe</span> {
             <span class="comment">// SAFE: because the texture was just created and is not being used</span>
             <span class="comment">//       elsewhere.</span>
             <span class="kw">let</span> <span class="ident">white_pixel</span>: [<span class="ident">u8</span>; <span class="number">4</span>] <span class="op">=</span> [<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>];
-            <span class="ident">atlas</span>.<span class="ident">upload_data_to_texture</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">default_texture</span>, <span class="kw-2">&amp;</span><span class="ident">white_pixel</span>)<span class="question-mark">?</span>;
+            <span class="ident">atlas</span>.<span class="ident">transfer_buffer</span>.<span class="ident">write_data</span>(<span class="kw-2">&amp;</span><span class="ident">white_pixel</span>)<span class="question-mark">?</span>;
+            <span class="ident">default_texture</span>.<span class="ident">upload_from_buffer</span>(
+                <span class="ident">atlas</span>.<span class="ident">command_pool</span>.<span class="ident">request_command_buffer</span>()<span class="question-mark">?</span>,
+                <span class="kw-2">&amp;</span><span class="ident">atlas</span>.<span class="ident">transfer_buffer</span>,
+            )<span class="question-mark">?</span>;
+            <span class="ident">atlas</span>.<span class="ident">command_pool</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
         }
         <span class="ident">atlas</span>.<span class="ident">textures</span>.<span class="ident">push</span>(<span class="ident">default_texture</span>);
 
@@ -428,7 +468,7 @@
     <span class="doccomment">/// the shader uses to select this texture from the global array.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_texture</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TextureHandle</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>,
+        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">textures</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MAX_SUPPORTED_TEXTURES</span> {
             <span class="ident">anyhow</span>::<span class="macro">bail</span><span class="macro">!</span>(
@@ -436,25 +476,41 @@
                 <span class="ident">MAX_SUPPORTED_TEXTURES</span>
             );
         }
-
-        <span class="kw">let</span> <span class="ident">path_string</span> <span class="op">=</span> <span class="ident">path</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">file_name</span>()
-            .<span class="ident">context</span>(<span class="string">&quot;texture path doesn&#39;t reference a file!&quot;</span>)<span class="question-mark">?</span>
-            .<span class="ident">to_str</span>()
-            .<span class="ident">context</span>(<span class="string">&quot;unable to use texture path as a unicode string!&quot;</span>)<span class="question-mark">?</span>
-            .<span class="ident">to_owned</span>();
-
-        <span class="kw">let</span> <span class="ident">image_file</span> <span class="op">=</span> <span class="ident">image</span>::<span class="ident">open</span>(<span class="ident">path</span>)<span class="question-mark">?</span>.<span class="ident">into_rgba8</span>();
-        <span class="kw">let</span> (<span class="ident">width</span>, <span class="ident">height</span>) <span class="op">=</span> (<span class="ident">image_file</span>.<span class="ident">width</span>(), <span class="ident">image_file</span>.<span class="ident">height</span>());
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">texture</span> <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">create_empty_2d_texture</span>(<span class="ident">path_string</span>, <span class="ident">width</span>, <span class="ident">height</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">path_string</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">mipmaps</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_file_mipmaps</span>(<span class="kw-2">&amp;</span><span class="ident">path_string</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">texture</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_empty_2d_texture</span>(
+            <span class="ident">path_string</span>,
+            <span class="ident">mipmaps</span>[<span class="number">0</span>].<span class="ident">width</span>(),
+            <span class="ident">mipmaps</span>[<span class="number">0</span>].<span class="ident">height</span>(),
+            <span class="ident">mipmaps</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+        )<span class="question-mark">?</span>;
 
         <span class="kw">unsafe</span> {
             <span class="comment">// SAFE: the transfer buffer is only used/considered valid within</span>
             <span class="comment">//       the scope of this function.</span>
-            <span class="self">self</span>.<span class="ident">upload_data_to_texture</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">texture</span>, <span class="kw-2">&amp;</span><span class="ident">image_file</span>.<span class="ident">into_raw</span>())<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">mipmaps</span>
+                .<span class="ident">iter</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">mipmap</span><span class="op">|</span> <span class="ident">mipmap</span>.<span class="ident">as_raw</span>() <span class="kw">as</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>])
+                .<span class="ident">collect</span>();
+            <span class="self">self</span>.<span class="ident">transfer_buffer</span>.<span class="ident">write_data_arrays</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>)<span class="question-mark">?</span>;
+        }
+
+        <span class="kw">unsafe</span> {
+            <span class="kw">let</span> <span class="ident">mipmap_sizes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MipmapExtent</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">mipmaps</span>
+                .<span class="ident">iter</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">mipmap</span><span class="op">|</span> <span class="ident">MipmapExtent</span> {
+                    <span class="ident">width</span>: <span class="ident">mipmap</span>.<span class="ident">width</span>(),
+                    <span class="ident">height</span>: <span class="ident">mipmap</span>.<span class="ident">height</span>(),
+                })
+                .<span class="ident">collect</span>();
+
+            <span class="ident">texture</span>.<span class="ident">upload_mipmaps_from_buffer</span>(
+                <span class="self">self</span>.<span class="ident">command_pool</span>.<span class="ident">request_command_buffer</span>()<span class="question-mark">?</span>,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">transfer_buffer</span>,
+                <span class="kw-2">&amp;</span><span class="ident">mipmap_sizes</span>,
+            )<span class="question-mark">?</span>;
+
+            <span class="self">self</span>.<span class="ident">command_pool</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
         }
 
         <span class="self">self</span>.<span class="ident">textures</span>.<span class="ident">push</span>(<span class="ident">texture</span>);
@@ -463,6 +519,30 @@
         <span class="self">self</span>.<span class="ident">binding_revision</span>.<span class="ident">revision_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">TextureHandle</span>(<span class="ident">index</span>))
+    }
+
+    <span class="kw">fn</span> <span class="ident">read_file_mipmaps</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ImageBuffer</span><span class="op">&lt;</span><span class="ident">image</span>::<span class="ident">Rgba</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">image_file</span> <span class="op">=</span> <span class="ident">image</span>::<span class="ident">open</span>(<span class="ident">path</span>)<span class="question-mark">?</span>.<span class="ident">into_rgba8</span>();
+        <span class="kw">let</span> (<span class="ident">width</span>, <span class="ident">height</span>) <span class="op">=</span> (<span class="ident">image_file</span>.<span class="ident">width</span>(), <span class="ident">image_file</span>.<span class="ident">height</span>());
+        <span class="kw">let</span> <span class="ident">mip_levels</span> <span class="op">=</span> (<span class="ident">height</span>.<span class="ident">max</span>(<span class="ident">width</span>) <span class="kw">as</span> <span class="ident">f32</span>).<span class="ident">log2</span>().<span class="ident">floor</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="number">1</span>;
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mipmaps</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">mip_levels</span> <span class="kw">as</span> <span class="ident">usize</span>);
+        <span class="ident">mipmaps</span>.<span class="ident">push</span>(<span class="ident">image_file</span>.<span class="ident">clone</span>());
+        <span class="kw">for</span> <span class="ident">mipmap_level</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">mip_levels</span> {
+            <span class="kw">use</span> <span class="ident">image</span>::<span class="ident">imageops</span>;
+            <span class="kw">let</span> <span class="ident">mipmap</span> <span class="op">=</span> <span class="ident">imageops</span>::<span class="ident">resize</span>(
+                <span class="kw-2">&amp;</span><span class="ident">image_file</span>,
+                <span class="ident">width</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">mipmap_level</span>,
+                <span class="ident">height</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">mipmap_level</span>,
+                <span class="ident">imageops</span>::<span class="ident">FilterType</span>::<span class="ident">Gaussian</span>,
+            );
+            <span class="ident">mipmaps</span>.<span class="ident">push</span>(<span class="ident">mipmap</span>);
+        }
+
+        <span class="prelude-val">Ok</span>(<span class="ident">mipmaps</span>)
     }
 
     <span class="doccomment">/// Build a vector of descriptor image info entries. This can be used when</span>
@@ -487,35 +567,18 @@
         <span class="ident">bindings</span>
     }
 
-    <span class="doccomment">/// Write the provided data into the texture&#39;s memory. All access to the</span>
-    <span class="doccomment">/// texture completes when this call finishes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// UNSAFE: because the caller must synchronize access to the underlying</span>
-    <span class="doccomment">///         texture.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">upload_data_to_texture</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">texture</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TextureImage</span>,
-        <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">transfer_buffer</span>.<span class="ident">write_data</span>(<span class="ident">data</span>)<span class="question-mark">?</span>;
-        <span class="ident">texture</span>.<span class="ident">upload_from_buffer</span>(
-            <span class="self">self</span>.<span class="ident">command_pool</span>.<span class="ident">request_command_buffer</span>()<span class="question-mark">?</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">transfer_buffer</span>,
-        )<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">command_pool</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
-    }
-
     <span class="doccomment">/// Directly create an empty 2d texture.</span>
     <span class="kw">fn</span> <span class="ident">create_empty_2d_texture</span><span class="op">&lt;</span><span class="ident">Name</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">name</span>: <span class="ident">Name</span>,
         <span class="ident">width</span>: <span class="ident">u32</span>,
         <span class="ident">height</span>: <span class="ident">u32</span>,
+        <span class="ident">mip_levels</span>: <span class="ident">u32</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TextureImage</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">Name</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {
+        <span class="kw">let</span> (<span class="ident">format</span>, <span class="ident">bytes_per_pixel</span>) <span class="op">=</span> (<span class="ident">vk</span>::<span class="ident">Format</span>::<span class="ident">R8G8B8A8_SRGB</span>, <span class="number">4</span> <span class="kw">as</span> <span class="ident">u64</span>);
         <span class="kw">let</span> <span class="ident">texture</span> <span class="op">=</span> <span class="ident">TextureImage</span>::<span class="ident">new</span>(
             <span class="self">self</span>.<span class="ident">device</span>.<span class="ident">clone</span>(),
             <span class="ident">vk</span>::<span class="ident">ImageCreateInfo</span> {
@@ -525,9 +588,9 @@
                     <span class="ident">height</span>,
                     <span class="ident">depth</span>: <span class="number">1</span>,
                 },
-                <span class="ident">mip_levels</span>: <span class="number">1</span>,
+                <span class="ident">mip_levels</span>,
                 <span class="ident">array_layers</span>: <span class="number">1</span>,
-                <span class="ident">format</span>: <span class="ident">vk</span>::<span class="ident">Format</span>::<span class="ident">R8G8B8A8_SRGB</span>,
+                <span class="ident">format</span>,
                 <span class="ident">tiling</span>: <span class="ident">vk</span>::<span class="ident">ImageTiling</span>::<span class="ident">OPTIMAL</span>,
                 <span class="ident">initial_layout</span>: <span class="ident">vk</span>::<span class="ident">ImageLayout</span>::<span class="ident">UNDEFINED</span>,
                 <span class="ident">usage</span>: <span class="ident">vk</span>::<span class="ident">ImageUsageFlags</span>::<span class="ident">TRANSFER_DST</span>
@@ -537,16 +600,17 @@
                 ..<span class="ident">Default</span>::<span class="ident">default</span>()
             },
             <span class="ident">vk</span>::<span class="ident">MemoryPropertyFlags</span>::<span class="ident">DEVICE_LOCAL</span>,
+            <span class="ident">bytes_per_pixel</span>,
         )<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">owned_name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>();
         <span class="self">self</span>.<span class="ident">device</span>.<span class="ident">name_vulkan_object</span>(
-            <span class="ident">owned_name</span>.<span class="ident">clone</span>(),
+            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} - Image&quot;</span>, <span class="ident">owned_name</span>.<span class="ident">clone</span>()),
             <span class="ident">vk</span>::<span class="ident">ObjectType</span>::<span class="ident">IMAGE</span>,
             <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="ident">texture</span>.<span class="ident">raw_image</span>() },
         )<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">device</span>.<span class="ident">name_vulkan_object</span>(
-            <span class="ident">owned_name</span>.<span class="ident">clone</span>(),
+            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} - Image View&quot;</span>, <span class="ident">owned_name</span>.<span class="ident">clone</span>()),
             <span class="ident">vk</span>::<span class="ident">ObjectType</span>::<span class="ident">IMAGE_VIEW</span>,
             <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="ident">texture</span>.<span class="ident">raw_view</span>() },
         )<span class="question-mark">?</span>;
