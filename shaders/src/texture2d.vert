@@ -8,12 +8,13 @@ layout(location = 2) in vec4 rgba;
 layout(location = 0) out vec2 vary_uv;
 layout(location = 1) out vec4 vary_rgba;
 
-layout(binding = 0) uniform UniformBufferObject {
-  mat4 projection;
-} ubo;
+layout(push_constant) uniform PushConsts {
+    mat4 projection;
+    uint texture_index;
+} pushConsts;
 
 void main() {
     vary_uv = uv;
     vary_rgba = rgba;
-    gl_Position = ubo.projection * vec4(pos, 0.0, 1.0);
+    gl_Position = pushConsts.projection * vec4(pos, 0.0, 1.0);
 }

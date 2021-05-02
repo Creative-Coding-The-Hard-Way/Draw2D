@@ -20,7 +20,7 @@ impl AtlasVersion {
 
 #[cfg(test)]
 mod test {
-    use crate::texture_atlas::AtlasVersion;
+    use crate::graphics::texture_atlas::AtlasVersion;
 
     #[test]
     fn same_versions_should_not_be_out_of_date() {

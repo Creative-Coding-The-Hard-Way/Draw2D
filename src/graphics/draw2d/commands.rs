@@ -1,6 +1,6 @@
 use crate::graphics::{
-    draw2d::descriptor_sets::PushConsts, vulkan::buffer::Buffer,
-    vulkan::ffi::any_as_u8_slice, Draw2d, Frame,
+    draw2d::descriptor_sets::PushConsts, layer::LayerStack,
+    vulkan::buffer::Buffer, vulkan::ffi::any_as_u8_slice, Draw2d, Frame,
 };
 
 use anyhow::Result;
@@ -8,7 +8,11 @@ use ash::{version::DeviceV1_0, vk};
 
 /// Use Frame resources to record a one-time use CommandBuffer which actually
 /// renders the draw2d render pass.
-pub fn record(draw2d: &Draw2d, frame: &mut Frame) -> Result<vk::CommandBuffer> {
+pub fn record(
+    draw2d: &Draw2d,
+    frame: &mut Frame,
+    layer_stack: &LayerStack,
+) -> Result<vk::CommandBuffer> {
     let command_buffer = frame.command_pool.request_command_buffer()?;
     unsafe {
         // begin the command buffer
@@ -67,25 +71,29 @@ pub fn record(draw2d: &Draw2d, frame: &mut Frame) -> Result<vk::CommandBuffer> {
         );
 
         let mut offset: u32 = 0;
-        for layer in draw2d.layer_stack.layers() {
-            let consts = PushConsts {
-                texture_index: layer.texture_handle().texture_index(),
-            };
-            draw2d.device.logical_device.cmd_push_constants(
-                command_buffer,
-                draw2d.graphics_pipeline.pipeline_layout,
-                vk::ShaderStageFlags::FRAGMENT,
-                0,
-                any_as_u8_slice(&consts),
-            );
-            draw2d.device.logical_device.cmd_draw(
-                command_buffer,
-                layer.vertices().len() as u32, // vertex count
-                1,                             // instance count
-                offset,                        // first vertex
-                0,                             // first instance
-            );
-            offset += layer.vertices().len() as u32;
+        for layer in layer_stack.layers() {
+            for batch in layer.batches() {
+                let consts = PushConsts {
+                    projection: (*layer.projection()).into(),
+                    texture_index: batch.texture_handle.texture_index(),
+                };
+                draw2d.device.logical_device.cmd_push_constants(
+                    command_buffer,
+                    draw2d.graphics_pipeline.pipeline_layout,
+                    vk::ShaderStageFlags::FRAGMENT
+                        | vk::ShaderStageFlags::VERTEX,
+                    0,
+                    any_as_u8_slice(&consts),
+                );
+                draw2d.device.logical_device.cmd_draw(
+                    command_buffer,
+                    batch.vertices.len() as u32, // vertex count
+                    1,                           // instance count
+                    offset,                      // first vertex
+                    0,                           // first instance
+                );
+                offset += batch.vertices.len() as u32;
+            }
         }
 
         // end the render pass

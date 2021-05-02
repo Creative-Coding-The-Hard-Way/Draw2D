@@ -2,17 +2,8 @@
 
 pub mod camera;
 pub mod geometry;
+pub mod graphics;
 
 mod glfw_window;
-mod graphics;
 
-pub use self::{
-    glfw_window::{EventReceiver, GlfwWindow},
-    graphics::{
-        draw2d::{
-            layer::{Layer, LayerHandle},
-            Vertex,
-        },
-        texture_atlas, Graphics,
-    },
-};
+pub use self::glfw_window::{EventReceiver, GlfwWindow};

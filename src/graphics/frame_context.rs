@@ -7,7 +7,7 @@ use anyhow::Result;
 use ash::{version::DeviceV1_0, vk};
 use std::sync::Arc;
 
-use super::texture_atlas::TextureAtlas;
+use super::{layer::LayerStack, texture_atlas::TextureAtlas};
 
 /// An enum used by the frame context to signal when the swapchain needs to be
 /// rebuilt.
@@ -63,6 +63,7 @@ impl FrameContext {
         &mut self,
         draw2d: &Draw2d,
         texture_atlas: &impl TextureAtlas,
+        layer_stack: &LayerStack,
     ) -> Result<SwapchainState> {
         if self.swapchain_state == SwapchainState::NeedsRebuild {
             return Ok(SwapchainState::NeedsRebuild);
@@ -95,7 +96,7 @@ impl FrameContext {
         let render_finished_semaphore = {
             let current_frame = &mut self.frames_in_flight[index as usize];
             current_frame.begin_frame()?;
-            draw2d.draw_frame(current_frame, texture_atlas)?;
+            draw2d.draw_frame(current_frame, texture_atlas, layer_stack)?;
             current_frame.finish_frame(acquired_semaphore)?
         };
 

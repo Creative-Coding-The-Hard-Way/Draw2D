@@ -2,14 +2,15 @@ use ash::vk;
 use memoffset::offset_of;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
-pub struct Vertex {
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct Vertex2d {
     pub pos: [f32; 2],
     pub uv: [f32; 2],
     pub rgba: [f32; 4],
 }
 
-impl Default for Vertex {
+impl Default for Vertex2d {
+    /// A complete vertex, colored white.
     fn default() -> Self {
         Self {
             pos: [0.0, 0.0],
@@ -19,7 +20,7 @@ impl Default for Vertex {
     }
 }
 
-impl Vertex {
+impl Vertex2d {
     /// Build a binding description for this vertex type.
     pub fn binding_description() -> (
         Vec<vk::VertexInputBindingDescription>,
@@ -34,19 +35,19 @@ impl Vertex {
             .binding(0)
             .location(0)
             .format(vk::Format::R32G32_SFLOAT)
-            .offset(offset_of!(Vertex, pos) as u32)
+            .offset(offset_of!(Vertex2d, pos) as u32)
             .build();
         let uv = vk::VertexInputAttributeDescription::builder()
             .binding(0)
             .location(1)
             .format(vk::Format::R32G32_SFLOAT)
-            .offset(offset_of!(Vertex, uv) as u32)
+            .offset(offset_of!(Vertex2d, uv) as u32)
             .build();
         let rgba = vk::VertexInputAttributeDescription::builder()
             .binding(0)
             .location(2)
             .format(vk::Format::R32G32B32A32_SFLOAT)
-            .offset(offset_of!(Vertex, rgba) as u32)
+            .offset(offset_of!(Vertex2d, rgba) as u32)
             .build();
         (vec![binding], vec![pos, uv, rgba])
     }

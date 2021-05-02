@@ -1,6 +1,8 @@
 use anyhow::Result;
 
-use crate::texture_atlas::{AtlasVersion, TextureAtlas, TextureHandle};
+use crate::graphics::texture_atlas::{
+    AtlasVersion, TextureAtlas, TextureHandle,
+};
 
 pub struct StubAtlas {
     pub version: AtlasVersion,

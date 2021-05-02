@@ -1,6 +1,8 @@
-use super::{descriptor_sets, Vertex};
+use super::descriptor_sets;
+
 use crate::graphics::{
     texture_atlas::MAX_SUPPORTED_TEXTURES,
+    vertex::Vertex2d,
     vulkan::{ffi, shader_module::ShaderModule, Device, Swapchain},
 };
 
@@ -62,7 +64,7 @@ impl GraphicsPipeline {
         // Fixed Function Configuration
 
         let (binding_descriptions, attribute_descriptions) =
-            Vertex::binding_description();
+            Vertex2d::binding_description();
         let vertex_input_state =
             vk::PipelineVertexInputStateCreateInfo::builder()
                 .vertex_binding_descriptions(&binding_descriptions)
