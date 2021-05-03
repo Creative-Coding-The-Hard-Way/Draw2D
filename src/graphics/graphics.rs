@@ -1,11 +1,12 @@
-use super::{layer::LayerStack, Graphics};
+use super::Graphics;
 
 use crate::graphics::{
-    draw2d::Draw2d,
-    layer::{Layer, LayerHandle},
+    frame::Frame,
+    frame_context::FrameContext,
+    layer::{Layer, LayerHandle, LayerStack},
+    pipeline2d::Pipeline2d,
     texture_atlas::{CachedAtlas, GpuAtlas, TextureAtlas, TextureHandle},
     vulkan::{Device, Swapchain, WindowSurface},
-    FrameContext, SwapchainState,
 };
 
 use anyhow::Result;
@@ -18,21 +19,23 @@ impl Graphics {
 
         let frame_context =
             FrameContext::new(device.clone(), swapchain.clone())?;
-        let draw2d = Draw2d::new(device.clone(), swapchain.clone())?;
+        let pipeline2d = Pipeline2d::new(device.clone(), &swapchain)?;
         let texture_atlas = CachedAtlas::new(GpuAtlas::new(device.clone())?);
         let layer_stack = LayerStack::new();
 
         Ok(Self {
+            pipeline2d,
             texture_atlas,
-            draw2d,
             frame_context,
             layer_stack,
             device,
         })
     }
 
-    /// Add a texture, the returned handle can be bound to a layer for
-    /// rendering.
+    /// Read a texture file into GPU Memory.
+    ///
+    /// The returned TextureHandle can be used in Batches for rendering with
+    /// the texture.
     pub fn add_texture(
         &mut self,
         path: impl Into<String>,
@@ -40,10 +43,16 @@ impl Graphics {
         self.texture_atlas.add_texture(path)
     }
 
+    /// Add a new graphics layer to the top of the rendering stack.
+    ///
+    /// This layer will be rendered above all other existing layers.
     pub fn add_layer_to_top(&mut self) -> LayerHandle {
         self.layer_stack.add_layer_to_top()
     }
 
+    /// Add a new graphics layer to the bottom of the rendering stack.
+    ///
+    /// This layer will be rendered below all other existing layers.
     pub fn add_layer_to_bottom(&mut self) -> LayerHandle {
         self.layer_stack.add_layer_to_bottom()
     }
@@ -59,13 +68,30 @@ impl Graphics {
 
     /// Render a single frame to the screen.
     pub fn render(&mut self, window_surface: &dyn WindowSurface) -> Result<()> {
-        let swapchain_state = self.frame_context.draw_frame(
-            &self.draw2d,
-            &self.texture_atlas,
-            &self.layer_stack,
-        )?;
-        if swapchain_state == SwapchainState::NeedsRebuild {
+        if let Ok(mut frame) = self.frame_context.acquire_frame() {
+            self.draw_to_frame(&mut frame)?;
+            self.frame_context.return_frame(frame)?
+        } else {
             self.rebuild_swapchain(window_surface)?;
+        }
+        Ok(())
+    }
+
+    fn draw_to_frame(&mut self, frame: &mut Frame) -> Result<()> {
+        let all_vertices = self.layer_stack.vertices();
+        if all_vertices.len() == 0 {
+            let graphics_commands = self.record_no_op_commands(frame)?;
+            frame.submit_graphics_commands(&[graphics_commands]);
+        } else {
+            // Fill per-frame gpu resources with the relevant data.
+            // SAFE: because resources are not shared between frames.
+            unsafe {
+                frame.descriptor.update_texture_atlas(&self.texture_atlas);
+                frame.vertex_buffer.write_data_arrays(&all_vertices)?;
+            }
+
+            let graphics_commands = self.record_layer_draw_commands(frame)?;
+            frame.submit_graphics_commands(&[graphics_commands]);
         }
         Ok(())
     }
@@ -77,7 +103,7 @@ impl Graphics {
         window_surface: &dyn WindowSurface,
     ) -> Result<()> {
         let swapchain = self.frame_context.rebuild_swapchain(window_surface)?;
-        self.draw2d.replace_swapchain(swapchain)?;
+        self.pipeline2d = Pipeline2d::new(self.device.clone(), &swapchain)?;
         Ok(())
     }
 }

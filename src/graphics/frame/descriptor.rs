@@ -1,5 +1,5 @@
 use crate::graphics::{
-    draw2d,
+    pipeline2d,
     texture_atlas::{AtlasVersion, TextureAtlas},
     vulkan::Device,
 };
@@ -41,7 +41,7 @@ impl FrameDescriptor {
     {
         let owned_name = name.into();
         let (descriptor_set_layout, bindings) = unsafe {
-            draw2d::descriptor_sets::create_descriptor_set_layout(&device)?
+            pipeline2d::descriptor_sets::create_descriptor_set_layout(&device)?
         };
         device.name_vulkan_object(
             format!("{} - DescriptorSetLayout", owned_name.clone()),

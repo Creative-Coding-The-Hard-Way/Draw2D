@@ -1,17 +1,15 @@
 use crate::graphics::{
+    frame::Frame,
     vulkan::{Device, Swapchain, WindowSurface},
-    Draw2d, Frame,
 };
 
 use anyhow::Result;
 use ash::{version::DeviceV1_0, vk};
 use std::sync::Arc;
 
-use super::{layer::LayerStack, texture_atlas::TextureAtlas};
-
 /// An enum used by the frame context to signal when the swapchain needs to be
 /// rebuilt.
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum SwapchainState {
     Ok,
     NeedsRebuild,
@@ -26,13 +24,17 @@ pub enum SwapchainState {
 ///
 pub struct FrameContext {
     ///! There is one frame per swapchain framebuffer.
-    frames_in_flight: Vec<Frame>,
+    frames_in_flight: Vec<Option<Frame>>,
 
     ///! The index of the last frame presented via the swapchain.
-    previous_frame: usize,
+    current_frame_index: usize,
 
     ///! An enum indicating when the swapchain needs to be reconstructed.
     swapchain_state: SwapchainState,
+
+    /// Populated automatically when a frame is started, and consumed
+    /// automatically when the frame is completed.
+    current_image_acquired_semaphore: vk::Semaphore,
 
     ///! An owning reference to the application swapchain.
     swapchain: Arc<Swapchain>,
@@ -50,28 +52,29 @@ impl FrameContext {
                 &swapchain.framebuffers,
             )?,
             swapchain_state: SwapchainState::Ok,
-            previous_frame: 0, // always 'start' on frame 0
+            current_image_acquired_semaphore: vk::Semaphore::null(),
+            current_frame_index: 0,
             swapchain,
             device,
         })
     }
 
-    /// Render a single application frame.
-    /// Synchronization between frames is kept to a minimum because each frame
-    /// maintains its own resources.
-    pub fn draw_frame(
-        &mut self,
-        draw2d: &Draw2d,
-        texture_atlas: &impl TextureAtlas,
-        layer_stack: &LayerStack,
-    ) -> Result<SwapchainState> {
+    /// Borrow the swapchain owned by this frame context.
+    pub fn swapchain(&self) -> &Swapchain {
+        &self.swapchain
+    }
+
+    /// Acquire the next swapchain image and select the frame-specific
+    /// resources which are now ready to be used.
+    pub fn acquire_frame(&mut self) -> Result<Frame, SwapchainState> {
         if self.swapchain_state == SwapchainState::NeedsRebuild {
-            return Ok(SwapchainState::NeedsRebuild);
+            return Err(SwapchainState::NeedsRebuild);
         }
 
-        // Use the previous frame's semaphore because the current frame's
-        // index cannot be known until *after* acquiring the image.
-        let acquired_semaphore = self.frames_in_flight[self.previous_frame]
+        self.current_image_acquired_semaphore = self.frames_in_flight
+            [self.current_frame_index]
+            .as_ref()
+            .expect("the current frame was never ended!")
             .sync
             .image_available_semaphore;
 
@@ -79,30 +82,41 @@ impl FrameContext {
             self.swapchain.swapchain_loader.acquire_next_image(
                 self.swapchain.swapchain,
                 u64::MAX,
-                acquired_semaphore,
+                self.current_image_acquired_semaphore,
                 vk::Fence::null(),
             )
         };
         if let Err(vk::Result::ERROR_OUT_OF_DATE_KHR) = result {
-            return Ok(SwapchainState::NeedsRebuild);
+            return Err(SwapchainState::NeedsRebuild);
         }
         if let Ok((_, true)) = result {
-            return Ok(SwapchainState::NeedsRebuild);
+            return Err(SwapchainState::NeedsRebuild);
         }
 
-        let (index, _) = result?;
-        self.previous_frame = index as usize;
+        let (index, _) = result.ok().unwrap();
+        self.current_frame_index = index as usize;
 
-        let render_finished_semaphore = {
-            let current_frame = &mut self.frames_in_flight[index as usize];
-            current_frame.begin_frame()?;
-            draw2d.draw_frame(current_frame, texture_atlas, layer_stack)?;
-            current_frame.finish_frame(acquired_semaphore)?
-        };
+        let mut current_frame = self.frames_in_flight[self.current_frame_index]
+            .take()
+            .expect("the current frame was never returned!");
+
+        current_frame
+            .begin_frame()
+            .expect("unable to begin the current frame!");
+
+        Ok(current_frame)
+    }
+
+    /// Complete the current frame and present the framebuffer.
+    pub fn return_frame(&mut self, mut frame: Frame) -> Result<()> {
+        let image_acquired_semaphore = self.current_image_acquired_semaphore;
+        let render_finished_semaphore =
+            frame.finish_frame(image_acquired_semaphore)?;
+        self.frames_in_flight[self.current_frame_index] = Some(frame);
 
         let render_finished_semaphores = &[render_finished_semaphore];
         let swapchains = [self.swapchain.swapchain];
-        let indices = [index];
+        let indices = [self.current_frame_index as u32];
         let present_info = vk::PresentInfoKHR::builder()
             .wait_semaphores(render_finished_semaphores)
             .swapchains(&swapchains)
@@ -115,10 +129,10 @@ impl FrameContext {
                 .queue_present(*present_queue, &present_info)
         };
         if Err(vk::Result::ERROR_OUT_OF_DATE_KHR) == result {
-            return Ok(SwapchainState::NeedsRebuild);
+            self.swapchain_state = SwapchainState::NeedsRebuild;
         }
 
-        Ok(SwapchainState::Ok)
+        Ok(())
     }
 
     /// Wait for all rendering operations to complete on every frame, then

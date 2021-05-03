@@ -1,19 +1,11 @@
+use super::PushConsts;
+
 use std::mem::size_of;
 
 use crate::graphics::{texture_atlas::MAX_SUPPORTED_TEXTURES, vulkan::Device};
 
 use anyhow::Result;
 use ash::{version::DeviceV1_0, vk};
-
-/// The push constants used by the Draw2d graphics pipeline.
-#[repr(C)]
-#[derive(Copy, Clone, Debug)]
-pub struct PushConsts {
-    pub projection: [[f32; 4]; 4],
-    /// An index into the global texture array indicating which texture to
-    /// sample for rendering.
-    pub texture_index: u32,
-}
 
 /// Create a descriptor set layout instance which describes the bindings used by
 /// Draw2d.

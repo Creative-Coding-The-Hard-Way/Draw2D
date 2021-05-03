@@ -1,4 +1,4 @@
-use super::descriptor_sets;
+use super::{descriptor_sets, Pipeline2d};
 
 use crate::graphics::{
     texture_atlas::MAX_SUPPORTED_TEXTURES,
@@ -10,30 +10,15 @@ use anyhow::{Context, Result};
 use ash::{version::DeviceV1_0, vk};
 use std::{ffi::CString, sync::Arc};
 
-/// All vulkan resources related to the graphics pipeline.
-pub struct GraphicsPipeline {
-    descriptor_set_layout: vk::DescriptorSetLayout,
-    pub pipeline_layout: vk::PipelineLayout,
-    pub pipeline: vk::Pipeline,
-
-    device: Arc<Device>,
-
-    #[allow(dead_code)]
-    swapchain: Arc<Swapchain>,
-}
-
-impl GraphicsPipeline {
-    pub fn new(
-        device: &Arc<Device>,
-        swapchain: &Arc<Swapchain>,
-    ) -> Result<Arc<Self>> {
+impl Pipeline2d {
+    pub fn new(device: Arc<Device>, swapchain: &Swapchain) -> Result<Self> {
         let vertex_module = ShaderModule::new(
-            device,
+            &device,
             "Vertex Shader",
             std::include_bytes!("../../../shaders/sprv/texture2d.vert.sprv"),
         )?;
         let fragment_module = ShaderModule::new(
-            device,
+            &device,
             "Fragment Shader",
             std::include_bytes!("../../../shaders/sprv/texture2d.frag.sprv"),
         )?;
@@ -200,19 +185,26 @@ impl GraphicsPipeline {
             &pipeline,
         )?;
 
-        // build pipeline object
-
-        Ok(Arc::new(Self {
+        Ok(Self {
             descriptor_set_layout,
             pipeline_layout,
             pipeline,
             device: device.clone(),
-            swapchain: swapchain.clone(),
-        }))
+        })
+    }
+
+    /// Borrow the raw vulkan pipeline handle.
+    pub fn raw_pipeline(&self) -> &vk::Pipeline {
+        &self.pipeline
+    }
+
+    /// Borrow the pipeline layout handle.
+    pub fn raw_pipeline_layout(&self) -> &vk::PipelineLayout {
+        &self.pipeline_layout
     }
 }
 
-impl Drop for GraphicsPipeline {
+impl Drop for Pipeline2d {
     fn drop(&mut self) {
         unsafe {
             self.device

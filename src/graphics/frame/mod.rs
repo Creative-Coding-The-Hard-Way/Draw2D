@@ -30,14 +30,14 @@ impl Frame {
     pub fn create_n_frames(
         device: &Arc<Device>,
         framebuffers: &[vk::Framebuffer],
-    ) -> Result<Vec<Self>> {
+    ) -> Result<Vec<Option<Self>>> {
         let mut result = vec![];
         for (i, framebuffer) in framebuffers.iter().enumerate() {
-            result.push(Self::new(
+            result.push(Some(Self::new(
                 device.clone(),
                 *framebuffer,
                 format!("Frame {}", i),
-            )?);
+            )?));
         }
         Ok(result)
     }
