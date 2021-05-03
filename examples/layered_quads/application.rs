@@ -9,7 +9,7 @@
 
 use draw2d::{
     graphics::{
-        layer::{Batch, Layer, LayerHandle},
+        layer::{Batch, LayerHandle},
         vertex::Vertex2d,
         Graphics,
     },
