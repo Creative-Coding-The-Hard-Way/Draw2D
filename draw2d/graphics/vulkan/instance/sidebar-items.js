@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Instance","Hold all of the instance-related objects and drop them in the correct order."]]});

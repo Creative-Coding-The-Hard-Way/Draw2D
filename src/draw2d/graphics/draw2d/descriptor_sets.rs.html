@@ -71,10 +71,14 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">size_of</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::{<span class="ident">texture_atlas</span>::<span class="ident">MAX_SUPPORTED_TEXTURES</span>, <span class="ident">vulkan</span>::<span class="ident">Device</span>};
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">texture_atlas</span>;
+
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::<span class="ident">vulkan</span>::<span class="ident">Device</span>;
 
 <span class="kw">use</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span>;
 <span class="kw">use</span> <span class="ident">ash</span>::{<span class="ident">version</span>::<span class="ident">DeviceV1_0</span>, <span class="ident">vk</span>};
@@ -137,7 +141,7 @@
 <span class="kw">fn</span> <span class="ident">sampler_layout_binding</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">vk</span>::<span class="ident">DescriptorSetLayoutBinding</span> {
     <span class="ident">vk</span>::<span class="ident">DescriptorSetLayoutBinding</span>::<span class="ident">builder</span>()
         .<span class="ident">binding</span>(<span class="number">1</span>)
-        .<span class="ident">descriptor_count</span>(<span class="ident">MAX_SUPPORTED_TEXTURES</span> <span class="kw">as</span> <span class="ident">u32</span>)
+        .<span class="ident">descriptor_count</span>(<span class="ident">texture_atlas</span>::<span class="ident">MAX_SUPPORTED_TEXTURES</span> <span class="kw">as</span> <span class="ident">u32</span>)
         .<span class="ident">descriptor_type</span>(<span class="ident">vk</span>::<span class="ident">DescriptorType</span>::<span class="ident">COMBINED_IMAGE_SAMPLER</span>)
         .<span class="ident">stage_flags</span>(<span class="ident">vk</span>::<span class="ident">ShaderStageFlags</span>::<span class="ident">FRAGMENT</span>)
         .<span class="ident">build</span>()

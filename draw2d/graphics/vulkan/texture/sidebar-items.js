@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["MipmapExtent","This struct defines the size of a mipmap level."],["TextureImage","The TextureImage maintains the image, view, and memory, which are required when rendering with a texture."]]});

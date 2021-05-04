@@ -196,14 +196,14 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_n_frames</span>(
         <span class="ident">device</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Device</span><span class="op">&gt;</span>,
         <span class="ident">framebuffers</span>: <span class="kw-2">&amp;</span>[<span class="ident">vk</span>::<span class="ident">Framebuffer</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">framebuffer</span>) <span class="kw">in</span> <span class="ident">framebuffers</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="ident">result</span>.<span class="ident">push</span>(<span class="self">Self</span>::<span class="ident">new</span>(
+            <span class="ident">result</span>.<span class="ident">push</span>(<span class="prelude-val">Some</span>(<span class="self">Self</span>::<span class="ident">new</span>(
                 <span class="ident">device</span>.<span class="ident">clone</span>(),
                 <span class="kw-2">*</span><span class="ident">framebuffer</span>,
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Frame {}&quot;</span>, <span class="ident">i</span>),
-            )<span class="question-mark">?</span>);
+            )<span class="question-mark">?</span>));
         }
         <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
     }

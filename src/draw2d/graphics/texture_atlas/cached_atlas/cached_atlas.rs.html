@@ -86,10 +86,14 @@
 <span id="83">83</span>
 <span id="84">84</span>
 <span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">CachedAtlas</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">texture_atlas</span>::{<span class="ident">AtlasVersion</span>, <span class="ident">TextureAtlas</span>, <span class="ident">TextureHandle</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::<span class="ident">texture_atlas</span>::{
+    <span class="ident">AtlasVersion</span>, <span class="ident">TextureAtlas</span>, <span class="ident">TextureHandle</span>,
+};
 
 <span class="kw">use</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">path</span>::<span class="ident">Path</span>};
@@ -132,7 +136,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">texture_atlas</span>::{
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::<span class="ident">texture_atlas</span>::{
         <span class="ident">cached_atlas</span>::{<span class="ident">stub_atlas</span>::<span class="ident">StubAtlas</span>, <span class="ident">CachedAtlas</span>},
         <span class="ident">TextureAtlas</span>,
     };

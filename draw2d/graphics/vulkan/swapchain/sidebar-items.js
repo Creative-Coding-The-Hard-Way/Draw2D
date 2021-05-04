@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Swapchain","Manage the swapchain and all dependent resources."]]});

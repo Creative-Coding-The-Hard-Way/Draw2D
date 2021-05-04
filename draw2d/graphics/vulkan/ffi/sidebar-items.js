@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["any_as_u8_slice","Zero-Copy transformation of a type to a &[u8]."],["copy_to_u32","Copy a byte slice into a properly-aligned u32 array."],["to_os_ptrs","Build a vector of pointers to c-style strings from a vector of rust strings."]]});
