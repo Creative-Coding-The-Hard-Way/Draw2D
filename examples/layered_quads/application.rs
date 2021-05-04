@@ -7,7 +7,14 @@
 //! app.run()?;
 //! ```
 
-use draw2d::{GlfwWindow, Graphics, Layer, LayerHandle, Vertex};
+use draw2d::{
+    graphics::{
+        layer::{Batch, LayerHandle},
+        vertex::Vertex2d,
+        Graphics,
+    },
+    GlfwWindow,
+};
 
 use anyhow::Result;
 
@@ -16,9 +23,9 @@ use anyhow::Result;
 /// The Application has a window, a render context, and one or more systems
 /// which can render to a frame when presented by the render context.
 pub struct Application {
+    world_layer: LayerHandle,
     graphics: Graphics,
     window_surface: GlfwWindow,
-    layer: Option<LayerHandle>,
 }
 
 impl Application {
@@ -28,10 +35,14 @@ impl Application {
         window_surface.window.set_resizable(true);
         window_surface.window.set_key_polling(true);
         window_surface.window.set_size_polling(true);
+
+        let mut graphics = Graphics::new(&window_surface)?;
+        let world_layer = graphics.add_layer_to_bottom();
+
         Ok(Self {
-            graphics: Graphics::new(&window_surface)?,
+            graphics,
             window_surface,
-            layer: None,
+            world_layer,
         })
     }
 
@@ -40,29 +51,21 @@ impl Application {
 
         let texture_handle = self.graphics.add_texture("assets/example.png")?;
 
-        // background
-        {
-            let layer_handle = self.graphics.add_layer_to_bottom();
-            let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
-            layer.set_texture(texture_handle);
-            layer.add_square(200.0);
-        }
+        let mut back = Batch::default();
+        let mut middle = Batch::default();
+        let mut front = Batch::default();
 
-        // foreground
-        {
-            let layer_handle = self.graphics.add_layer_to_top();
-            let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
-            layer.add_square(128.0);
-        }
+        back.texture_handle = texture_handle;
+        back.add_square(200.0);
 
-        // (even more) foreground
-        {
-            let layer_handle = self.graphics.add_layer_to_top();
-            self.layer = Some(layer_handle);
-            let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
-            layer.set_texture(texture_handle);
-            layer.add_square(40.0);
-        }
+        middle.add_square(128.0);
+
+        front.texture_handle = texture_handle;
+        front.add_square(40.0);
+
+        self.graphics
+            .get_layer_mut(&self.world_layer)
+            .push_batches(&[back, middle, front]);
 
         Ok(())
     }
@@ -108,16 +111,16 @@ impl Application {
         let (iwidth, iheight) = self.window_surface.window.get_size();
         let half_width = iwidth as f32 / 2.0;
         let half_height = iheight as f32 / 2.0;
-        self.graphics.set_projection(
-            &nalgebra::Matrix4::<f32>::new_orthographic(
+        self.graphics
+            .get_layer_mut(&self.world_layer)
+            .set_projection(nalgebra::Matrix4::<f32>::new_orthographic(
                 -half_width,
                 half_width,
                 half_height,
                 -half_height,
                 -1.0,
                 1.0,
-            ),
-        );
+            ));
     }
 }
 
@@ -125,41 +128,41 @@ trait Quads {
     fn add_square(&mut self, size: f32);
 }
 
-impl Quads for Layer {
+impl Quads for Batch {
     fn add_square(&mut self, size: f32) {
-        self.push_vertices(&[
+        self.vertices.extend_from_slice(&[
             // top left
-            Vertex {
+            Vertex2d {
                 pos: [-size, size],
                 uv: [0.0, 0.0],
                 ..Default::default()
             },
             // top right
-            Vertex {
+            Vertex2d {
                 pos: [size, size],
                 uv: [1.0, 0.0],
                 ..Default::default()
             },
             // bottom right
-            Vertex {
+            Vertex2d {
                 pos: [size, -size],
                 uv: [1.0, 1.0],
                 ..Default::default()
             },
             // top left
-            Vertex {
+            Vertex2d {
                 pos: [-size, size],
                 uv: [0.0, 0.0],
                 ..Default::default()
             },
             // bottom right
-            Vertex {
+            Vertex2d {
                 pos: [size, -size],
                 uv: [1.0, 1.0],
                 ..Default::default()
             },
             // bottom left
-            Vertex {
+            Vertex2d {
                 pos: [-size, -size],
                 uv: [0.0, 1.0],
                 ..Default::default()

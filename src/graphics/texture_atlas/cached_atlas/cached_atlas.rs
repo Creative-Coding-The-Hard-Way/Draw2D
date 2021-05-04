@@ -1,6 +1,8 @@
 use super::CachedAtlas;
 
-use crate::texture_atlas::{AtlasVersion, TextureAtlas, TextureHandle};
+use crate::graphics::texture_atlas::{
+    AtlasVersion, TextureAtlas, TextureHandle,
+};
 
 use anyhow::Result;
 use std::{collections::HashMap, path::Path};
@@ -43,7 +45,7 @@ impl<Atlas: TextureAtlas> TextureAtlas for CachedAtlas<Atlas> {
 
 #[cfg(test)]
 mod test {
-    use crate::texture_atlas::{
+    use crate::graphics::texture_atlas::{
         cached_atlas::{stub_atlas::StubAtlas, CachedAtlas},
         TextureAtlas,
     };

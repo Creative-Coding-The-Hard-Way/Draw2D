@@ -9,7 +9,12 @@
 
 use draw2d::{
     camera::{default_camera_controls, OrthoCamera},
-    GlfwWindow, Graphics, Layer, LayerHandle, Vertex,
+    graphics::{
+        layer::{Batch, LayerHandle},
+        vertex::Vertex2d,
+        Graphics,
+    },
+    GlfwWindow,
 };
 
 use anyhow::Result;
@@ -19,10 +24,11 @@ use anyhow::Result;
 /// The Application has a window, a render context, and one or more systems
 /// which can render to a frame when presented by the render context.
 pub struct Application {
+    ui_layer: LayerHandle,
+    world_layer: LayerHandle,
+    camera: OrthoCamera,
     graphics: Graphics,
     window_surface: GlfwWindow,
-    layer: Option<LayerHandle>,
-    camera: OrthoCamera,
 }
 
 impl Application {
@@ -34,45 +40,58 @@ impl Application {
         window_surface.window.set_size_polling(true);
         window_surface.window.set_scroll_polling(true);
         let (iw, ih) = window_surface.window.get_size();
+
+        let mut graphics = Graphics::new(&window_surface)?;
+        let world_layer = graphics.add_layer_to_bottom();
+        let ui_layer = graphics.add_layer_to_top();
+
         Ok(Self {
-            graphics: Graphics::new(&window_surface)?,
-            window_surface,
-            layer: None,
+            world_layer,
+            ui_layer,
             camera: OrthoCamera::with_viewport(
                 ih as f32,
                 iw as f32 / ih as f32,
             ),
+            graphics,
+            window_surface,
         })
     }
 
     fn init(&mut self) -> Result<()> {
-        self.graphics.set_projection(&self.camera.as_matrix());
+        let projection = self.ui_projection();
+        self.graphics
+            .get_layer_mut(&self.ui_layer)
+            .set_projection(projection);
+        self.graphics
+            .get_layer_mut(&self.world_layer)
+            .set_projection(self.camera.as_matrix());
 
         let texture_handle = self.graphics.add_texture("assets/example.png")?;
 
-        // background
-        {
-            let layer_handle = self.graphics.add_layer_to_bottom();
-            let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
-            layer.set_texture(texture_handle);
-            layer.add_square(200.0, 1.0);
-        }
+        let mut back = Batch::default();
+        let mut middle = Batch::default();
+        let mut front = Batch::default();
 
-        // foreground
-        {
-            let layer_handle = self.graphics.add_layer_to_top();
-            let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
-            layer.add_square(128.0, 0.5);
-        }
+        back.texture_handle = texture_handle;
+        back.add_square(200.0, 1.0);
 
-        // (even more) foreground
-        {
-            let layer_handle = self.graphics.add_layer_to_top();
-            self.layer = Some(layer_handle);
-            let layer = self.graphics.get_layer_mut(&layer_handle).unwrap();
-            layer.set_texture(texture_handle);
-            layer.add_square(40.0, 0.4);
-        }
+        middle.add_square(128.0, 0.5);
+
+        front.texture_handle = texture_handle;
+        front.add_square(40.0, 0.4);
+
+        self.graphics
+            .get_layer_mut(&self.world_layer)
+            .push_batches(&[back, middle, front]);
+
+        let mut crosshairs = Batch::default();
+        crosshairs.texture_handle =
+            self.graphics.add_texture("assets/crosshair.png")?;
+        crosshairs.add_square(16.0, 1.0);
+
+        self.graphics
+            .get_layer_mut(&self.ui_layer)
+            .push_batch(crosshairs);
 
         Ok(())
     }
@@ -103,10 +122,30 @@ impl Application {
         }
 
         if default_camera_controls(&mut self.camera, &event) {
-            self.graphics.set_projection(&self.camera.as_matrix());
+            self.graphics
+                .get_layer_mut(&self.world_layer)
+                .set_projection(self.camera.as_matrix());
+            let projection = self.ui_projection();
+            self.graphics
+                .get_layer_mut(&self.ui_layer)
+                .set_projection(projection);
         }
 
         Ok(())
+    }
+
+    fn ui_projection(&self) -> nalgebra::Matrix4<f32> {
+        let (w, h) = self.window_surface.window.get_size();
+        let half_width = w as f32 / 2.0;
+        let half_height = h as f32 / 2.0;
+        nalgebra::Matrix4::new_orthographic(
+            -half_width,
+            half_width,
+            half_height,
+            -half_height,
+            -1.0,
+            1.0,
+        )
     }
 }
 
@@ -114,41 +153,41 @@ trait Quads {
     fn add_square(&mut self, size: f32, alpha: f32);
 }
 
-impl Quads for Layer {
+impl Quads for Batch {
     fn add_square(&mut self, size: f32, alpha: f32) {
-        self.push_vertices(&[
+        self.vertices.extend_from_slice(&[
             // top left
-            Vertex {
+            Vertex2d {
                 pos: [-size, size],
                 uv: [0.0, 0.0],
                 rgba: [1.0, 1.0, 1.0, alpha],
             },
             // top right
-            Vertex {
+            Vertex2d {
                 pos: [size, size],
                 uv: [1.0, 0.0],
                 rgba: [1.0, 1.0, 1.0, alpha],
             },
             // bottom right
-            Vertex {
+            Vertex2d {
                 pos: [size, -size],
                 uv: [1.0, 1.0],
                 rgba: [1.0, 1.0, 1.0, alpha],
             },
             // top left
-            Vertex {
+            Vertex2d {
                 pos: [-size, size],
                 uv: [0.0, 0.0],
                 rgba: [1.0, 1.0, 1.0, alpha],
             },
             // bottom right
-            Vertex {
+            Vertex2d {
                 pos: [size, -size],
                 uv: [1.0, 1.0],
                 rgba: [1.0, 1.0, 1.0, alpha],
             },
             // bottom left
-            Vertex {
+            Vertex2d {
                 pos: [-size, -size],
                 uv: [0.0, 1.0],
                 rgba: [1.0, 1.0, 1.0, alpha],

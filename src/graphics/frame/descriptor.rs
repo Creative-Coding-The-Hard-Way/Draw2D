@@ -1,10 +1,7 @@
 use crate::graphics::{
-    draw2d,
+    pipeline2d,
     texture_atlas::{AtlasVersion, TextureAtlas},
-    vulkan::{
-        buffer::{Buffer, CpuBuffer},
-        Device,
-    },
+    vulkan::Device,
 };
 
 use std::sync::Arc;
@@ -31,10 +28,6 @@ pub struct FrameDescriptor {
     ///! The Descriptor Set actually binds shader uniforms to gpu resources.
     descriptor_set: vk::DescriptorSet,
 
-    ///! Memory used to back the UniformBufferObject which is used for
-    ///! transformations.
-    uniform_buffer: CpuBuffer,
-
     ///! A handle to the device, used to cleanup resources and for helper
     ///! methods.
     device: Arc<Device>,
@@ -48,7 +41,7 @@ impl FrameDescriptor {
     {
         let owned_name = name.into();
         let (descriptor_set_layout, bindings) = unsafe {
-            draw2d::descriptor_sets::create_descriptor_set_layout(&device)?
+            pipeline2d::descriptor_sets::create_descriptor_set_layout(&device)?
         };
         device.name_vulkan_object(
             format!("{} - DescriptorSetLayout", owned_name.clone()),
@@ -98,61 +91,13 @@ impl FrameDescriptor {
             &descriptor_set,
         )?;
 
-        let mut uniform_buffer = CpuBuffer::new(
-            device.clone(),
-            vk::BufferUsageFlags::UNIFORM_BUFFER,
-        )?;
-        let ubo = draw2d::UniformBufferObject {
-            projection: nalgebra::Matrix4::<f32>::identity().into(),
-        };
-        unsafe { uniform_buffer.write_data(&[ubo])? };
-
-        device.name_vulkan_object(
-            format!("{} - Uniform Buffer", &owned_name.clone()),
-            vk::ObjectType::BUFFER,
-            &unsafe { uniform_buffer.raw() },
-        )?;
-
-        let buffer_info = [vk::DescriptorBufferInfo::builder()
-            .buffer(unsafe { uniform_buffer.raw() })
-            .offset(0)
-            .range(std::mem::size_of::<draw2d::UniformBufferObject>() as u64)
-            .build()];
-        let write_descriptor_set = [vk::WriteDescriptorSet::builder()
-            .dst_set(descriptor_set)
-            .dst_binding(0)
-            .dst_array_element(0)
-            .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER)
-            .buffer_info(&buffer_info)
-            .build()];
-
-        unsafe {
-            device
-                .logical_device
-                .update_descriptor_sets(&write_descriptor_set, &[]);
-        }
-
         Ok(Self {
             descriptor_pool,
             descriptor_set_layout,
             descriptor_set,
             atlas_version: AtlasVersion::new_out_of_date(),
-            uniform_buffer,
             device,
         })
-    }
-
-    /// Update the underlying uniform buffer object.
-    ///
-    /// Unsafe:  it is up to the caller to make sure the UBO is not currently
-    ///          in use by the gpu. This should be safe to invoke in the middle
-    ///          of a frame's draw call.
-    pub unsafe fn update_ubo(
-        &mut self,
-        ubo: &draw2d::UniformBufferObject,
-    ) -> Result<()> {
-        self.uniform_buffer.write_data(&[*ubo])?;
-        Ok(())
     }
 
     /// Update the combined image sampler descriptor based on a texture atlas.
@@ -183,7 +128,7 @@ impl FrameDescriptor {
     ) {
         let descriptor_write = vk::WriteDescriptorSet::builder()
             .dst_set(self.descriptor_set)
-            .dst_binding(1)
+            .dst_binding(0)
             .dst_array_element(0)
             .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
             .image_info(image_infos)
