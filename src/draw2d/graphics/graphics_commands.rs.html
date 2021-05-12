@@ -139,6 +139,11 @@
 <span id="136">136</span>
 <span id="137">137</span>
 <span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Graphics</span>;
 
@@ -230,8 +235,10 @@
         <span class="ident">frame</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Frame</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">vk</span>::<span class="ident">CommandBuffer</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">command_buffer</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">command_pool</span>.<span class="ident">request_command_buffer</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">begin_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">CommandBufferBeginInfo</span>::<span class="ident">builder</span>()
-            .<span class="ident">flags</span>(<span class="ident">vk</span>::<span class="ident">CommandBufferUsageFlags</span>::<span class="ident">empty</span>());
+        <span class="kw">let</span> <span class="ident">begin_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">CommandBufferBeginInfo</span> {
+            <span class="ident">flags</span>: <span class="ident">vk</span>::<span class="ident">CommandBufferUsageFlags</span>::<span class="ident">empty</span>(),
+            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+        };
         <span class="kw">unsafe</span> {
             <span class="self">self</span>.<span class="ident">device</span>
                 .<span class="ident">logical_device</span>
@@ -243,14 +250,17 @@
                 <span class="ident">float32</span>: [<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">1.0</span>],
             },
         }];
-        <span class="kw">let</span> <span class="ident">render_pass_begin_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">RenderPassBeginInfo</span>::<span class="ident">builder</span>()
-            .<span class="ident">render_pass</span>(<span class="self">self</span>.<span class="ident">frame_context</span>.<span class="ident">swapchain</span>().<span class="ident">render_pass</span>)
-            .<span class="ident">framebuffer</span>(<span class="ident">frame</span>.<span class="ident">framebuffer</span>)
-            .<span class="ident">render_area</span>(<span class="ident">vk</span>::<span class="ident">Rect2D</span> {
+        <span class="kw">let</span> <span class="ident">render_pass_begin_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">RenderPassBeginInfo</span> {
+            <span class="ident">render_pass</span>: <span class="self">self</span>.<span class="ident">frame_context</span>.<span class="ident">swapchain</span>().<span class="ident">render_pass</span>,
+            <span class="ident">framebuffer</span>: <span class="ident">frame</span>.<span class="ident">framebuffer</span>,
+            <span class="ident">render_area</span>: <span class="ident">vk</span>::<span class="ident">Rect2D</span> {
                 <span class="ident">offset</span>: <span class="ident">vk</span>::<span class="ident">Offset2D</span> { <span class="ident">x</span>: <span class="number">0</span>, <span class="ident">y</span>: <span class="number">0</span> },
                 <span class="ident">extent</span>: <span class="self">self</span>.<span class="ident">frame_context</span>.<span class="ident">swapchain</span>().<span class="ident">extent</span>,
-            })
-            .<span class="ident">clear_values</span>(<span class="kw-2">&amp;</span><span class="ident">clear_values</span>);
+            },
+            <span class="ident">p_clear_values</span>: <span class="ident">clear_values</span>.<span class="ident">as_ptr</span>(),
+            <span class="ident">clear_value_count</span>: <span class="ident">clear_values</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+        };
         <span class="kw">unsafe</span> {
             <span class="self">self</span>.<span class="ident">device</span>.<span class="ident">logical_device</span>.<span class="ident">cmd_begin_render_pass</span>(
                 <span class="ident">command_buffer</span>,

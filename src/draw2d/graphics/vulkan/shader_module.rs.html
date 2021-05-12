@@ -62,6 +62,9 @@
 <span id="59">59</span>
 <span id="60">60</span>
 <span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module defines the ShadeModule abstraction which makes it easy to</span>
 <span class="doccomment">//! create vulkan shader modules directly with the rust `include_bytes` macro.</span>
@@ -92,8 +95,11 @@
         <span class="ident">Name</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">source_u32</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">copy_to_u32</span>(<span class="ident">source</span>);
-        <span class="kw">let</span> <span class="ident">create_info</span> <span class="op">=</span>
-            <span class="ident">vk</span>::<span class="ident">ShaderModuleCreateInfo</span>::<span class="ident">builder</span>().<span class="ident">code</span>(<span class="kw-2">&amp;</span><span class="ident">source_u32</span>);
+        <span class="kw">let</span> <span class="ident">create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">ShaderModuleCreateInfo</span> {
+            <span class="ident">p_code</span>: <span class="ident">source_u32</span>.<span class="ident">as_ptr</span>(),
+            <span class="ident">code_size</span>: <span class="ident">source_u32</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(),
+            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+        };
 
         <span class="kw">let</span> <span class="ident">shader_module</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">device</span>

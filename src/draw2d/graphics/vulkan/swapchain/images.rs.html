@@ -91,6 +91,7 @@
 <span id="88">88</span>
 <span id="89">89</span>
 <span id="90">90</span>
+<span id="91">91</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::<span class="ident">vulkan</span>::<span class="ident">Device</span>;
 
@@ -112,12 +113,15 @@
 
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">image_view</span>) <span class="kw">in</span> <span class="ident">swapchain_image_views</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
         <span class="kw">let</span> <span class="ident">attachments</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="kw-2">*</span><span class="ident">image_view</span>];
-        <span class="kw">let</span> <span class="ident">create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">FramebufferCreateInfo</span>::<span class="ident">builder</span>()
-            .<span class="ident">render_pass</span>(<span class="ident">render_pass</span>)
-            .<span class="ident">attachments</span>(<span class="ident">attachments</span>)
-            .<span class="ident">width</span>(<span class="ident">extent</span>.<span class="ident">width</span>)
-            .<span class="ident">height</span>(<span class="ident">extent</span>.<span class="ident">height</span>)
-            .<span class="ident">layers</span>(<span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">FramebufferCreateInfo</span> {
+            <span class="ident">render_pass</span>,
+            <span class="ident">p_attachments</span>: <span class="ident">attachments</span>.<span class="ident">as_ptr</span>(),
+            <span class="ident">attachment_count</span>: <span class="ident">attachments</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">width</span>: <span class="ident">extent</span>.<span class="ident">width</span>,
+            <span class="ident">height</span>: <span class="ident">extent</span>.<span class="ident">height</span>,
+            <span class="ident">layers</span>: <span class="number">1</span>,
+            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+        };
         <span class="kw">let</span> <span class="ident">framebuffer</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">device</span>
                 .<span class="ident">logical_device</span>
@@ -145,27 +149,25 @@
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">vk</span>::<span class="ident">ImageView</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">image_views</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">image</span>) <span class="kw">in</span> <span class="ident">swapchain_images</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-        <span class="kw">let</span> <span class="ident">create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">ImageViewCreateInfo</span>::<span class="ident">builder</span>()
-            .<span class="ident">image</span>(<span class="kw-2">*</span><span class="ident">image</span>)
-            .<span class="ident">format</span>(<span class="ident">format</span>)
-            .<span class="ident">view_type</span>(<span class="ident">vk</span>::<span class="ident">ImageViewType</span>::<span class="ident">TYPE_2D</span>)
-            .<span class="ident">subresource_range</span>(
-                <span class="ident">vk</span>::<span class="ident">ImageSubresourceRange</span>::<span class="ident">builder</span>()
-                    .<span class="ident">aspect_mask</span>(<span class="ident">vk</span>::<span class="ident">ImageAspectFlags</span>::<span class="ident">COLOR</span>)
-                    .<span class="ident">base_mip_level</span>(<span class="number">0</span>)
-                    .<span class="ident">level_count</span>(<span class="number">1</span>)
-                    .<span class="ident">base_array_layer</span>(<span class="number">0</span>)
-                    .<span class="ident">layer_count</span>(<span class="number">1</span>)
-                    .<span class="ident">build</span>(),
-            )
-            .<span class="ident">components</span>(
-                <span class="ident">vk</span>::<span class="ident">ComponentMapping</span>::<span class="ident">builder</span>()
-                    .<span class="ident">r</span>(<span class="ident">vk</span>::<span class="ident">ComponentSwizzle</span>::<span class="ident">IDENTITY</span>)
-                    .<span class="ident">g</span>(<span class="ident">vk</span>::<span class="ident">ComponentSwizzle</span>::<span class="ident">IDENTITY</span>)
-                    .<span class="ident">b</span>(<span class="ident">vk</span>::<span class="ident">ComponentSwizzle</span>::<span class="ident">IDENTITY</span>)
-                    .<span class="ident">a</span>(<span class="ident">vk</span>::<span class="ident">ComponentSwizzle</span>::<span class="ident">IDENTITY</span>)
-                    .<span class="ident">build</span>(),
-            );
+        <span class="kw">let</span> <span class="ident">create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">ImageViewCreateInfo</span> {
+            <span class="ident">image</span>: <span class="kw-2">*</span><span class="ident">image</span>,
+            <span class="ident">format</span>,
+            <span class="ident">view_type</span>: <span class="ident">vk</span>::<span class="ident">ImageViewType</span>::<span class="ident">TYPE_2D</span>,
+            <span class="ident">subresource_range</span>: <span class="ident">vk</span>::<span class="ident">ImageSubresourceRange</span> {
+                <span class="ident">aspect_mask</span>: <span class="ident">vk</span>::<span class="ident">ImageAspectFlags</span>::<span class="ident">COLOR</span>,
+                <span class="ident">base_mip_level</span>: <span class="number">0</span>,
+                <span class="ident">level_count</span>: <span class="number">1</span>,
+                <span class="ident">base_array_layer</span>: <span class="number">0</span>,
+                <span class="ident">layer_count</span>: <span class="number">1</span>,
+            },
+            <span class="ident">components</span>: <span class="ident">vk</span>::<span class="ident">ComponentMapping</span> {
+                <span class="ident">r</span>: <span class="ident">vk</span>::<span class="ident">ComponentSwizzle</span>::<span class="ident">IDENTITY</span>,
+                <span class="ident">g</span>: <span class="ident">vk</span>::<span class="ident">ComponentSwizzle</span>::<span class="ident">IDENTITY</span>,
+                <span class="ident">b</span>: <span class="ident">vk</span>::<span class="ident">ComponentSwizzle</span>::<span class="ident">IDENTITY</span>,
+                <span class="ident">a</span>: <span class="ident">vk</span>::<span class="ident">ComponentSwizzle</span>::<span class="ident">IDENTITY</span>,
+            },
+            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+        };
         <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">device</span>
                 .<span class="ident">logical_device</span>

@@ -133,6 +133,10 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module provides structures for managing a collection of command</span>
 <span class="doccomment">//! buffers for a given command pool.</span>
@@ -207,10 +211,12 @@
 
     <span class="doccomment">/// Allocate a new command buffer</span>
     <span class="kw">fn</span> <span class="ident">allocate_command_buffer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">vk</span>::<span class="ident">CommandBuffer</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">CommandBufferAllocateInfo</span>::<span class="ident">builder</span>()
-            .<span class="ident">command_pool</span>(<span class="self">self</span>.<span class="ident">command_pool</span>)
-            .<span class="ident">level</span>(<span class="ident">vk</span>::<span class="ident">CommandBufferLevel</span>::<span class="ident">PRIMARY</span>)
-            .<span class="ident">command_buffer_count</span>(<span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">CommandBufferAllocateInfo</span> {
+            <span class="ident">command_pool</span>: <span class="self">self</span>.<span class="ident">command_pool</span>,
+            <span class="ident">level</span>: <span class="ident">vk</span>::<span class="ident">CommandBufferLevel</span>::<span class="ident">PRIMARY</span>,
+            <span class="ident">command_buffer_count</span>: <span class="number">1</span>,
+            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+        };
         <span class="kw">let</span> <span class="ident">command_buffer</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="self">self</span>.<span class="ident">device</span>
                 .<span class="ident">logical_device</span>
@@ -231,9 +237,11 @@
     <span class="kw">where</span>
         <span class="ident">Name</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">CommandPoolCreateInfo</span>::<span class="ident">builder</span>()
-            .<span class="ident">queue_family_index</span>(<span class="ident">device</span>.<span class="ident">graphics_queue</span>.<span class="ident">family_id</span>)
-            .<span class="ident">flags</span>(<span class="ident">vk</span>::<span class="ident">CommandPoolCreateFlags</span>::<span class="ident">TRANSIENT</span>);
+        <span class="kw">let</span> <span class="ident">create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">CommandPoolCreateInfo</span> {
+            <span class="ident">queue_family_index</span>: <span class="ident">device</span>.<span class="ident">graphics_queue</span>.<span class="ident">family_id</span>,
+            <span class="ident">flags</span>: <span class="ident">vk</span>::<span class="ident">CommandPoolCreateFlags</span>::<span class="ident">TRANSIENT</span>,
+            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+        };
         <span class="kw">let</span> <span class="ident">command_pool</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">device</span>
                 .<span class="ident">logical_device</span>

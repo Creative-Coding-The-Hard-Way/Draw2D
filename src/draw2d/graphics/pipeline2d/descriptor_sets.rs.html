@@ -47,6 +47,10 @@
 <span id="44">44</span>
 <span id="45">45</span>
 <span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">PushConsts</span>;
 
@@ -68,7 +72,11 @@
     <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">sampler_layout_binding</span>()];
     <span class="kw">let</span> <span class="ident">descriptor_set_layout</span> <span class="op">=</span>
         <span class="ident">device</span>.<span class="ident">logical_device</span>.<span class="ident">create_descriptor_set_layout</span>(
-            <span class="kw-2">&amp;</span><span class="ident">vk</span>::<span class="ident">DescriptorSetLayoutCreateInfo</span>::<span class="ident">builder</span>().<span class="ident">bindings</span>(<span class="kw-2">&amp;</span><span class="ident">bindings</span>),
+            <span class="kw-2">&amp;</span><span class="ident">vk</span>::<span class="ident">DescriptorSetLayoutCreateInfo</span> {
+                <span class="ident">p_bindings</span>: <span class="ident">bindings</span>.<span class="ident">as_ptr</span>(),
+                <span class="ident">binding_count</span>: <span class="ident">bindings</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+                ..<span class="ident">Default</span>::<span class="ident">default</span>()
+            },
             <span class="prelude-val">None</span>,
         )<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>((<span class="ident">descriptor_set_layout</span>, <span class="ident">bindings</span>))
@@ -76,23 +84,23 @@
 
 <span class="doccomment">/// Create the push constant range definition for the graphics pipeline.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_push_constant_range</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">vk</span>::<span class="ident">PushConstantRange</span> {
-    <span class="ident">vk</span>::<span class="ident">PushConstantRange</span>::<span class="ident">builder</span>()
-        .<span class="ident">stage_flags</span>(
-            <span class="ident">vk</span>::<span class="ident">ShaderStageFlags</span>::<span class="ident">FRAGMENT</span> <span class="op">|</span> <span class="ident">vk</span>::<span class="ident">ShaderStageFlags</span>::<span class="ident">VERTEX</span>,
-        )
-        .<span class="ident">size</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">PushConsts</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u32</span>)
-        .<span class="ident">offset</span>(<span class="number">0</span>)
-        .<span class="ident">build</span>()
+    <span class="ident">vk</span>::<span class="ident">PushConstantRange</span> {
+        <span class="ident">stage_flags</span>: <span class="ident">vk</span>::<span class="ident">ShaderStageFlags</span>::<span class="ident">FRAGMENT</span>
+            <span class="op">|</span> <span class="ident">vk</span>::<span class="ident">ShaderStageFlags</span>::<span class="ident">VERTEX</span>,
+        <span class="ident">size</span>: <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">PushConsts</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+        <span class="ident">offset</span>: <span class="number">0</span>,
+    }
 }
 
 <span class="doccomment">/// the combined image sampler layout binding</span>
 <span class="kw">fn</span> <span class="ident">sampler_layout_binding</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">vk</span>::<span class="ident">DescriptorSetLayoutBinding</span> {
-    <span class="ident">vk</span>::<span class="ident">DescriptorSetLayoutBinding</span>::<span class="ident">builder</span>()
-        .<span class="ident">binding</span>(<span class="number">0</span>)
-        .<span class="ident">descriptor_count</span>(<span class="ident">MAX_SUPPORTED_TEXTURES</span> <span class="kw">as</span> <span class="ident">u32</span>)
-        .<span class="ident">descriptor_type</span>(<span class="ident">vk</span>::<span class="ident">DescriptorType</span>::<span class="ident">COMBINED_IMAGE_SAMPLER</span>)
-        .<span class="ident">stage_flags</span>(<span class="ident">vk</span>::<span class="ident">ShaderStageFlags</span>::<span class="ident">FRAGMENT</span>)
-        .<span class="ident">build</span>()
+    <span class="ident">vk</span>::<span class="ident">DescriptorSetLayoutBinding</span> {
+        <span class="ident">binding</span>: <span class="number">0</span>,
+        <span class="ident">descriptor_count</span>: <span class="ident">MAX_SUPPORTED_TEXTURES</span> <span class="kw">as</span> <span class="ident">u32</span>,
+        <span class="ident">descriptor_type</span>: <span class="ident">vk</span>::<span class="ident">DescriptorType</span>::<span class="ident">COMBINED_IMAGE_SAMPLER</span>,
+        <span class="ident">stage_flags</span>: <span class="ident">vk</span>::<span class="ident">ShaderStageFlags</span>::<span class="ident">FRAGMENT</span>,
+        ..<span class="ident">Default</span>::<span class="ident">default</span>()
+    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="draw2d"></div>

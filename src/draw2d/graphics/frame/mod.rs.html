@@ -163,6 +163,8 @@
 <span id="160">160</span>
 <span id="161">161</span>
 <span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">mod</span> <span class="ident">descriptor</span>;
 <span class="kw">mod</span> <span class="ident">sync</span>;
@@ -233,9 +235,7 @@
                 <span class="ident">name</span>.<span class="ident">clone</span>(),
             )<span class="question-mark">?</span>,
             <span class="ident">framebuffer</span>,
-
             <span class="ident">command_buffers</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-
             <span class="ident">device</span>,
         })
     }
@@ -273,18 +273,22 @@
         <span class="kw">let</span> <span class="ident">wait_stages</span> <span class="op">=</span> [<span class="ident">vk</span>::<span class="ident">PipelineStageFlags</span>::<span class="ident">COLOR_ATTACHMENT_OUTPUT</span>];
         <span class="kw">let</span> <span class="ident">render_finished_signal_semaphores</span> <span class="op">=</span>
             [<span class="self">self</span>.<span class="ident">sync</span>.<span class="ident">render_finished_semaphore</span>];
-        <span class="kw">let</span> <span class="ident">submit_info</span> <span class="op">=</span> [<span class="ident">vk</span>::<span class="ident">SubmitInfo</span>::<span class="ident">builder</span>()
-            .<span class="ident">wait_semaphores</span>(<span class="kw-2">&amp;</span><span class="ident">wait_semaphores</span>)
-            .<span class="ident">wait_dst_stage_mask</span>(<span class="kw-2">&amp;</span><span class="ident">wait_stages</span>)
-            .<span class="ident">command_buffers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">command_buffers</span>)
-            .<span class="ident">signal_semaphores</span>(<span class="kw-2">&amp;</span><span class="ident">render_finished_signal_semaphores</span>)
-            .<span class="ident">build</span>()];
+        <span class="kw">let</span> <span class="ident">submit_info</span> <span class="op">=</span> [<span class="ident">vk</span>::<span class="ident">SubmitInfo</span> {
+            <span class="ident">p_wait_semaphores</span>: <span class="ident">wait_semaphores</span>.<span class="ident">as_ptr</span>(),
+            <span class="ident">p_wait_dst_stage_mask</span>: <span class="ident">wait_stages</span>.<span class="ident">as_ptr</span>(),
+            <span class="ident">wait_semaphore_count</span>: <span class="ident">wait_semaphores</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">p_command_buffers</span>: <span class="self">self</span>.<span class="ident">command_buffers</span>.<span class="ident">as_ptr</span>(),
+            <span class="ident">command_buffer_count</span>: <span class="self">self</span>.<span class="ident">command_buffers</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">p_signal_semaphores</span>: <span class="ident">render_finished_signal_semaphores</span>.<span class="ident">as_ptr</span>(),
+            <span class="ident">signal_semaphore_count</span>: <span class="ident">render_finished_signal_semaphores</span>.<span class="ident">len</span>()
+                <span class="kw">as</span> <span class="ident">u32</span>,
+            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+        }];
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">graphics_queue</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">device</span>.<span class="ident">graphics_queue</span>.<span class="ident">acquire</span>();
             <span class="self">self</span>.<span class="ident">device</span>
                 .<span class="ident">logical_device</span>
                 .<span class="ident">queue_submit</span>(
-                    <span class="kw-2">*</span><span class="ident">graphics_queue</span>,
+                    <span class="self">self</span>.<span class="ident">device</span>.<span class="ident">graphics_queue</span>.<span class="ident">raw</span>(),
                     <span class="kw-2">&amp;</span><span class="ident">submit_info</span>,
                     <span class="self">self</span>.<span class="ident">sync</span>.<span class="ident">graphics_finished_fence</span>,
                 )

@@ -49,45 +49,34 @@
 <span id="46">46</span>
 <span id="47">47</span>
 <span id="48">48</span>
-<span id="49">49</span>
-<span id="50">50</span>
-<span id="51">51</span>
-<span id="52">52</span>
-<span id="53">53</span>
-<span id="54">54</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Device</span>;
 
 <span class="kw">use</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span>;
 <span class="kw">use</span> <span class="ident">ash</span>::<span class="ident">vk</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>, <span class="ident">MutexGuard</span>};
 
 <span class="doccomment">/// A wrapper of the raw vulkan queue handle which prevents different threads</span>
 <span class="doccomment">/// from accessing the queue concurrently using a mutex.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Queue</span> {
-    <span class="ident">queue</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">vk</span>::<span class="ident">Queue</span><span class="op">&gt;</span>,
+    <span class="ident">queue</span>: <span class="ident">vk</span>::<span class="ident">Queue</span>,
     <span class="kw">pub</span> <span class="ident">family_id</span>: <span class="ident">u32</span>,
     <span class="kw">pub</span> <span class="ident">index</span>: <span class="ident">u32</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Queue</span> {
     <span class="doccomment">/// Build a queue wrapper from the raw queue handle.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">queue</span>: <span class="ident">vk</span>::<span class="ident">Queue</span>, <span class="ident">family_id</span>: <span class="ident">u32</span>, <span class="ident">index</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="self">Self</span> {
-            <span class="ident">queue</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">queue</span>),
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">queue</span>: <span class="ident">vk</span>::<span class="ident">Queue</span>, <span class="ident">family_id</span>: <span class="ident">u32</span>, <span class="ident">index</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">queue</span>,
             <span class="ident">family_id</span>,
             <span class="ident">index</span>,
-        })
+        }
     }
 
-    <span class="doccomment">/// Acquire a lock on the queue to do *some* operation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Can panic if the queue is acquired multiple times in the same scope.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="ident">vk</span>::<span class="ident">Queue</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// The raw queue handle.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">vk</span>::<span class="ident">Queue</span> {
         <span class="self">self</span>.<span class="ident">queue</span>
-            .<span class="ident">lock</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;unable to lock the vulkan queue for use in this thread&quot;</span>)
     }
 
     <span class="doccomment">/// Returns true if this instance and another represent the same device</span>
@@ -105,8 +94,7 @@
     <span class="kw">where</span>
         <span class="ident">Name</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">raw_queue</span> <span class="op">=</span> <span class="ident">device</span>.<span class="ident">graphics_queue</span>.<span class="ident">acquire</span>();
-        <span class="ident">device</span>.<span class="ident">name_vulkan_object</span>(<span class="ident">name</span>, <span class="ident">vk</span>::<span class="ident">ObjectType</span>::<span class="ident">QUEUE</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">raw_queue</span>)<span class="question-mark">?</span>;
+        <span class="ident">device</span>.<span class="ident">name_vulkan_object</span>(<span class="ident">name</span>, <span class="ident">vk</span>::<span class="ident">ObjectType</span>::<span class="ident">QUEUE</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">queue</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }

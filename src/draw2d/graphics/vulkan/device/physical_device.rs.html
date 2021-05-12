@@ -110,6 +110,7 @@
 <span id="107">107</span>
 <span id="108">108</span>
 <span id="109">109</span>
+<span id="110">110</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Functions for picking a physical device with the features required by this</span>
 <span class="doccomment">//! application.</span>
@@ -122,7 +123,7 @@
 <span class="kw">use</span> <span class="ident">ash</span>::{<span class="ident">version</span>::<span class="ident">InstanceV1_0</span>, <span class="ident">vk</span>};
 
 <span class="doccomment">/// Pick a physical device based on suitability criteria.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pick_physical_device</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_optimal</span>(
     <span class="ident">instance</span>: <span class="kw-2">&amp;</span><span class="ident">Instance</span>,
     <span class="ident">window_surface</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">WindowSurface</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">vk</span>::<span class="ident">PhysicalDevice</span><span class="op">&gt;</span> {
@@ -197,7 +198,7 @@
             )
             .<span class="ident">unwrap</span>()
         })
-        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="ident">required_device_extensions</span>().<span class="ident">contains</span>(<span class="ident">name</span>))
+        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="ident">required_extensions</span>().<span class="ident">contains</span>(<span class="ident">name</span>))
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
         .<span class="ident">is_empty</span>()
 }
@@ -206,14 +207,15 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// `is_device_suitable` should verify that all required features are supported</span>
 <span class="doccomment">/// by the chosen physical device.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_device_features</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">vk</span>::<span class="ident">PhysicalDeviceFeatures</span> {
-    <span class="ident">vk</span>::<span class="ident">PhysicalDeviceFeatures</span>::<span class="ident">builder</span>()
-        .<span class="ident">geometry_shader</span>(<span class="bool-val">true</span>)
-        .<span class="ident">build</span>()
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_features</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">vk</span>::<span class="ident">PhysicalDeviceFeatures</span> {
+    <span class="ident">vk</span>::<span class="ident">PhysicalDeviceFeatures</span> {
+        <span class="ident">geometry_shader</span>: <span class="number">1</span>,
+        ..<span class="ident">Default</span>::<span class="ident">default</span>()
+    }
 }
 
 <span class="doccomment">/// Return the set of required device extensions for this application</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_device_extensions</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_extensions</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">swapchain</span> <span class="op">=</span> <span class="ident">ash</span>::<span class="ident">extensions</span>::<span class="ident">khr</span>::<span class="ident">Swapchain</span>::<span class="ident">name</span>()
         .<span class="ident">to_owned</span>()
         .<span class="ident">into_string</span>()

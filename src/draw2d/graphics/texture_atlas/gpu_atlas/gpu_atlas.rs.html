@@ -248,6 +248,8 @@
 <span id="245">245</span>
 <span id="246">246</span>
 <span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">GpuAtlas</span>;
 
@@ -272,21 +274,23 @@
     <span class="doccomment">/// Create a new texture atlas which loads image data into GPU memory.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">device</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Device</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">sampler</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">sampler_create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">SamplerCreateInfo</span>::<span class="ident">builder</span>()
-                .<span class="ident">mag_filter</span>(<span class="ident">vk</span>::<span class="ident">Filter</span>::<span class="ident">LINEAR</span>)
-                .<span class="ident">min_filter</span>(<span class="ident">vk</span>::<span class="ident">Filter</span>::<span class="ident">LINEAR</span>)
-                .<span class="ident">address_mode_u</span>(<span class="ident">vk</span>::<span class="ident">SamplerAddressMode</span>::<span class="ident">REPEAT</span>)
-                .<span class="ident">address_mode_v</span>(<span class="ident">vk</span>::<span class="ident">SamplerAddressMode</span>::<span class="ident">REPEAT</span>)
-                .<span class="ident">address_mode_w</span>(<span class="ident">vk</span>::<span class="ident">SamplerAddressMode</span>::<span class="ident">REPEAT</span>)
-                .<span class="ident">anisotropy_enable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">border_color</span>(<span class="ident">vk</span>::<span class="ident">BorderColor</span>::<span class="ident">INT_OPAQUE_BLACK</span>)
-                .<span class="ident">unnormalized_coordinates</span>(<span class="bool-val">false</span>)
-                .<span class="ident">compare_enable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">compare_op</span>(<span class="ident">vk</span>::<span class="ident">CompareOp</span>::<span class="ident">ALWAYS</span>)
-                .<span class="ident">mipmap_mode</span>(<span class="ident">vk</span>::<span class="ident">SamplerMipmapMode</span>::<span class="ident">LINEAR</span>)
-                .<span class="ident">mip_lod_bias</span>(<span class="number">0.0</span>)
-                .<span class="ident">min_lod</span>(<span class="number">0.0</span>)
-                .<span class="ident">max_lod</span>(<span class="ident">vk</span>::<span class="ident">LOD_CLAMP_NONE</span>);
+            <span class="kw">let</span> <span class="ident">sampler_create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">SamplerCreateInfo</span> {
+                <span class="ident">mag_filter</span>: <span class="ident">vk</span>::<span class="ident">Filter</span>::<span class="ident">LINEAR</span>,
+                <span class="ident">min_filter</span>: <span class="ident">vk</span>::<span class="ident">Filter</span>::<span class="ident">LINEAR</span>,
+                <span class="ident">address_mode_u</span>: <span class="ident">vk</span>::<span class="ident">SamplerAddressMode</span>::<span class="ident">REPEAT</span>,
+                <span class="ident">address_mode_v</span>: <span class="ident">vk</span>::<span class="ident">SamplerAddressMode</span>::<span class="ident">REPEAT</span>,
+                <span class="ident">address_mode_w</span>: <span class="ident">vk</span>::<span class="ident">SamplerAddressMode</span>::<span class="ident">REPEAT</span>,
+                <span class="ident">anisotropy_enable</span>: <span class="number">0</span>,
+                <span class="ident">border_color</span>: <span class="ident">vk</span>::<span class="ident">BorderColor</span>::<span class="ident">INT_OPAQUE_BLACK</span>,
+                <span class="ident">unnormalized_coordinates</span>: <span class="number">0</span>,
+                <span class="ident">compare_enable</span>: <span class="number">0</span>,
+                <span class="ident">compare_op</span>: <span class="ident">vk</span>::<span class="ident">CompareOp</span>::<span class="ident">ALWAYS</span>,
+                <span class="ident">mipmap_mode</span>: <span class="ident">vk</span>::<span class="ident">SamplerMipmapMode</span>::<span class="ident">LINEAR</span>,
+                <span class="ident">mip_lod_bias</span>: <span class="number">0.0</span>,
+                <span class="ident">min_lod</span>: <span class="number">0.0</span>,
+                <span class="ident">max_lod</span>: <span class="ident">vk</span>::<span class="ident">LOD_CLAMP_NONE</span>,
+                ..<span class="ident">Default</span>::<span class="ident">default</span>()
+            };
             <span class="ident">device</span>
                 .<span class="ident">logical_device</span>
                 .<span class="ident">create_sampler</span>(<span class="kw-2">&amp;</span><span class="ident">sampler_create_info</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>
