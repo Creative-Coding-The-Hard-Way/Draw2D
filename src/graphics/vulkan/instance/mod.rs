@@ -5,6 +5,7 @@
 //! references to all of this data, but it's unwieldy to have separate handles
 //! to each constantly floating around.
 
+mod debug_callback;
 mod extensions;
 mod layers;
 
@@ -12,48 +13,143 @@ use super::ffi::to_os_ptrs;
 
 use anyhow::Result;
 use ash::{
-    extensions::ext::DebugUtils,
+    extensions::{ext::DebugUtils, khr::Surface},
     version::{EntryV1_0, InstanceV1_0},
-    vk,
-    vk::{
-        DebugUtilsMessageSeverityFlagsEXT, DebugUtilsMessageTypeFlagsEXT,
-        DebugUtilsMessengerCallbackDataEXT, DebugUtilsMessengerEXT,
-    },
-    Entry,
+    vk, Entry,
 };
-use std::{
-    borrow::Cow,
-    ffi::{CStr, CString},
-    sync::Arc,
-};
+use std::{ffi::CString, sync::Arc};
 
 /// Hold all of the instance-related objects and drop them in the correct order.
 pub struct Instance {
-    pub entry: Entry,
+    /// The Ash Vulkan library entrypoint.
     pub ash: ash::Instance,
+
+    /// The Debug entrypoint, used to set debug names for vulkan objects.
     pub debug: DebugUtils,
-    pub debug_messenger: DebugUtilsMessengerEXT,
-    pub enabled_layer_names: Vec<String>,
+
+    layers: Vec<String>,
+    debug_messenger: vk::DebugUtilsMessengerEXT,
+    entry: Entry,
 }
 
 impl Instance {
+    fn debug_layers() -> Vec<String> {
+        vec![
+            "VK_LAYER_KHRONOS_validation".to_owned(),
+            // "VK_LAYER_LUNARG_api_dump".to_owned(),
+        ]
+    }
+
     /// Create a new ash instance with the required extensions.
     ///
     /// Debug and validation layers are automatically setup along with the
     /// debug callback.
     pub fn new(required_extensions: &Vec<String>) -> Result<Arc<Self>> {
-        let layers = required_layers();
-        let (instance, entry) = create_instance(required_extensions, &layers)?;
+        let (instance, entry) = Self::create_instance(required_extensions)?;
         let (debug, debug_messenger) =
-            create_debug_callback(&entry, &instance)?;
+            debug_callback::create_debug_logger(&entry, &instance)?;
 
         Ok(Arc::new(Self {
             ash: instance,
             entry,
             debug,
             debug_messenger,
-            enabled_layer_names: layers,
+            layers: Self::debug_layers(),
         }))
+    }
+
+    /// A non-owning borrow of the ash library instance.
+    pub fn raw(&self) -> &ash::Instance {
+        &self.ash
+    }
+
+    /// Create a khr surface loader.
+    ///
+    /// The caller is responsible for destroying the loader when it is no
+    /// longer needed.
+    pub fn create_surface_loader(&self) -> Surface {
+        Surface::new(&self.entry, &self.ash)
+    }
+
+    /// Create a new logical device for use by this application. The caller is
+    /// responsible for destroying the device when done.
+    pub fn create_logical_device(
+        &self,
+        physical_device: &vk::PhysicalDevice,
+        physical_device_features: vk::PhysicalDeviceFeatures,
+        physical_device_extensions: &[String],
+        queue_create_infos: &[vk::DeviceQueueCreateInfo],
+    ) -> Result<ash::Device> {
+        use anyhow::Context;
+
+        let (_c_names, layer_name_ptrs) = unsafe { to_os_ptrs(&self.layers) };
+        let (_c_ext_names, ext_name_ptrs) =
+            unsafe { to_os_ptrs(physical_device_extensions) };
+
+        let create_info = vk::DeviceCreateInfo {
+            queue_create_info_count: queue_create_infos.len() as u32,
+            p_queue_create_infos: queue_create_infos.as_ptr(),
+            p_enabled_features: &physical_device_features,
+            pp_enabled_layer_names: layer_name_ptrs.as_ptr(),
+            enabled_layer_count: layer_name_ptrs.len() as u32,
+            pp_enabled_extension_names: ext_name_ptrs.as_ptr(),
+            enabled_extension_count: physical_device_extensions.len() as u32,
+            ..Default::default()
+        };
+
+        let logical_device = unsafe {
+            self.ash
+                .create_device(*physical_device, &create_info, None)
+                .context("unable to create the logical device")?
+        };
+
+        Ok(logical_device)
+    }
+
+    /// Create a Vulkan instance with the required extensions.
+    /// Returns an `Err()` if any required extensions are unavailable.
+    fn create_instance(
+        required_extensions: &Vec<String>,
+    ) -> Result<(ash::Instance, Entry)> {
+        let entry = Entry::new()?;
+
+        let mut required_with_debug = required_extensions.clone();
+        required_with_debug.push(DebugUtils::name().to_str()?.to_owned());
+
+        extensions::check_extensions(&entry, &required_with_debug)?;
+        layers::check_layers(&entry, &Self::debug_layers())?;
+
+        log::debug!("Required Extensions {:?}", required_extensions);
+
+        let app_name = CString::new("ash starter").unwrap();
+        let engine_name = CString::new("no engine").unwrap();
+
+        let app_info = vk::ApplicationInfo {
+            p_engine_name: engine_name.as_ptr(),
+            p_application_name: app_name.as_ptr(),
+            application_version: vk::make_version(1, 0, 0),
+            engine_version: vk::make_version(1, 0, 0),
+            api_version: vk::make_version(1, 1, 0),
+            ..Default::default()
+        };
+
+        let (_layer_names, layer_ptrs) =
+            unsafe { to_os_ptrs(&Self::debug_layers()) };
+        let (_ext_names, ext_ptrs) =
+            unsafe { to_os_ptrs(&required_with_debug) };
+
+        let create_info = vk::InstanceCreateInfo {
+            p_application_info: &app_info,
+            pp_enabled_layer_names: layer_ptrs.as_ptr(),
+            enabled_layer_count: layer_ptrs.len() as u32,
+            pp_enabled_extension_names: ext_ptrs.as_ptr(),
+            enabled_extension_count: ext_ptrs.len() as u32,
+            ..Default::default()
+        };
+
+        let instance = unsafe { entry.create_instance(&create_info, None)? };
+
+        Ok((instance, entry))
     }
 }
 
@@ -65,136 +161,4 @@ impl Drop for Instance {
             self.ash.destroy_instance(None);
         }
     }
-}
-
-/// The validation layers required by this application.
-fn required_layers() -> Vec<String> {
-    vec![
-        "VK_LAYER_KHRONOS_validation".to_owned(),
-        // "VK_LAYER_LUNARG_api_dump".to_owned(),
-    ]
-}
-
-/// Create a Vulkan instance with the required extensions.
-/// Returns an `Err()` if any required extensions are unavailable.
-fn create_instance(
-    required_extensions: &Vec<String>,
-    required_layers: &Vec<String>,
-) -> Result<(ash::Instance, Entry)> {
-    let entry = Entry::new()?;
-
-    let mut required_with_debug = required_extensions.clone();
-    required_with_debug.push(DebugUtils::name().to_str()?.to_owned());
-
-    extensions::check_extensions(&entry, &required_with_debug)?;
-    layers::check_layers(&entry, &required_layers)?;
-
-    log::debug!("Required Extensions {:?}", required_extensions);
-
-    let app_name = CString::new("ash starter").unwrap();
-    let engine_name = CString::new("no engine").unwrap();
-
-    let app_info = vk::ApplicationInfo::builder()
-        .application_name(&app_name)
-        .application_version(vk::make_version(1, 0, 0))
-        .engine_name(&engine_name)
-        .engine_version(vk::make_version(1, 0, 0))
-        .api_version(vk::make_version(1, 1, 0));
-
-    let (_layer_names, layer_ptrs) = unsafe { to_os_ptrs(&required_layers) };
-    let (_ext_names, ext_ptrs) = unsafe { to_os_ptrs(&required_with_debug) };
-
-    let create_info = vk::InstanceCreateInfo::builder()
-        .application_info(&app_info)
-        .enabled_extension_names(&ext_ptrs)
-        .enabled_layer_names(&layer_ptrs);
-
-    let instance = unsafe { entry.create_instance(&create_info, None)? };
-
-    Ok((instance, entry))
-}
-
-/// Create the vulkan debug callback for validation.
-fn create_debug_callback(
-    entry: &Entry,
-    instance: &ash::Instance,
-) -> Result<(DebugUtils, DebugUtilsMessengerEXT)> {
-    let debug_utils = DebugUtils::new(entry, instance);
-
-    let create_info = vk::DebugUtilsMessengerCreateInfoEXT::builder()
-        .message_severity(
-            vk::DebugUtilsMessageSeverityFlagsEXT::VERBOSE
-                | vk::DebugUtilsMessageSeverityFlagsEXT::INFO
-                | vk::DebugUtilsMessageSeverityFlagsEXT::WARNING
-                | vk::DebugUtilsMessageSeverityFlagsEXT::ERROR,
-        )
-        .message_type(
-            vk::DebugUtilsMessageTypeFlagsEXT::GENERAL
-                | vk::DebugUtilsMessageTypeFlagsEXT::VALIDATION
-                | vk::DebugUtilsMessageTypeFlagsEXT::PERFORMANCE,
-        )
-        .pfn_user_callback(Some(debug_callback));
-
-    let debug_messenger = unsafe {
-        debug_utils.create_debug_utils_messenger(&create_info, None)?
-    };
-
-    Ok((debug_utils, debug_messenger))
-}
-
-unsafe extern "system" fn debug_callback(
-    message_severity: DebugUtilsMessageSeverityFlagsEXT,
-    message_type: DebugUtilsMessageTypeFlagsEXT,
-    p_callback_data: *const DebugUtilsMessengerCallbackDataEXT,
-    _user_data: *mut std::ffi::c_void,
-) -> vk::Bool32 {
-    let callback_data = *p_callback_data;
-
-    let message = if callback_data.p_message.is_null() {
-        Cow::from("")
-    } else {
-        CStr::from_ptr(callback_data.p_message).to_string_lossy()
-    };
-
-    let message_id_name = if callback_data.p_message_id_name.is_null() {
-        Cow::from("")
-    } else {
-        CStr::from_ptr(callback_data.p_message_id_name).to_string_lossy()
-    };
-
-    let message_number = callback_data.message_id_number;
-
-    let raw_message = std::format!(
-        "Vulkan Debug Callback - {:?} :: {:?} [{} ({})]\n{}",
-        message_severity,
-        message_type,
-        message_id_name,
-        message_number,
-        message
-    );
-
-    let full_message = raw_message.replace("; ", ";\n\n");
-
-    match message_severity {
-        DebugUtilsMessageSeverityFlagsEXT::VERBOSE => {
-            log::debug!("{}", full_message);
-        }
-
-        DebugUtilsMessageSeverityFlagsEXT::INFO => {
-            log::info!("{}", full_message);
-        }
-
-        DebugUtilsMessageSeverityFlagsEXT::WARNING => {
-            log::warn!("{}", full_message);
-        }
-
-        DebugUtilsMessageSeverityFlagsEXT::ERROR => {
-            log::error!("{}", full_message);
-        }
-
-        _ => {
-            log::warn!("?? {}", full_message);
-        }
-    }
-    return vk::FALSE;
 }

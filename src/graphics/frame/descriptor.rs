@@ -52,17 +52,18 @@ impl FrameDescriptor {
         // create a descriptor pool which exactly matches the number of bindings
         let pool_sizes: Vec<vk::DescriptorPoolSize> = bindings
             .iter()
-            .map(|binding| {
-                vk::DescriptorPoolSize::builder()
-                    .ty(binding.descriptor_type)
-                    .descriptor_count(binding.descriptor_count)
-                    .build()
+            .map(|binding| vk::DescriptorPoolSize {
+                ty: binding.descriptor_type,
+                descriptor_count: binding.descriptor_count,
             })
             .collect();
-        let pool_create_info = vk::DescriptorPoolCreateInfo::builder()
-            .pool_sizes(&pool_sizes)
-            .max_sets(1)
-            .flags(vk::DescriptorPoolCreateFlags::empty());
+        let pool_create_info = vk::DescriptorPoolCreateInfo {
+            p_pool_sizes: pool_sizes.as_ptr(),
+            pool_size_count: pool_sizes.len() as u32,
+            max_sets: 1,
+            flags: vk::DescriptorPoolCreateFlags::empty(),
+            ..Default::default()
+        };
         let descriptor_pool = unsafe {
             device
                 .logical_device
@@ -75,10 +76,12 @@ impl FrameDescriptor {
         )?;
 
         let descriptor_set_layouts = [descriptor_set_layout];
-        let descriptor_set_allocate_info =
-            vk::DescriptorSetAllocateInfo::builder()
-                .descriptor_pool(descriptor_pool)
-                .set_layouts(&descriptor_set_layouts);
+        let descriptor_set_allocate_info = vk::DescriptorSetAllocateInfo {
+            descriptor_pool,
+            p_set_layouts: descriptor_set_layouts.as_ptr(),
+            descriptor_set_count: descriptor_set_layouts.len() as u32,
+            ..Default::default()
+        };
 
         let descriptor_set = unsafe {
             device
@@ -126,13 +129,15 @@ impl FrameDescriptor {
         &mut self,
         image_infos: &[vk::DescriptorImageInfo],
     ) {
-        let descriptor_write = vk::WriteDescriptorSet::builder()
-            .dst_set(self.descriptor_set)
-            .dst_binding(0)
-            .dst_array_element(0)
-            .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-            .image_info(image_infos)
-            .build();
+        let descriptor_write = vk::WriteDescriptorSet {
+            dst_set: self.descriptor_set,
+            dst_binding: 0,
+            dst_array_element: 0,
+            descriptor_type: vk::DescriptorType::COMBINED_IMAGE_SAMPLER,
+            p_image_info: image_infos.as_ptr(),
+            descriptor_count: image_infos.len() as u32,
+            ..Default::default()
+        };
         self.device
             .logical_device
             .update_descriptor_sets(&[descriptor_write], &[]);

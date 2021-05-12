@@ -27,8 +27,11 @@ impl ShaderModule {
         Name: Into<String>,
     {
         let source_u32 = ffi::copy_to_u32(source);
-        let create_info =
-            vk::ShaderModuleCreateInfo::builder().code(&source_u32);
+        let create_info = vk::ShaderModuleCreateInfo {
+            p_code: source_u32.as_ptr(),
+            code_size: source_u32.len() * std::mem::size_of::<u32>(),
+            ..Default::default()
+        };
 
         let shader_module = unsafe {
             device

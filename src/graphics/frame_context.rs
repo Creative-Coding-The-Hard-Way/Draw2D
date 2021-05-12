@@ -117,16 +117,20 @@ impl FrameContext {
         let render_finished_semaphores = &[render_finished_semaphore];
         let swapchains = [self.swapchain.swapchain];
         let indices = [self.current_frame_index as u32];
-        let present_info = vk::PresentInfoKHR::builder()
-            .wait_semaphores(render_finished_semaphores)
-            .swapchains(&swapchains)
-            .image_indices(&indices);
+
+        let present_info = vk::PresentInfoKHR {
+            p_wait_semaphores: render_finished_semaphores.as_ptr(),
+            wait_semaphore_count: render_finished_semaphores.len() as u32,
+            p_swapchains: swapchains.as_ptr(),
+            swapchain_count: swapchains.len() as u32,
+            p_image_indices: indices.as_ptr(),
+            ..Default::default()
+        };
 
         let result = unsafe {
-            let present_queue = self.device.present_queue.acquire();
             self.swapchain
                 .swapchain_loader
-                .queue_present(*present_queue, &present_info)
+                .queue_present(self.device.present_queue.raw(), &present_info)
         };
         if Err(vk::Result::ERROR_OUT_OF_DATE_KHR) == result {
             self.swapchain_state = SwapchainState::NeedsRebuild;

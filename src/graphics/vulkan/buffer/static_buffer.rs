@@ -48,10 +48,12 @@ impl StaticBuffer {
         properties: vk::MemoryPropertyFlags,
         size: u64,
     ) -> Result<Self> {
-        let create_info = vk::BufferCreateInfo::builder()
-            .size(size)
-            .usage(usage)
-            .sharing_mode(vk::SharingMode::EXCLUSIVE);
+        let create_info = vk::BufferCreateInfo {
+            size,
+            usage,
+            sharing_mode: vk::SharingMode::EXCLUSIVE,
+            ..Default::default()
+        };
 
         let raw =
             unsafe { device.logical_device.create_buffer(&create_info, None)? };

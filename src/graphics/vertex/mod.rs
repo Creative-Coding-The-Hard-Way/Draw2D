@@ -26,29 +26,29 @@ impl Vertex2d {
         Vec<vk::VertexInputBindingDescription>,
         Vec<vk::VertexInputAttributeDescription>,
     ) {
-        let binding = vk::VertexInputBindingDescription::builder()
-            .binding(0)
-            .stride(std::mem::size_of::<Self>() as u32)
-            .input_rate(vk::VertexInputRate::VERTEX)
-            .build();
-        let pos = vk::VertexInputAttributeDescription::builder()
-            .binding(0)
-            .location(0)
-            .format(vk::Format::R32G32_SFLOAT)
-            .offset(offset_of!(Vertex2d, pos) as u32)
-            .build();
-        let uv = vk::VertexInputAttributeDescription::builder()
-            .binding(0)
-            .location(1)
-            .format(vk::Format::R32G32_SFLOAT)
-            .offset(offset_of!(Vertex2d, uv) as u32)
-            .build();
-        let rgba = vk::VertexInputAttributeDescription::builder()
-            .binding(0)
-            .location(2)
-            .format(vk::Format::R32G32B32A32_SFLOAT)
-            .offset(offset_of!(Vertex2d, rgba) as u32)
-            .build();
+        let binding = vk::VertexInputBindingDescription {
+            binding: 0,
+            stride: std::mem::size_of::<Self>() as u32,
+            input_rate: vk::VertexInputRate::VERTEX,
+        };
+        let pos = vk::VertexInputAttributeDescription {
+            binding: 0,
+            location: 0,
+            format: vk::Format::R32G32_SFLOAT,
+            offset: offset_of!(Vertex2d, pos) as u32,
+        };
+        let uv = vk::VertexInputAttributeDescription {
+            binding: 0,
+            location: 1,
+            format: vk::Format::R32G32_SFLOAT,
+            offset: offset_of!(Vertex2d, uv) as u32,
+        };
+        let rgba = vk::VertexInputAttributeDescription {
+            binding: 0,
+            location: 2,
+            format: vk::Format::R32G32B32A32_SFLOAT,
+            offset: offset_of!(Vertex2d, rgba) as u32,
+        };
         (vec![binding], vec![pos, uv, rgba])
     }
 }

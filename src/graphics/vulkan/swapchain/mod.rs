@@ -55,46 +55,47 @@ impl Swapchain {
             &device.physical_device,
         )?;
 
-        let create_info = vk::SwapchainCreateInfoKHR::builder()
-            // set the surface
-            .surface(unsafe { window_surface.get_surface_handle() })
+        let mut create_info = vk::SwapchainCreateInfoKHR {
+            surface: unsafe { window_surface.get_surface_handle() },
+
             // image settings
-            .image_format(image_format.format)
-            .image_color_space(image_format.color_space)
-            .image_extent(extent)
-            .min_image_count(image_count)
-            .image_array_layers(1)
-            .image_usage(vk::ImageUsageFlags::COLOR_ATTACHMENT)
+            image_format: image_format.format,
+            image_color_space: image_format.color_space,
+            image_extent: extent,
+            min_image_count: image_count,
+            image_array_layers: 1,
+            image_usage: vk::ImageUsageFlags::COLOR_ATTACHMENT,
+
             // window system presentation settings
-            .present_mode(present_mode)
-            .composite_alpha(vk::CompositeAlphaFlagsKHR::OPAQUE)
-            .pre_transform(vk::SurfaceTransformFlagsKHR::IDENTITY)
-            .old_swapchain(if let Some(old_swapchain) = previous {
+            present_mode,
+            composite_alpha: vk::CompositeAlphaFlagsKHR::OPAQUE,
+            pre_transform: vk::SurfaceTransformFlagsKHR::IDENTITY,
+            old_swapchain: if let Some(old_swapchain) = previous {
                 old_swapchain.swapchain
             } else {
                 vk::SwapchainKHR::null()
-            })
-            .clipped(true);
+            },
+            clipped: 1,
+
+            ..Default::default()
+        };
 
         let indices = &[
             device.graphics_queue.family_id,
             device.present_queue.family_id,
         ];
 
-        let with_sharing_mode =
-            if device.present_queue.is_same(&device.graphics_queue) {
-                create_info.image_sharing_mode(vk::SharingMode::EXCLUSIVE)
-            } else {
-                create_info
-                    .image_sharing_mode(vk::SharingMode::CONCURRENT)
-                    .queue_family_indices(indices)
-            };
-
-        let swapchain_loader =
-            khr::Swapchain::new(&device.instance.ash, &device.logical_device);
-        let swapchain = unsafe {
-            swapchain_loader.create_swapchain(&with_sharing_mode, None)?
+        if device.present_queue.is_same(&device.graphics_queue) {
+            create_info.image_sharing_mode = vk::SharingMode::EXCLUSIVE;
+        } else {
+            create_info.image_sharing_mode = vk::SharingMode::CONCURRENT;
+            create_info.p_queue_family_indices = indices.as_ptr();
+            create_info.queue_family_index_count = indices.len() as u32;
         };
+
+        let swapchain_loader = device.create_swapchain_loader();
+        let swapchain =
+            unsafe { swapchain_loader.create_swapchain(&create_info, None)? };
 
         let swapchain_images = unsafe {
             swapchain_loader
@@ -144,16 +145,14 @@ impl Swapchain {
 
 impl Drop for Swapchain {
     fn drop(&mut self) {
-        let graphics_queue = self.device.graphics_queue.acquire();
-        let present_queue = self.device.present_queue.acquire();
         unsafe {
             self.device
                 .logical_device
-                .queue_wait_idle(*graphics_queue)
+                .queue_wait_idle(self.device.graphics_queue.raw())
                 .expect("wait for graphics queue to drain");
             self.device
                 .logical_device
-                .queue_wait_idle(*present_queue)
+                .queue_wait_idle(self.device.present_queue.raw())
                 .expect("wait for presentation queue to drain");
             self.device
                 .logical_device

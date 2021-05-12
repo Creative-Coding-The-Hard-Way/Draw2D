@@ -55,7 +55,7 @@ impl GlfwWindow {
             )?)?;
 
         let surface = Self::create_surface(&instance, &window)?;
-        let surface_loader = Surface::new(&instance.entry, &instance.ash);
+        let surface_loader = instance.create_surface_loader();
 
         Ok(Self {
             surface,

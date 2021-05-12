@@ -9,7 +9,7 @@ use anyhow::{Context, Result};
 use ash::{version::InstanceV1_0, vk};
 
 /// Pick a physical device based on suitability criteria.
-pub fn pick_physical_device(
+pub fn find_optimal(
     instance: &Instance,
     window_surface: &dyn WindowSurface,
 ) -> Result<vk::PhysicalDevice> {
@@ -84,7 +84,7 @@ fn check_required_extensions(
             )
             .unwrap()
         })
-        .filter(|name| required_device_extensions().contains(name))
+        .filter(|name| required_extensions().contains(name))
         .collect::<Vec<String>>()
         .is_empty()
 }
@@ -93,14 +93,15 @@ fn check_required_extensions(
 ///
 /// `is_device_suitable` should verify that all required features are supported
 /// by the chosen physical device.
-pub fn required_device_features() -> vk::PhysicalDeviceFeatures {
-    vk::PhysicalDeviceFeatures::builder()
-        .geometry_shader(true)
-        .build()
+pub fn required_features() -> vk::PhysicalDeviceFeatures {
+    vk::PhysicalDeviceFeatures {
+        geometry_shader: 1,
+        ..Default::default()
+    }
 }
 
 /// Return the set of required device extensions for this application
-pub fn required_device_extensions() -> Vec<String> {
+pub fn required_extensions() -> Vec<String> {
     let swapchain = ash::extensions::khr::Swapchain::name()
         .to_owned()
         .into_string()

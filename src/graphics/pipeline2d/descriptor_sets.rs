@@ -18,7 +18,11 @@ pub unsafe fn create_descriptor_set_layout(
     let bindings = vec![sampler_layout_binding()];
     let descriptor_set_layout =
         device.logical_device.create_descriptor_set_layout(
-            &vk::DescriptorSetLayoutCreateInfo::builder().bindings(&bindings),
+            &vk::DescriptorSetLayoutCreateInfo {
+                p_bindings: bindings.as_ptr(),
+                binding_count: bindings.len() as u32,
+                ..Default::default()
+            },
             None,
         )?;
     Ok((descriptor_set_layout, bindings))
@@ -26,21 +30,21 @@ pub unsafe fn create_descriptor_set_layout(
 
 /// Create the push constant range definition for the graphics pipeline.
 pub fn create_push_constant_range() -> vk::PushConstantRange {
-    vk::PushConstantRange::builder()
-        .stage_flags(
-            vk::ShaderStageFlags::FRAGMENT | vk::ShaderStageFlags::VERTEX,
-        )
-        .size(size_of::<PushConsts>() as u32)
-        .offset(0)
-        .build()
+    vk::PushConstantRange {
+        stage_flags: vk::ShaderStageFlags::FRAGMENT
+            | vk::ShaderStageFlags::VERTEX,
+        size: size_of::<PushConsts>() as u32,
+        offset: 0,
+    }
 }
 
 /// the combined image sampler layout binding
 fn sampler_layout_binding() -> vk::DescriptorSetLayoutBinding {
-    vk::DescriptorSetLayoutBinding::builder()
-        .binding(0)
-        .descriptor_count(MAX_SUPPORTED_TEXTURES as u32)
-        .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-        .stage_flags(vk::ShaderStageFlags::FRAGMENT)
-        .build()
+    vk::DescriptorSetLayoutBinding {
+        binding: 0,
+        descriptor_count: MAX_SUPPORTED_TEXTURES as u32,
+        descriptor_type: vk::DescriptorType::COMBINED_IMAGE_SAMPLER,
+        stage_flags: vk::ShaderStageFlags::FRAGMENT,
+        ..Default::default()
+    }
 }

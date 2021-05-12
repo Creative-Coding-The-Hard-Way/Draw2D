@@ -18,12 +18,15 @@ pub fn create_framebuffers(
 
     for (i, image_view) in swapchain_image_views.iter().enumerate() {
         let attachments = &[*image_view];
-        let create_info = vk::FramebufferCreateInfo::builder()
-            .render_pass(render_pass)
-            .attachments(attachments)
-            .width(extent.width)
-            .height(extent.height)
-            .layers(1);
+        let create_info = vk::FramebufferCreateInfo {
+            render_pass,
+            p_attachments: attachments.as_ptr(),
+            attachment_count: attachments.len() as u32,
+            width: extent.width,
+            height: extent.height,
+            layers: 1,
+            ..Default::default()
+        };
         let framebuffer = unsafe {
             device
                 .logical_device
@@ -51,27 +54,25 @@ pub fn create_image_views(
 ) -> Result<Vec<vk::ImageView>> {
     let mut image_views = vec![];
     for (i, image) in swapchain_images.iter().enumerate() {
-        let create_info = vk::ImageViewCreateInfo::builder()
-            .image(*image)
-            .format(format)
-            .view_type(vk::ImageViewType::TYPE_2D)
-            .subresource_range(
-                vk::ImageSubresourceRange::builder()
-                    .aspect_mask(vk::ImageAspectFlags::COLOR)
-                    .base_mip_level(0)
-                    .level_count(1)
-                    .base_array_layer(0)
-                    .layer_count(1)
-                    .build(),
-            )
-            .components(
-                vk::ComponentMapping::builder()
-                    .r(vk::ComponentSwizzle::IDENTITY)
-                    .g(vk::ComponentSwizzle::IDENTITY)
-                    .b(vk::ComponentSwizzle::IDENTITY)
-                    .a(vk::ComponentSwizzle::IDENTITY)
-                    .build(),
-            );
+        let create_info = vk::ImageViewCreateInfo {
+            image: *image,
+            format,
+            view_type: vk::ImageViewType::TYPE_2D,
+            subresource_range: vk::ImageSubresourceRange {
+                aspect_mask: vk::ImageAspectFlags::COLOR,
+                base_mip_level: 0,
+                level_count: 1,
+                base_array_layer: 0,
+                layer_count: 1,
+            },
+            components: vk::ComponentMapping {
+                r: vk::ComponentSwizzle::IDENTITY,
+                g: vk::ComponentSwizzle::IDENTITY,
+                b: vk::ComponentSwizzle::IDENTITY,
+                a: vk::ComponentSwizzle::IDENTITY,
+            },
+            ..Default::default()
+        };
         let view = unsafe {
             device
                 .logical_device
