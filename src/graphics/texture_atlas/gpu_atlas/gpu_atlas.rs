@@ -21,21 +21,23 @@ impl GpuAtlas {
     /// Create a new texture atlas which loads image data into GPU memory.
     pub fn new(device: Arc<Device>) -> Result<Self> {
         let sampler = unsafe {
-            let sampler_create_info = vk::SamplerCreateInfo::builder()
-                .mag_filter(vk::Filter::LINEAR)
-                .min_filter(vk::Filter::LINEAR)
-                .address_mode_u(vk::SamplerAddressMode::REPEAT)
-                .address_mode_v(vk::SamplerAddressMode::REPEAT)
-                .address_mode_w(vk::SamplerAddressMode::REPEAT)
-                .anisotropy_enable(false)
-                .border_color(vk::BorderColor::INT_OPAQUE_BLACK)
-                .unnormalized_coordinates(false)
-                .compare_enable(false)
-                .compare_op(vk::CompareOp::ALWAYS)
-                .mipmap_mode(vk::SamplerMipmapMode::LINEAR)
-                .mip_lod_bias(0.0)
-                .min_lod(0.0)
-                .max_lod(vk::LOD_CLAMP_NONE);
+            let sampler_create_info = vk::SamplerCreateInfo {
+                mag_filter: vk::Filter::LINEAR,
+                min_filter: vk::Filter::LINEAR,
+                address_mode_u: vk::SamplerAddressMode::REPEAT,
+                address_mode_v: vk::SamplerAddressMode::REPEAT,
+                address_mode_w: vk::SamplerAddressMode::REPEAT,
+                anisotropy_enable: 0,
+                border_color: vk::BorderColor::INT_OPAQUE_BLACK,
+                unnormalized_coordinates: 0,
+                compare_enable: 0,
+                compare_op: vk::CompareOp::ALWAYS,
+                mipmap_mode: vk::SamplerMipmapMode::LINEAR,
+                mip_lod_bias: 0.0,
+                min_lod: 0.0,
+                max_lod: vk::LOD_CLAMP_NONE,
+                ..Default::default()
+            };
             device
                 .logical_device
                 .create_sampler(&sampler_create_info, None)?

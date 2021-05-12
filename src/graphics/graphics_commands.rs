@@ -88,8 +88,10 @@ impl Graphics {
         frame: &mut Frame,
     ) -> Result<vk::CommandBuffer> {
         let command_buffer = frame.command_pool.request_command_buffer()?;
-        let begin_info = vk::CommandBufferBeginInfo::builder()
-            .flags(vk::CommandBufferUsageFlags::empty());
+        let begin_info = vk::CommandBufferBeginInfo {
+            flags: vk::CommandBufferUsageFlags::empty(),
+            ..Default::default()
+        };
         unsafe {
             self.device
                 .logical_device
@@ -101,14 +103,17 @@ impl Graphics {
                 float32: [0.0, 0.0, 0.0, 1.0],
             },
         }];
-        let render_pass_begin_info = vk::RenderPassBeginInfo::builder()
-            .render_pass(self.frame_context.swapchain().render_pass)
-            .framebuffer(frame.framebuffer)
-            .render_area(vk::Rect2D {
+        let render_pass_begin_info = vk::RenderPassBeginInfo {
+            render_pass: self.frame_context.swapchain().render_pass,
+            framebuffer: frame.framebuffer,
+            render_area: vk::Rect2D {
                 offset: vk::Offset2D { x: 0, y: 0 },
                 extent: self.frame_context.swapchain().extent,
-            })
-            .clear_values(&clear_values);
+            },
+            p_clear_values: clear_values.as_ptr(),
+            clear_value_count: clear_values.len() as u32,
+            ..Default::default()
+        };
         unsafe {
             self.device.logical_device.cmd_begin_render_pass(
                 command_buffer,

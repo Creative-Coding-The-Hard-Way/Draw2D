@@ -20,8 +20,10 @@ where
     Source: Buffer,
     Destination: Buffer,
 {
-    let begin_info = vk::CommandBufferBeginInfo::builder()
-        .flags(vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT);
+    let begin_info = vk::CommandBufferBeginInfo {
+        flags: vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT,
+        ..Default::default()
+    };
     device
         .logical_device
         .begin_command_buffer(command_buffer, &begin_info)?;
@@ -30,11 +32,11 @@ where
         command_buffer,
         src.raw(),
         dst.raw(),
-        &[vk::BufferCopy::builder()
-            .src_offset(0)
-            .dst_offset(0)
-            .size(src.size_in_bytes())
-            .build()],
+        &[vk::BufferCopy {
+            src_offset: 0,
+            dst_offset: 0,
+            size: src.size_in_bytes(),
+        }],
     );
 
     device.logical_device.end_command_buffer(command_buffer)?;

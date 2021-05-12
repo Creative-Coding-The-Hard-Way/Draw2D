@@ -52,25 +52,25 @@ impl TextureImage {
             device.logical_device.bind_image_memory(image, memory, 0)?;
         }
 
-        let view_create_info = vk::ImageViewCreateInfo::builder()
-            .image(image)
-            .view_type(vk::ImageViewType::TYPE_2D)
-            .format(image_create_info.format)
-            .subresource_range(
-                vk::ImageSubresourceRange::builder()
-                    .aspect_mask(vk::ImageAspectFlags::COLOR)
-                    .base_mip_level(0)
-                    .level_count(image_create_info.mip_levels)
-                    .base_array_layer(0)
-                    .layer_count(1)
-                    .build(),
-            )
-            .components(vk::ComponentMapping {
+        let view_create_info = vk::ImageViewCreateInfo {
+            image,
+            view_type: vk::ImageViewType::TYPE_2D,
+            format: image_create_info.format,
+            subresource_range: vk::ImageSubresourceRange {
+                aspect_mask: vk::ImageAspectFlags::COLOR,
+                base_mip_level: 0,
+                level_count: image_create_info.mip_levels,
+                base_array_layer: 0,
+                layer_count: 1,
+            },
+            components: vk::ComponentMapping {
                 r: vk::ComponentSwizzle::R,
                 g: vk::ComponentSwizzle::G,
                 b: vk::ComponentSwizzle::B,
                 a: vk::ComponentSwizzle::A,
-            });
+            },
+            ..Default::default()
+        };
 
         let view = unsafe {
             device
@@ -124,8 +124,10 @@ impl TextureImage {
     ) -> Result<()> {
         self.device.logical_device.begin_command_buffer(
             command_buffer,
-            &vk::CommandBufferBeginInfo::builder()
-                .flags(vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT),
+            &vk::CommandBufferBeginInfo {
+                flags: vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT,
+                ..Default::default()
+            },
         )?;
 
         let required_size: u64 = mipmap_sizes
@@ -175,22 +177,21 @@ impl TextureImage {
         command_buffer: vk::CommandBuffer,
         mip_level: u32,
     ) {
-        let write_barrier = vk::ImageMemoryBarrier::builder()
-            .old_layout(vk::ImageLayout::UNDEFINED)
-            .new_layout(vk::ImageLayout::TRANSFER_DST_OPTIMAL)
-            .image(self.image)
-            .subresource_range(
-                vk::ImageSubresourceRange::builder()
-                    .aspect_mask(vk::ImageAspectFlags::COLOR)
-                    .base_mip_level(mip_level)
-                    .level_count(1)
-                    .base_array_layer(0)
-                    .layer_count(1)
-                    .build(),
-            )
-            .src_access_mask(vk::AccessFlags::empty())
-            .dst_access_mask(vk::AccessFlags::TRANSFER_WRITE)
-            .build();
+        let write_barrier = vk::ImageMemoryBarrier {
+            old_layout: vk::ImageLayout::UNDEFINED,
+            new_layout: vk::ImageLayout::TRANSFER_DST_OPTIMAL,
+            image: self.image,
+            subresource_range: vk::ImageSubresourceRange {
+                aspect_mask: vk::ImageAspectFlags::COLOR,
+                base_mip_level: mip_level,
+                level_count: 1,
+                base_array_layer: 0,
+                layer_count: 1,
+            },
+            src_access_mask: vk::AccessFlags::empty(),
+            dst_access_mask: vk::AccessFlags::TRANSFER_WRITE,
+            ..Default::default()
+        };
         self.device.logical_device.cmd_pipeline_barrier(
             command_buffer,
             vk::PipelineStageFlags::TOP_OF_PIPE,
@@ -209,22 +210,21 @@ impl TextureImage {
         command_buffer: vk::CommandBuffer,
         mip_level: u32,
     ) {
-        let read_barrier = vk::ImageMemoryBarrier::builder()
-            .old_layout(vk::ImageLayout::TRANSFER_DST_OPTIMAL)
-            .new_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
-            .image(self.image)
-            .subresource_range(
-                vk::ImageSubresourceRange::builder()
-                    .aspect_mask(vk::ImageAspectFlags::COLOR)
-                    .base_mip_level(mip_level)
-                    .level_count(1)
-                    .base_array_layer(0)
-                    .layer_count(1)
-                    .build(),
-            )
-            .src_access_mask(vk::AccessFlags::TRANSFER_WRITE)
-            .dst_access_mask(vk::AccessFlags::SHADER_READ)
-            .build();
+        let read_barrier = vk::ImageMemoryBarrier {
+            old_layout: vk::ImageLayout::TRANSFER_DST_OPTIMAL,
+            new_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
+            image: self.image,
+            subresource_range: vk::ImageSubresourceRange {
+                aspect_mask: vk::ImageAspectFlags::COLOR,
+                base_mip_level: mip_level,
+                level_count: 1,
+                base_array_layer: 0,
+                layer_count: 1,
+            },
+            src_access_mask: vk::AccessFlags::TRANSFER_WRITE,
+            dst_access_mask: vk::AccessFlags::SHADER_READ,
+            ..Default::default()
+        };
         self.device.logical_device.cmd_pipeline_barrier(
             command_buffer,
             vk::PipelineStageFlags::TRANSFER,
@@ -245,25 +245,23 @@ impl TextureImage {
         mipmap_extent: &MipmapExtent,
         mip_level: u32,
     ) {
-        let region = vk::BufferImageCopy::builder()
-            .buffer_offset(offset)
-            .buffer_row_length(0)
-            .buffer_image_height(0)
-            .image_subresource(
-                vk::ImageSubresourceLayers::builder()
-                    .aspect_mask(vk::ImageAspectFlags::COLOR)
-                    .mip_level(mip_level)
-                    .base_array_layer(0)
-                    .layer_count(1)
-                    .build(),
-            )
-            .image_offset(vk::Offset3D { x: 0, y: 0, z: 0 })
-            .image_extent(vk::Extent3D {
+        let region = vk::BufferImageCopy {
+            buffer_offset: offset,
+            buffer_row_length: 0,
+            buffer_image_height: 0,
+            image_subresource: vk::ImageSubresourceLayers {
+                aspect_mask: vk::ImageAspectFlags::COLOR,
+                mip_level,
+                base_array_layer: 0,
+                layer_count: 1,
+            },
+            image_offset: vk::Offset3D { x: 0, y: 0, z: 0 },
+            image_extent: vk::Extent3D {
                 width: mipmap_extent.width,
                 height: mipmap_extent.height,
                 depth: 1,
-            })
-            .build();
+            },
+        };
         self.device.logical_device.cmd_copy_buffer_to_image(
             command_buffer,
             src_buffer,

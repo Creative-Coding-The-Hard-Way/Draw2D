@@ -7,10 +7,7 @@ mod queue_family_indices;
 
 pub use self::{queue::Queue, queue_family_indices::QueueFamilyIndices};
 
-use crate::graphics::vulkan::{ffi::to_os_ptrs, Instance, WindowSurface};
-use physical_device::{
-    pick_physical_device, required_device_extensions, required_device_features,
-};
+use crate::graphics::vulkan::{Instance, WindowSurface};
 
 use anyhow::{Context, Result};
 use ash::{
@@ -24,12 +21,10 @@ use std::{ffi::CString, sync::Arc};
 pub struct Device {
     pub physical_device: vk::PhysicalDevice,
     pub logical_device: ash::Device,
+    pub graphics_queue: Queue,
+    pub present_queue: Queue,
 
-    pub graphics_queue: Arc<Queue>,
-    pub present_queue: Arc<Queue>,
-
-    /// The Vulkan library instance used to create this device
-    pub instance: Arc<Instance>,
+    instance: Arc<Instance>,
 }
 
 impl Device {
@@ -37,17 +32,20 @@ impl Device {
     /// properties.
     pub fn new(window_surface: &dyn WindowSurface) -> Result<Arc<Device>> {
         let instance = window_surface.clone_vulkan_instance();
-        let physical_device = pick_physical_device(&instance, window_surface)?;
+        let physical_device =
+            physical_device::find_optimal(&instance, window_surface)?;
         let queue_family_indices = QueueFamilyIndices::find(
             &physical_device,
-            &instance.ash,
+            instance.raw(),
             window_surface,
         )?;
-        let logical_device = create_logical_device(
-            &instance,
+        let logical_device = instance.create_logical_device(
             &physical_device,
-            &queue_family_indices,
+            physical_device::required_features(),
+            &physical_device::required_extensions(),
+            &queue_family_indices.as_queue_create_infos(),
         )?;
+
         let (graphics_queue, present_queue) =
             queue_family_indices.get_queues(&logical_device)?;
 
@@ -96,11 +94,12 @@ impl Device {
         Name: Into<String>,
     {
         let cname = CString::new(name.into()).unwrap();
-
-        let name_info = vk::DebugUtilsObjectNameInfoEXT::builder()
-            .object_name(&cname)
-            .object_type(object_type)
-            .object_handle(handle.as_raw());
+        let name_info = vk::DebugUtilsObjectNameInfoEXT {
+            object_type,
+            p_object_name: cname.as_ptr(),
+            object_handle: handle.as_raw(),
+            ..Default::default()
+        };
 
         unsafe {
             self.instance.debug.debug_utils_set_object_name(
@@ -141,9 +140,11 @@ impl Device {
                 "unable to find a suitable memory type for this allocation!"
             })?;
 
-        let allocate_info = vk::MemoryAllocateInfo::builder()
-            .allocation_size(memory_requirements.size)
-            .memory_type_index(memory_type_index);
+        let allocate_info = vk::MemoryAllocateInfo {
+            memory_type_index,
+            allocation_size: memory_requirements.size,
+            ..Default::default()
+        };
 
         let memory =
             self.logical_device.allocate_memory(&allocate_info, None)?;
@@ -158,16 +159,26 @@ impl Device {
         queue: &Queue,
         command_buffer: vk::CommandBuffer,
     ) -> Result<()> {
-        let queue_handle = queue.acquire();
+        let command_buffers = &[command_buffer];
         self.logical_device.queue_submit(
-            *queue_handle,
-            &[vk::SubmitInfo::builder()
-                .command_buffers(&[command_buffer])
-                .build()],
+            queue.raw(),
+            &[vk::SubmitInfo {
+                p_command_buffers: command_buffers.as_ptr(),
+                command_buffer_count: 1,
+                ..Default::default()
+            }],
             vk::Fence::null(),
         )?;
-        self.logical_device.queue_wait_idle(*queue_handle)?;
+        self.logical_device.queue_wait_idle(queue.raw())?;
         Ok(())
+    }
+
+    /// Create a new swapchain loader which will be owned by the caller.
+    pub fn create_swapchain_loader(&self) -> ash::extensions::khr::Swapchain {
+        ash::extensions::khr::Swapchain::new(
+            &self.instance.ash,
+            &self.logical_device,
+        )
     }
 }
 
@@ -181,34 +192,4 @@ impl Drop for Device {
             self.logical_device.destroy_device(None);
         }
     }
-}
-
-/// Create a new logical device for use by this application. The caller is
-/// responsible for destroying the device when done.
-fn create_logical_device(
-    instance: &Instance,
-    physical_device: &vk::PhysicalDevice,
-    queue_family_indices: &QueueFamilyIndices,
-) -> Result<ash::Device> {
-    let queue_create_infos = queue_family_indices.as_queue_create_infos();
-    let features = required_device_features();
-    let (_c_names, layer_name_ptrs) =
-        unsafe { to_os_ptrs(&instance.enabled_layer_names) };
-    let (_c_ext_names, ext_name_ptrs) =
-        unsafe { to_os_ptrs(&required_device_extensions()) };
-
-    let create_info = vk::DeviceCreateInfo::builder()
-        .queue_create_infos(&queue_create_infos)
-        .enabled_features(&features)
-        .enabled_layer_names(&layer_name_ptrs)
-        .enabled_extension_names(&ext_name_ptrs);
-
-    let logical_device = unsafe {
-        instance
-            .ash
-            .create_device(*physical_device, &create_info, None)
-            .context("unable to create the logical device")?
-    };
-
-    Ok(logical_device)
 }

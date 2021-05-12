@@ -67,9 +67,7 @@ impl Frame {
                 name.clone(),
             )?,
             framebuffer,
-
             command_buffers: vec![],
-
             device,
         })
     }
@@ -107,18 +105,22 @@ impl Frame {
         let wait_stages = [vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT];
         let render_finished_signal_semaphores =
             [self.sync.render_finished_semaphore];
-        let submit_info = [vk::SubmitInfo::builder()
-            .wait_semaphores(&wait_semaphores)
-            .wait_dst_stage_mask(&wait_stages)
-            .command_buffers(&self.command_buffers)
-            .signal_semaphores(&render_finished_signal_semaphores)
-            .build()];
+        let submit_info = [vk::SubmitInfo {
+            p_wait_semaphores: wait_semaphores.as_ptr(),
+            p_wait_dst_stage_mask: wait_stages.as_ptr(),
+            wait_semaphore_count: wait_semaphores.len() as u32,
+            p_command_buffers: self.command_buffers.as_ptr(),
+            command_buffer_count: self.command_buffers.len() as u32,
+            p_signal_semaphores: render_finished_signal_semaphores.as_ptr(),
+            signal_semaphore_count: render_finished_signal_semaphores.len()
+                as u32,
+            ..Default::default()
+        }];
         unsafe {
-            let graphics_queue = self.device.graphics_queue.acquire();
             self.device
                 .logical_device
                 .queue_submit(
-                    *graphics_queue,
+                    self.device.graphics_queue.raw(),
                     &submit_info,
                     self.sync.graphics_finished_fence,
                 )

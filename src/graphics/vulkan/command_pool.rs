@@ -71,10 +71,12 @@ impl TransientCommandPool {
 
     /// Allocate a new command buffer
     fn allocate_command_buffer(&mut self) -> Result<vk::CommandBuffer> {
-        let create_info = vk::CommandBufferAllocateInfo::builder()
-            .command_pool(self.command_pool)
-            .level(vk::CommandBufferLevel::PRIMARY)
-            .command_buffer_count(1);
+        let create_info = vk::CommandBufferAllocateInfo {
+            command_pool: self.command_pool,
+            level: vk::CommandBufferLevel::PRIMARY,
+            command_buffer_count: 1,
+            ..Default::default()
+        };
         let command_buffer = unsafe {
             self.device
                 .logical_device
@@ -95,9 +97,11 @@ impl TransientCommandPool {
     where
         Name: Into<String>,
     {
-        let create_info = vk::CommandPoolCreateInfo::builder()
-            .queue_family_index(device.graphics_queue.family_id)
-            .flags(vk::CommandPoolCreateFlags::TRANSIENT);
+        let create_info = vk::CommandPoolCreateInfo {
+            queue_family_index: device.graphics_queue.family_id,
+            flags: vk::CommandPoolCreateFlags::TRANSIENT,
+            ..Default::default()
+        };
         let command_pool = unsafe {
             device
                 .logical_device

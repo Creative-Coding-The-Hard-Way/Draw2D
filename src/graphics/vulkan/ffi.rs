@@ -19,7 +19,7 @@ pub unsafe fn any_as_u8_slice<T: Sized>(p: &T) -> &[u8] {
 /// Unsafe because the returned vector of pointers is only valid while the
 /// cstrings are alive.
 pub unsafe fn to_os_ptrs(
-    strings: &Vec<String>,
+    strings: &[String],
 ) -> (Vec<CString>, Vec<*const c_char>) {
     let cstrings = strings
         .iter()

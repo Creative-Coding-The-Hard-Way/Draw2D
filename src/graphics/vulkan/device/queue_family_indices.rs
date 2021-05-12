@@ -10,7 +10,6 @@ use ash::{
     version::{DeviceV1_0, InstanceV1_0},
     vk,
 };
-use std::sync::Arc;
 
 /// This struct holds all of the queue indices required by this application.
 pub struct QueueFamilyIndices {
@@ -71,22 +70,26 @@ impl QueueFamilyIndices {
         })
     }
 
+    const SINGLE_QUEUE_PRIORITY: [f32; 1] = [1.0];
+
     /// Create a vector of queue create info structs based on the indices.
     ///
     /// Automatically handles duplicate indices
     pub fn as_queue_create_infos(&self) -> Vec<vk::DeviceQueueCreateInfo> {
-        let mut create_infos = vec![vk::DeviceQueueCreateInfo::builder()
-            .queue_family_index(self.graphics_family_index)
-            .queue_priorities(&[1.0])
-            .build()];
+        let mut create_infos = vec![vk::DeviceQueueCreateInfo {
+            queue_family_index: self.graphics_family_index,
+            p_queue_priorities: Self::SINGLE_QUEUE_PRIORITY.as_ptr(),
+            queue_count: 1,
+            ..Default::default()
+        }];
 
         if self.graphics_family_index != self.present_family_index {
-            create_infos.push(
-                vk::DeviceQueueCreateInfo::builder()
-                    .queue_family_index(self.present_family_index)
-                    .queue_priorities(&[1.0])
-                    .build(),
-            );
+            create_infos.push(vk::DeviceQueueCreateInfo {
+                queue_family_index: self.present_family_index,
+                p_queue_priorities: Self::SINGLE_QUEUE_PRIORITY.as_ptr(),
+                queue_count: 1,
+                ..Default::default()
+            });
         }
 
         create_infos
@@ -98,7 +101,7 @@ impl QueueFamilyIndices {
     pub fn get_queues(
         &self,
         logical_device: &ash::Device,
-    ) -> Result<(Arc<Queue>, Arc<Queue>)> {
+    ) -> Result<(Queue, Queue)> {
         let raw_graphics_queue = unsafe {
             logical_device.get_device_queue(self.graphics_family_index, 0)
         };
@@ -107,7 +110,7 @@ impl QueueFamilyIndices {
 
         let is_same = self.graphics_family_index == self.present_family_index;
         let present_queue = if is_same {
-            graphics_queue.clone()
+            graphics_queue
         } else {
             let raw_present_queue = unsafe {
                 logical_device.get_device_queue(self.present_family_index, 0)

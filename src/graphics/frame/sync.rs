@@ -20,9 +20,12 @@ impl FrameSync {
     {
         let owned_name = name.into();
         let image_available_semaphore = unsafe {
-            device
-                .logical_device
-                .create_semaphore(&vk::SemaphoreCreateInfo::builder(), None)?
+            device.logical_device.create_semaphore(
+                &vk::SemaphoreCreateInfo {
+                    ..Default::default()
+                },
+                None,
+            )?
         };
         device.name_vulkan_object(
             format!("{} Swapchain Image Available", &owned_name),
@@ -31,9 +34,12 @@ impl FrameSync {
         )?;
 
         let render_finished_semaphore = unsafe {
-            device
-                .logical_device
-                .create_semaphore(&vk::SemaphoreCreateInfo::builder(), None)?
+            device.logical_device.create_semaphore(
+                &vk::SemaphoreCreateInfo {
+                    ..Default::default()
+                },
+                None,
+            )?
         };
         device.name_vulkan_object(
             format!("{} Render Finished", &owned_name),
@@ -43,8 +49,10 @@ impl FrameSync {
 
         let graphics_finished_fence = unsafe {
             device.logical_device.create_fence(
-                &vk::FenceCreateInfo::builder()
-                    .flags(vk::FenceCreateFlags::SIGNALED),
+                &vk::FenceCreateInfo {
+                    flags: vk::FenceCreateFlags::SIGNALED,
+                    ..Default::default()
+                },
                 None,
             )?
         };

@@ -5,10 +5,7 @@ use anyhow::{bail, Result};
 use ash::{version::EntryV1_0, Entry};
 
 /// Bail if any of the required layers is not supported by the instance.
-pub fn check_layers(
-    entry: &Entry,
-    required_layers: &Vec<String>,
-) -> Result<()> {
+pub fn check_layers(entry: &Entry, required_layers: &[String]) -> Result<()> {
     let missing = missing_layers(entry, required_layers)?;
     if !missing.is_empty() {
         bail!("some required layers were not found!\n{:?}", missing);
@@ -20,7 +17,7 @@ pub fn check_layers(
 /// vulkan instance.
 fn missing_layers(
     entry: &Entry,
-    required_layers: &Vec<String>,
+    required_layers: &[String],
 ) -> Result<Vec<String>> {
     let available_layer_properties =
         entry.enumerate_instance_layer_properties()?;
