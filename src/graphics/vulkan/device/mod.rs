@@ -7,14 +7,19 @@ mod queue_family_indices;
 
 pub use self::{queue::Queue, queue_family_indices::QueueFamilyIndices};
 
-use crate::graphics::vulkan::{Instance, WindowSurface};
-
-use anyhow::{Context, Result};
-use ash::{
-    version::{DeviceV1_0, InstanceV1_0},
-    vk,
+use crate::graphics::vulkan::{
+    device_allocator::{Allocation, PassthroughAllocator},
+    Instance, WindowSurface,
 };
-use std::{ffi::CString, sync::Arc};
+
+use anyhow::Result;
+use ash::{version::DeviceV1_0, vk};
+use std::{
+    ffi::CString,
+    sync::{Arc, Mutex},
+};
+
+use super::device_allocator::DeviceAllocator;
 
 /// This struct holds all device-specific resources, the physical device and
 /// logical device for interacting with it, and the associated queues.
@@ -23,6 +28,8 @@ pub struct Device {
     pub logical_device: ash::Device,
     pub graphics_queue: Queue,
     pub present_queue: Queue,
+
+    allocator: Mutex<PassthroughAllocator>,
 
     instance: Arc<Instance>,
 }
@@ -49,11 +56,18 @@ impl Device {
         let (graphics_queue, present_queue) =
             queue_family_indices.get_queues(&logical_device)?;
 
+        let allocator = PassthroughAllocator::create(
+            instance.ash.clone(),
+            logical_device.clone(),
+            physical_device,
+        );
+
         let device = Arc::new(Self {
             physical_device,
             logical_device,
             graphics_queue,
             present_queue,
+            allocator: Mutex::new(allocator),
             instance,
         });
 
@@ -77,6 +91,35 @@ impl Device {
         }
 
         Ok(device)
+    }
+
+    /// Allocate a a chunk of memory for use in a buffer or texture.
+    ///
+    /// # unsafe because
+    ///
+    /// - the caller is responsible for eventually calling 'free memory' before
+    ///   the application quits
+    ///
+    pub unsafe fn allocate_memory(
+        &self,
+        memory_requirements: vk::MemoryRequirements,
+        property_flags: vk::MemoryPropertyFlags,
+    ) -> Result<Allocation> {
+        self.allocator
+            .lock()
+            .unwrap()
+            .allocate(memory_requirements, property_flags)
+    }
+
+    /// Free a memory allocation.
+    ///
+    /// # unsafe because
+    ///
+    /// - the caller is responsible for ensuring that the memory is no longer
+    ///   in use by the gpu.
+    ///
+    pub unsafe fn free_memory(&self, allocation: &Allocation) -> Result<()> {
+        self.allocator.lock().unwrap().free(allocation)
     }
 
     /// Give a debug name for a vulkan object owned by this device.
@@ -109,47 +152,6 @@ impl Device {
         }
 
         Ok(())
-    }
-
-    /// Directly allocate device memory.
-    /// Unsafe because the caller is responsible for cleanup and handling the
-    /// lifecycle of the allocated memory.
-    pub unsafe fn allocate_memory(
-        &self,
-        memory_requirements: vk::MemoryRequirements,
-        property_flags: vk::MemoryPropertyFlags,
-    ) -> Result<vk::DeviceMemory> {
-        let memory_properties = self
-            .instance
-            .ash
-            .get_physical_device_memory_properties(self.physical_device);
-
-        let memory_type_index = memory_properties
-            .memory_types
-            .iter()
-            .enumerate()
-            .find(|(i, memory_type)| {
-                let type_supported =
-                    memory_requirements.memory_type_bits & (1 << i) != 0;
-                let properties_supported =
-                    memory_type.property_flags.contains(property_flags);
-                type_supported & properties_supported
-            })
-            .map(|(i, _memory_type)| i as u32)
-            .with_context(|| {
-                "unable to find a suitable memory type for this allocation!"
-            })?;
-
-        let allocate_info = vk::MemoryAllocateInfo {
-            memory_type_index,
-            allocation_size: memory_requirements.size,
-            ..Default::default()
-        };
-
-        let memory =
-            self.logical_device.allocate_memory(&allocate_info, None)?;
-
-        Ok(memory)
     }
 
     /// Submit a command buffer to the specified queue, then wait for it to

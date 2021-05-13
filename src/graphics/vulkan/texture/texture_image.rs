@@ -41,7 +41,7 @@ impl TextureImage {
                 .create_image(&image_create_info, None)?
         };
 
-        let memory = unsafe {
+        let allocation = unsafe {
             let memory_requirements =
                 device.logical_device.get_image_memory_requirements(image);
             device
@@ -49,7 +49,11 @@ impl TextureImage {
         };
 
         unsafe {
-            device.logical_device.bind_image_memory(image, memory, 0)?;
+            device.logical_device.bind_image_memory(
+                image,
+                allocation.memory,
+                0,
+            )?;
         }
 
         let view_create_info = vk::ImageViewCreateInfo {
@@ -83,7 +87,7 @@ impl TextureImage {
             image,
             extent: image_create_info.extent,
             view,
-            memory,
+            allocation,
             device,
         })
     }
@@ -281,8 +285,7 @@ impl Drop for TextureImage {
                 .destroy_image_view(self.view, None);
             self.device.logical_device.destroy_image(self.image, None);
             self.image = vk::Image::null();
-            self.device.logical_device.free_memory(self.memory, None);
-            self.memory = vk::DeviceMemory::null();
+            self.device.free_memory(&self.allocation).unwrap();
         }
     }
 }

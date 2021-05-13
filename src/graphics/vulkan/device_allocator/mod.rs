@@ -10,26 +10,39 @@
 //! - pooling allocator -> something something, gpu memory pools
 //! - freelist? does this make sense for device memory?
 
+mod allocation;
+mod passthrough;
+
 use anyhow::Result;
 use ash::vk;
 
+pub use passthrough::PassthroughAllocator;
+
 /// A single allocated piece of device memory.
 pub struct Allocation {
-    memory: vk::DeviceMemory,
-    offset: vk::DeviceSize,
-    byte_size: vk::DeviceSize,
+    pub memory: vk::DeviceMemory,
+    pub offset: vk::DeviceSize,
+    pub byte_size: vk::DeviceSize,
 }
 
 pub trait DeviceAllocator {
     /// Allocate a piece of device memory given the requirements and usage.
-    fn allocate(
+    ///
+    /// UNSAFE: because it is the responsibility of the caller to free the
+    /// returned memory when it is no longer in use.
+    unsafe fn allocate(
         &mut self,
         memory_requirements: vk::MemoryRequirements,
         property_flags: vk::MemoryPropertyFlags,
     ) -> Result<Allocation>;
 
     /// Free an allocated piece of device memory.
-    fn free(&mut self, allocation: Allocation) -> Result<()>;
+    ///
+    /// # unsafe because
+    ///
+    /// - it is the responsibility of the caller to know when the GPU is no
+    ///   longer using the allocation.
+    unsafe fn free(&mut self, allocation: &Allocation) -> Result<()>;
 
     /// True when this specific allocator implementation knows how to manage
     /// allocation.

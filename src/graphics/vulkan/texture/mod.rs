@@ -6,6 +6,8 @@ use crate::graphics::vulkan::Device;
 use ash::vk;
 use std::sync::Arc;
 
+use super::device_allocator::Allocation;
+
 /// The TextureImage maintains the image, view, and memory, which are required
 /// when rendering with a texture.
 pub struct TextureImage {
@@ -13,7 +15,9 @@ pub struct TextureImage {
     image: vk::Image,
     extent: vk::Extent3D,
     view: vk::ImageView,
-    memory: vk::DeviceMemory,
+
+    allocation: Allocation,
+
     device: Arc<Device>,
 }
 
