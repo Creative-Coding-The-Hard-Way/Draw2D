@@ -89,8 +89,8 @@ impl Buffer for StaticBuffer {
     }
 
     /// The device memory handle. Valid for the lifetime of this buffer.
-    unsafe fn memory(&self) -> vk::DeviceMemory {
-        self.allocation.memory
+    unsafe fn allocation(&self) -> &Allocation {
+        &self.allocation
     }
 
     /// The size, in bytes, of the allocated device memory.

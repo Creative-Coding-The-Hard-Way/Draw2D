@@ -147,7 +147,7 @@ impl TextureImage {
         }
 
         let mut mip_level = 0;
-        let mut offset: u64 = 0;
+        let mut offset: u64 = src.allocation().offset;
         for extent in mipmap_sizes {
             self.write_barrier(command_buffer, mip_level);
             self.copy_buffer_to_image(

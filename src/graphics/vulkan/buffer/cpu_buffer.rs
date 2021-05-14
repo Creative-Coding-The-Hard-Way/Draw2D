@@ -1,5 +1,5 @@
 use super::{Buffer, StaticBuffer};
-use crate::graphics::vulkan::Device;
+use crate::graphics::vulkan::{device_allocator::Allocation, Device};
 
 use anyhow::Result;
 use ash::{version::DeviceV1_0, vk};
@@ -63,12 +63,15 @@ impl CpuBuffer {
 
         self.resize(total_size as u64)?;
 
-        let mut ptr = self.buffer.device.logical_device.map_memory(
-            self.buffer.memory(),
+        let mem_ptr = self.buffer.device.logical_device.map_memory(
+            self.buffer.allocation().memory,
             0,
             self.written_size,
             vk::MemoryMapFlags::empty(),
-        )? as *mut T;
+        )? as *mut u8;
+
+        let mut ptr =
+            mem_ptr.offset(self.buffer.allocation().offset as isize) as *mut T;
 
         for entry in data_arrays {
             let mapped_slice = std::slice::from_raw_parts_mut(ptr, entry.len());
@@ -79,7 +82,7 @@ impl CpuBuffer {
         self.buffer
             .device
             .logical_device
-            .unmap_memory(self.buffer.memory());
+            .unmap_memory(self.buffer.allocation().memory);
 
         Ok(())
     }
@@ -106,9 +109,9 @@ impl Buffer for CpuBuffer {
 
     /// The raw device memory handle.
     ///
-    /// Can be invalidate on calls to `write_data`.
-    unsafe fn memory(&self) -> vk::DeviceMemory {
-        self.buffer.memory()
+    /// Can be invalidated by calls to [write_data] or [write_data_arrays]
+    unsafe fn allocation(&self) -> &Allocation {
+        self.buffer.allocation()
     }
 
     /// The size of the data written on the last call to `write_data`.
