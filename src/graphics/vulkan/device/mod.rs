@@ -8,9 +8,7 @@ mod queue_family_indices;
 pub use self::{queue::Queue, queue_family_indices::QueueFamilyIndices};
 
 use crate::graphics::vulkan::{
-    device_allocator::{
-        Allocation, ForcedOffsetAllocator, PassthroughAllocator,
-    },
+    device_allocator::{self, Allocation},
     Instance, WindowSurface,
 };
 
@@ -31,7 +29,7 @@ pub struct Device {
     pub graphics_queue: Queue,
     pub present_queue: Queue,
 
-    allocator: Mutex<ForcedOffsetAllocator<PassthroughAllocator>>,
+    allocator: Mutex<Box<dyn DeviceAllocator>>,
 
     instance: Arc<Instance>,
 }
@@ -58,12 +56,11 @@ impl Device {
         let (graphics_queue, present_queue) =
             queue_family_indices.get_queues(&logical_device)?;
 
-        let allocator =
-            ForcedOffsetAllocator::new(PassthroughAllocator::create(
-                instance.ash.clone(),
-                logical_device.clone(),
-                physical_device,
-            ));
+        let allocator = device_allocator::build_standard_allocator(
+            instance.ash.clone(),
+            logical_device.clone(),
+            physical_device,
+        );
 
         let device = Arc::new(Self {
             physical_device,
