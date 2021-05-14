@@ -36,7 +36,7 @@ impl Graphics {
             );
 
             let buffers = [frame.vertex_buffer.raw()];
-            let offsets = [frame.vertex_buffer.allocation().offset];
+            let offsets = [0];
             self.device.logical_device.cmd_bind_vertex_buffers(
                 command_buffer,
                 0,

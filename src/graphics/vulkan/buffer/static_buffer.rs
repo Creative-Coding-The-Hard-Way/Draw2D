@@ -68,7 +68,7 @@ impl StaticBuffer {
             device.logical_device.bind_buffer_memory(
                 raw,
                 allocation.memory,
-                0,
+                allocation.offset,
             )?;
         }
 

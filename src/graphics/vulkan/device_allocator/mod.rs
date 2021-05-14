@@ -12,14 +12,18 @@
 //! - freelist? does this make sense for device memory?
 
 mod allocation;
+mod forced_offset;
 mod passthrough;
 
 use anyhow::Result;
 use ash::vk;
 
-pub use passthrough::PassthroughAllocator;
+pub use self::{
+    forced_offset::ForcedOffsetAllocator, passthrough::PassthroughAllocator,
+};
 
 /// A single allocated piece of device memory.
+#[derive(Clone)]
 pub struct Allocation {
     pub memory: vk::DeviceMemory,
     pub offset: vk::DeviceSize,

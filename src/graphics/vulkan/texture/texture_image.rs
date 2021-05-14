@@ -94,9 +94,9 @@ impl TextureImage {
 
     /// Upload a texture's data from a buffer.
     ///
-    /// This method is just an alias to [upload_mipmaps_from_buffer] which only
-    /// updates the first mipmap. It's particularly convenient for textures
-    /// which only have a single mipmap level.
+    /// This method is just an alias to [Self::upload_mipmaps_from_buffer]
+    /// which only updates the first mipmap. It's particularly convenient for
+    /// textures which only have a single mipmap level.
     pub unsafe fn upload_from_buffer<Buf>(
         &mut self,
         command_buffer: vk::CommandBuffer,
@@ -114,9 +114,9 @@ impl TextureImage {
 
     /// Upload a texture's mipmaps from a buffer.
     ///
-    /// * This method assumes that each mipmap has the same [bytes_per_pixel]
+    /// * This method assumes that each mipmap has the same `bytes_per_pixel`
     ///   as the texture image.
-    /// * Order is super important. The first entry in [mipmap_sizes]
+    /// * Order is super important. The first entry in `mipmap_sizes`
     ///   corresponds to the first region of memory in the src bufer. The
     ///   mipmap extents are used to compute the byte offset and size of each
     ///   mipmap region.
@@ -147,7 +147,7 @@ impl TextureImage {
         }
 
         let mut mip_level = 0;
-        let mut offset: u64 = src.allocation().offset;
+        let mut offset: u64 = 0;
         for extent in mipmap_sizes {
             self.write_barrier(command_buffer, mip_level);
             self.copy_buffer_to_image(
