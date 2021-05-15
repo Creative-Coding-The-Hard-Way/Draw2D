@@ -1,4 +1,4 @@
-use super::{Allocation, DeviceAllocator};
+use super::{Allocation, DeviceAllocator, MemoryTypeAllocator};
 
 use anyhow::Result;
 use ash::{
@@ -41,6 +41,8 @@ impl PassthroughAllocator {
 }
 
 impl DeviceAllocator for PassthroughAllocator {
+    /// Select a memory type index based on the memory requirements and
+    /// properties, then directly allocate device memory.
     unsafe fn allocate(
         &mut self,
         memory_requirements: vk::MemoryRequirements,
@@ -74,15 +76,11 @@ impl DeviceAllocator for PassthroughAllocator {
             ..Default::default()
         };
 
-        let memory =
-            self.logical_device.allocate_memory(&allocate_info, None)?;
-
-        Ok(Allocation {
-            memory,
-            offset: 0,
-            byte_size: allocate_info.allocation_size,
-            memory_type_index,
-        })
+        self.allocate_by_info(
+            memory_requirements,
+            property_flags,
+            allocate_info,
+        )
     }
 
     /// Free the allocation's underlying memory.
@@ -102,5 +100,25 @@ impl DeviceAllocator for PassthroughAllocator {
     /// The passthrough allocator assumes that all memory is owned by itself.
     fn managed_by_me(&self, _allocation: &super::Allocation) -> bool {
         true
+    }
+}
+
+impl MemoryTypeAllocator for PassthroughAllocator {
+    /// Directly allocate device memory onto the heap indicated by the
+    /// memory type index of the `allocate_info` struct.
+    unsafe fn allocate_by_info(
+        &mut self,
+        _memory_requirements: vk::MemoryRequirements,
+        _property_flags: vk::MemoryPropertyFlags,
+        allocate_info: vk::MemoryAllocateInfo,
+    ) -> Result<Allocation> {
+        Ok(Allocation {
+            memory: self
+                .logical_device
+                .allocate_memory(&allocate_info, None)?,
+            offset: 0,
+            byte_size: allocate_info.allocation_size,
+            memory_type_index: allocate_info.memory_type_index,
+        })
     }
 }

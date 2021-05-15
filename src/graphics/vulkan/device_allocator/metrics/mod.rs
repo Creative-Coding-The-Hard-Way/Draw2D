@@ -1,12 +1,29 @@
+mod console_markdown_report;
 mod metrics;
 
-pub use self::metrics::Metrics;
+pub use self::{
+    console_markdown_report::ConsoleMarkdownReport, metrics::Metrics,
+};
 
-use super::{Allocation, DeviceAllocator};
+use super::{Allocation, DeviceAllocator, MemoryTypeAllocator};
 
 use anyhow::Result;
 use ash::vk;
 use std::collections::HashMap;
+
+/// Types which implement this trait can be used by the Metrics Allocator to
+/// render a report on memory allocations.
+pub trait MetricsReport {
+    /// Render the metrics report.
+    ///
+    /// The output is implementation-defined (console, file, format, etc..).
+    fn render(
+        &self,
+        name: &str,
+        total: &Metrics,
+        metrics_by_type: &HashMap<u32, Metrics>,
+    );
+}
 
 /// A device allocator decorator which records the number of allocations and
 /// other metrics. A summary of results is printed when the allocator is
@@ -16,16 +33,22 @@ pub struct MetricsAllocator<Alloc: DeviceAllocator> {
     name: String,
     by_type: HashMap<u32, Metrics>,
     total: Metrics,
+    report: Box<dyn MetricsReport>,
 }
 
 impl<Alloc: DeviceAllocator> MetricsAllocator<Alloc> {
     /// Decorate an existing allocator with support for metrics.
-    pub fn new(name: impl Into<String>, allocator: Alloc) -> Self {
+    pub fn new<Report: 'static + MetricsReport>(
+        name: impl Into<String>,
+        report: Report,
+        allocator: Alloc,
+    ) -> Self {
         Self {
             name: name.into(),
             allocator,
             by_type: HashMap::new(),
             total: Metrics::default(),
+            report: Box::new(report),
         }
     }
 
@@ -49,64 +72,6 @@ impl<Alloc: DeviceAllocator> MetricsAllocator<Alloc> {
         self.by_type
             .entry(allocation.memory_type_index)
             .and_modify(|metrics| metrics.measure_free());
-    }
-
-    fn build_report(&self) -> String {
-        let mut report = indoc::formatdoc!(
-            "
-
-            # {} - Memory Report
-
-            ",
-            self.name
-        );
-
-        report += indoc::formatdoc!(
-            "
-            ## Total Across All Memory Types
-
-              - max concurrent allocations | {}
-              -          total allocations | {}
-              -         mean size in bytes | {}b
-              -         largest allocation | {}b
-              -        smallest allocation | {}b
-              -         leaked allocations | {}
-
-            ",
-            self.total.max_concurrent_allocations,
-            self.total.total_allocations,
-            self.total.mean_allocation_byte_size,
-            self.total.biggest_allocation,
-            self.total.smallest_allocation,
-            self.total.current_allocations
-        )
-        .as_ref();
-
-        for (memory_type_index, metrics) in &self.by_type {
-            report += indoc::formatdoc!(
-                "
-                ## Metrics For Memory Type Index {}
-
-                  - max concurrent allocations | {}
-                  -          total allocations | {}
-                  -         mean size in bytes | {}b
-                  -         largest allocation | {}b
-                  -        smallest allocation | {}b
-                  -         leaked allocations | {}
-
-                ",
-                memory_type_index,
-                metrics.max_concurrent_allocations,
-                metrics.total_allocations,
-                metrics.mean_allocation_byte_size,
-                metrics.biggest_allocation,
-                metrics.smallest_allocation,
-                metrics.current_allocations
-            )
-            .as_ref();
-        }
-
-        report
     }
 }
 
@@ -133,8 +98,27 @@ impl<Alloc: DeviceAllocator> DeviceAllocator for MetricsAllocator<Alloc> {
     }
 }
 
+impl<Alloc: MemoryTypeAllocator + DeviceAllocator> MemoryTypeAllocator
+    for MetricsAllocator<Alloc>
+{
+    unsafe fn allocate_by_info(
+        &mut self,
+        memory_requirements: vk::MemoryRequirements,
+        memory_property_flags: vk::MemoryPropertyFlags,
+        allocate_info: vk::MemoryAllocateInfo,
+    ) -> Result<Allocation> {
+        let allocation = self.allocator.allocate_by_info(
+            memory_requirements,
+            memory_property_flags,
+            allocate_info,
+        )?;
+        self.record_allocation(memory_requirements, &allocation);
+        Ok(allocation)
+    }
+}
+
 impl<T: DeviceAllocator> Drop for MetricsAllocator<T> {
     fn drop(&mut self) {
-        log::debug!("{}", self.build_report());
+        self.report.render(&self.name, &self.total, &self.by_type);
     }
 }

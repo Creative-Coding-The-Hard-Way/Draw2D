@@ -24,8 +24,10 @@ use anyhow::Result;
 use ash::vk;
 
 pub use self::{
-    forced_offset::ForcedOffsetAllocator, metrics::MetricsAllocator,
-    passthrough::PassthroughAllocator, shared_ref::SharedRefAllocator,
+    forced_offset::ForcedOffsetAllocator,
+    metrics::{ConsoleMarkdownReport, MetricsAllocator},
+    passthrough::PassthroughAllocator,
+    shared_ref::SharedRefAllocator,
 };
 
 /// A single allocated piece of device memory.
@@ -37,6 +39,8 @@ pub struct Allocation {
     memory_type_index: u32,
 }
 
+/// The external device memory allocation interface. This is the api used by
+/// applications to allocate and free memory on the gpu.
 pub trait DeviceAllocator {
     /// Allocate a piece of device memory given the requirements and usage.
     ///
@@ -63,6 +67,27 @@ pub trait DeviceAllocator {
     fn managed_by_me(&self, allocation: &Allocation) -> bool;
 }
 
+/// This trait defines internally-used allocation methods. This enables
+/// implementations to compose without exposing internal details.
+trait MemoryTypeAllocator {
+    /// Allocate a piece of memory where the required memory type index is
+    /// known by the caller.
+    ///
+    /// # unsafe because
+    ///
+    /// - it is the responsibility of the caller to free the returned memory
+    ///   when it is no longer in use
+    /// - implementations do not generally check that the memory type index in
+    ///   allocate_info is the correct memory type index, the arguments are
+    ///   assumed to be correct
+    unsafe fn allocate_by_info(
+        &mut self,
+        memory_requirements: vk::MemoryRequirements,
+        property_flags: vk::MemoryPropertyFlags,
+        allocate_info: vk::MemoryAllocateInfo,
+    ) -> Result<Allocation>;
+}
+
 /// Build the standard allocator implementation.
 ///
 /// The return is a boxed impl so that consumers are not dependent on the
@@ -82,6 +107,7 @@ pub fn build_standard_allocator(
             // with metrics
             MetricsAllocator::new(
                 "Device Allocator",
+                ConsoleMarkdownReport::new(),
                 //passthrough
                 PassthroughAllocator::create(
                     ash_instance,
