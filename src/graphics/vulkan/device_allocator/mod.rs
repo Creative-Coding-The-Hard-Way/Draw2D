@@ -6,10 +6,9 @@
 //! Allocator Implementations (brainstorm):
 //! - passthrough allocator -> directly allocates a new block of device memory
 //!   - done!
-//! - null allocator -> always returns an error
 //! - metric-gathering allocator -> decorates an allocator with metrics
+//!   - done!
 //! - pooling allocator -> something something, gpu memory pools
-//! - freelist? does this make sense for device memory?
 
 mod allocation;
 mod forced_offset;
