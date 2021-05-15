@@ -2,6 +2,8 @@ use super::{Metrics, MetricsReport};
 
 use std::collections::HashMap;
 
+use ash::vk;
+
 /// Build a human-friendly markdown report which is printed directly to the
 /// console.
 ///
@@ -45,14 +47,27 @@ use std::collections::HashMap;
 ///   |        smallest allocation | 256 B        |
 /// ```
 ///
-pub struct ConsoleMarkdownReport {}
+pub struct ConsoleMarkdownReport {
+    ash_instance: ash::Instance,
+    physical_device: vk::PhysicalDevice,
+}
 
 impl ConsoleMarkdownReport {
     const BASE: u64 = 1024;
     const UNITS: [&'static str; 4] = ["B", "KiB", "MiB", "GiB"];
 
-    pub fn new() -> Self {
-        Self {}
+    /// Create a report which renders metrics as markdown on the terminal.
+    ///
+    /// The caller is responsible for ensuring that the instance and
+    /// physical device both live for at least as long as the report.
+    pub fn new(
+        ash_instance: ash::Instance,
+        physical_device: vk::PhysicalDevice,
+    ) -> Self {
+        Self {
+            ash_instance,
+            physical_device,
+        }
     }
 
     fn formatted_metrics_list(metrics: &Metrics) -> String {
@@ -76,6 +91,29 @@ impl ConsoleMarkdownReport {
             header = "Value",
             underline = "------------",
             indent = "  ",
+        )
+    }
+
+    fn heap_description(&self, memory_type_index: u32) -> String {
+        use ash::version::InstanceV1_0;
+
+        let properties = unsafe {
+            self.ash_instance
+                .get_physical_device_memory_properties(self.physical_device)
+        };
+
+        let memory_properties =
+            properties.memory_types[memory_type_index as usize];
+
+        indoc::formatdoc!(
+            "
+            ### Heap {heap} - Memory Type Index {type_index}
+
+            Properties: {properties:?}
+            ",
+            heap = memory_properties.heap_index,
+            type_index = memory_type_index,
+            properties = memory_properties.property_flags
         )
     }
 
@@ -137,12 +175,12 @@ impl MetricsReport for ConsoleMarkdownReport {
 
         for (memory_type_index, metrics) in metrics_by_type {
             report += indoc::formatdoc!(
-                "### Memory Type {type}
-
+                "
+                {heap_description}
                 {metrics}
                 ",
-                type = memory_type_index,
-                metrics = Self::formatted_metrics_list(&metrics)
+                heap_description = self.heap_description(*memory_type_index),
+                metrics = Self::formatted_metrics_list(&metrics),
             )
             .as_ref();
         }

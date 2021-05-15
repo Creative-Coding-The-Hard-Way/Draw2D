@@ -101,15 +101,16 @@ pub fn build_standard_allocator(
     physical_device: ash::vk::PhysicalDevice,
 ) -> Box<impl DeviceAllocator> {
     Box::new(
-        // shared ref
         SharedRefAllocator::new(
-            // with metrics
+            // Capture metrics for the device allocator
             MetricsAllocator::new(
                 "Device Allocator",
-                ConsoleMarkdownReport::new(),
-                //passthrough
+                ConsoleMarkdownReport::new(
+                    ash_instance.clone(),
+                    physical_device,
+                ),
                 PassthroughAllocator::create(
-                    ash_instance,
+                    ash_instance.clone(),
                     logical_device,
                     physical_device,
                 ),
