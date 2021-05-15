@@ -1,58 +1,12 @@
-use super::{Allocation, DeviceAllocator};
+mod metrics;
 
-use std::collections::HashMap;
+pub use self::metrics::Metrics;
+
+use super::{Allocation, DeviceAllocator};
 
 use anyhow::Result;
 use ash::vk;
-
-#[derive(Debug, Copy, Clone)]
-struct Metrics {
-    total_allocations: u32,
-    max_concurrent_allocations: u32,
-    current_allocations: u32,
-    mean_allocation_byte_size: u64,
-    biggest_allocation: u64,
-    smallest_allocation: u64,
-}
-
-impl Default for Metrics {
-    fn default() -> Self {
-        Self {
-            total_allocations: 0,
-            max_concurrent_allocations: 0,
-            current_allocations: 0,
-            mean_allocation_byte_size: 0,
-            biggest_allocation: 0,
-            smallest_allocation: u64::MAX,
-        }
-    }
-}
-
-impl Metrics {
-    pub fn add_alloctation(&mut self, allocation: &Allocation) {
-        self.current_allocations += 1;
-
-        // weighted average of allocation sizes
-        self.mean_allocation_byte_size = ((self.mean_allocation_byte_size
-            * self.total_allocations as u64)
-            + allocation.byte_size)
-            / (self.total_allocations + 1) as u64;
-
-        self.total_allocations += 1;
-
-        self.max_concurrent_allocations = self
-            .max_concurrent_allocations
-            .max(self.current_allocations);
-        self.biggest_allocation =
-            self.biggest_allocation.max(allocation.byte_size);
-        self.smallest_allocation =
-            self.smallest_allocation.min(allocation.byte_size);
-    }
-
-    pub fn remove_allocation(&mut self) {
-        self.current_allocations -= 1;
-    }
-}
+use std::collections::HashMap;
 
 /// A device allocator decorator which records the number of allocations and
 /// other metrics. A summary of results is printed when the allocator is
@@ -61,6 +15,7 @@ pub struct MetricsAllocator<Alloc: DeviceAllocator> {
     allocator: Alloc,
     name: String,
     by_type: HashMap<u32, Metrics>,
+    total: Metrics,
 }
 
 impl<Alloc: DeviceAllocator> MetricsAllocator<Alloc> {
@@ -70,32 +25,30 @@ impl<Alloc: DeviceAllocator> MetricsAllocator<Alloc> {
             name: name.into(),
             allocator,
             by_type: HashMap::new(),
+            total: Metrics::default(),
         }
     }
 
     fn record_allocation(
         &mut self,
-        memory_requirements: vk::MemoryRequirements,
+        _memory_requirements: vk::MemoryRequirements,
         allocation: &Allocation,
     ) {
-        if !self.by_type.contains_key(&allocation.memory_type_index) {
-            self.by_type
-                .insert(allocation.memory_type_index, Metrics::default());
-        }
+        self.total.measure_alloctaion(&allocation);
         self.by_type
-            .get_mut(&allocation.memory_type_index)
-            .unwrap()
-            .add_alloctation(allocation);
+            .entry(allocation.memory_type_index)
+            .or_default()
+            .measure_alloctaion(allocation);
     }
 
     fn record_free(&mut self, allocation: &Allocation) {
-        if !self.by_type.contains_key(&allocation.memory_type_index) {
+        if allocation.is_null() {
             return;
         }
+        self.total.measure_free();
         self.by_type
-            .get_mut(&allocation.memory_type_index)
-            .unwrap()
-            .remove_allocation();
+            .entry(allocation.memory_type_index)
+            .and_modify(|metrics| metrics.measure_free());
     }
 
     fn build_report(&self) -> String {
@@ -108,8 +61,29 @@ impl<Alloc: DeviceAllocator> MetricsAllocator<Alloc> {
             self.name
         );
 
+        report += indoc::formatdoc!(
+            "
+            ## Total Across All Memory Types
+
+              - max concurrent allocations | {}
+              -          total allocations | {}
+              -         mean size in bytes | {}b
+              -         largest allocation | {}b
+              -        smallest allocation | {}b
+              -         leaked allocations | {}
+
+            ",
+            self.total.max_concurrent_allocations,
+            self.total.total_allocations,
+            self.total.mean_allocation_byte_size,
+            self.total.biggest_allocation,
+            self.total.smallest_allocation,
+            self.total.current_allocations
+        )
+        .as_ref();
+
         for (memory_type_index, metrics) in &self.by_type {
-            let entry = indoc::formatdoc!(
+            report += indoc::formatdoc!(
                 "
                 ## Metrics For Memory Type Index {}
 
@@ -128,8 +102,8 @@ impl<Alloc: DeviceAllocator> MetricsAllocator<Alloc> {
                 metrics.biggest_allocation,
                 metrics.smallest_allocation,
                 metrics.current_allocations
-            );
-            report += entry.as_ref();
+            )
+            .as_ref();
         }
 
         report

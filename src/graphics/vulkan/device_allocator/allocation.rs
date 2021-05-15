@@ -13,4 +13,9 @@ impl Allocation {
             memory_type_index: 0,
         }
     }
+
+    /// Returns true when the memory pointer is null.
+    pub fn is_null(&self) -> bool {
+        self.memory == vk::DeviceMemory::null()
+    }
 }
