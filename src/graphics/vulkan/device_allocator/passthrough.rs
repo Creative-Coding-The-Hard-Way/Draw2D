@@ -81,6 +81,7 @@ impl DeviceAllocator for PassthroughAllocator {
             memory,
             offset: 0,
             byte_size: allocate_info.allocation_size,
+            memory_type_index,
         })
     }
 

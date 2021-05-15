@@ -13,6 +13,7 @@
 
 mod allocation;
 mod forced_offset;
+mod metrics;
 mod passthrough;
 mod shared_ref;
 
@@ -23,8 +24,8 @@ use anyhow::Result;
 use ash::vk;
 
 pub use self::{
-    forced_offset::ForcedOffsetAllocator, passthrough::PassthroughAllocator,
-    shared_ref::SharedRefAllocator,
+    forced_offset::ForcedOffsetAllocator, metrics::MetricsAllocator,
+    passthrough::PassthroughAllocator, shared_ref::SharedRefAllocator,
 };
 
 /// A single allocated piece of device memory.
@@ -33,6 +34,7 @@ pub struct Allocation {
     pub memory: vk::DeviceMemory,
     pub offset: vk::DeviceSize,
     pub byte_size: vk::DeviceSize,
+    memory_type_index: u32,
 }
 
 pub trait DeviceAllocator {
@@ -77,8 +79,9 @@ pub fn build_standard_allocator(
     Box::new(
         // shared ref
         SharedRefAllocator::new(
-            // forced offset
-            ForcedOffsetAllocator::new(
+            // with metrics
+            MetricsAllocator::new(
+                "Device Allocator",
                 //passthrough
                 PassthroughAllocator::create(
                     ash_instance,

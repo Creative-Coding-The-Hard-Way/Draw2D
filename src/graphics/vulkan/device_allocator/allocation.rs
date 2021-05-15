@@ -10,6 +10,7 @@ impl Allocation {
             offset: 0,
             byte_size: 0,
             memory: vk::DeviceMemory::null(),
+            memory_type_index: 0,
         }
     }
 }
