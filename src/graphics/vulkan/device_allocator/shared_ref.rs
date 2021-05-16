@@ -1,4 +1,4 @@
-use super::{Allocation, DeviceAllocator, MemoryTypeAllocator};
+use super::{Allocation, DeviceAllocator};
 
 use anyhow::Result;
 use ash::vk;
@@ -33,12 +33,9 @@ impl<Alloc: DeviceAllocator> Clone for SharedRefAllocator<Alloc> {
 impl<Alloc: DeviceAllocator> DeviceAllocator for SharedRefAllocator<Alloc> {
     unsafe fn allocate(
         &mut self,
-        memory_requirements: vk::MemoryRequirements,
-        memory_property_flags: vk::MemoryPropertyFlags,
+        allocate_info: vk::MemoryAllocateInfo,
     ) -> Result<Allocation> {
-        self.allocator
-            .borrow_mut()
-            .allocate(memory_requirements, memory_property_flags)
+        self.allocator.borrow_mut().allocate(allocate_info)
     }
 
     unsafe fn free(
@@ -46,27 +43,6 @@ impl<Alloc: DeviceAllocator> DeviceAllocator for SharedRefAllocator<Alloc> {
         allocation: &super::Allocation,
     ) -> anyhow::Result<()> {
         self.allocator.borrow_mut().free(allocation)
-    }
-
-    fn managed_by_me(&self, allocation: &super::Allocation) -> bool {
-        self.allocator.borrow().managed_by_me(allocation)
-    }
-}
-
-impl<Alloc: MemoryTypeAllocator + DeviceAllocator> MemoryTypeAllocator
-    for SharedRefAllocator<Alloc>
-{
-    unsafe fn allocate_by_info(
-        &mut self,
-        memory_requirements: vk::MemoryRequirements,
-        memory_property_flags: vk::MemoryPropertyFlags,
-        allocate_info: vk::MemoryAllocateInfo,
-    ) -> Result<Allocation> {
-        self.allocator.borrow_mut().allocate_by_info(
-            memory_requirements,
-            memory_property_flags,
-            allocate_info,
-        )
     }
 }
 

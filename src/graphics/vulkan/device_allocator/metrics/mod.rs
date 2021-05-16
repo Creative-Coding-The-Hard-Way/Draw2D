@@ -5,7 +5,7 @@ pub use self::{
     console_markdown_report::ConsoleMarkdownReport, metrics::Metrics,
 };
 
-use super::{Allocation, DeviceAllocator, MemoryTypeAllocator};
+use super::{Allocation, DeviceAllocator};
 
 use anyhow::Result;
 use ash::vk;
@@ -52,11 +52,7 @@ impl<Alloc: DeviceAllocator> MetricsAllocator<Alloc> {
         }
     }
 
-    fn record_allocation(
-        &mut self,
-        _memory_requirements: vk::MemoryRequirements,
-        allocation: &Allocation,
-    ) {
+    fn record_allocation(&mut self, allocation: &Allocation) {
         self.total.measure_alloctaion(&allocation);
         self.by_type
             .entry(allocation.memory_type_index)
@@ -78,42 +74,16 @@ impl<Alloc: DeviceAllocator> MetricsAllocator<Alloc> {
 impl<Alloc: DeviceAllocator> DeviceAllocator for MetricsAllocator<Alloc> {
     unsafe fn allocate(
         &mut self,
-        memory_requirements: vk::MemoryRequirements,
-        property_flags: vk::MemoryPropertyFlags,
+        allocate_info: vk::MemoryAllocateInfo,
     ) -> Result<Allocation> {
-        let allocation = self
-            .allocator
-            .allocate(memory_requirements, property_flags)?;
-        self.record_allocation(memory_requirements, &allocation);
+        let allocation = self.allocator.allocate(allocate_info)?;
+        self.record_allocation(&allocation);
         Ok(allocation)
     }
 
     unsafe fn free(&mut self, allocation: &Allocation) -> Result<()> {
         self.record_free(allocation);
         self.allocator.free(allocation)
-    }
-
-    fn managed_by_me(&self, allocation: &Allocation) -> bool {
-        self.allocator.managed_by_me(allocation)
-    }
-}
-
-impl<Alloc: MemoryTypeAllocator + DeviceAllocator> MemoryTypeAllocator
-    for MetricsAllocator<Alloc>
-{
-    unsafe fn allocate_by_info(
-        &mut self,
-        memory_requirements: vk::MemoryRequirements,
-        memory_property_flags: vk::MemoryPropertyFlags,
-        allocate_info: vk::MemoryAllocateInfo,
-    ) -> Result<Allocation> {
-        let allocation = self.allocator.allocate_by_info(
-            memory_requirements,
-            memory_property_flags,
-            allocate_info,
-        )?;
-        self.record_allocation(memory_requirements, &allocation);
-        Ok(allocation)
     }
 }
 

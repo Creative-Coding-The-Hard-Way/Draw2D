@@ -105,10 +105,38 @@ impl Device {
         memory_requirements: vk::MemoryRequirements,
         property_flags: vk::MemoryPropertyFlags,
     ) -> Result<Allocation> {
+        use anyhow::Context;
+        use ash::version::InstanceV1_0;
+
+        let memory_properties = self
+            .instance
+            .ash
+            .get_physical_device_memory_properties(self.physical_device);
+
+        let memory_type_index = memory_properties
+            .memory_types
+            .iter()
+            .enumerate()
+            .find(|(i, memory_type)| {
+                let type_supported =
+                    memory_requirements.memory_type_bits & (1 << i) != 0;
+                let properties_supported =
+                    memory_type.property_flags.contains(property_flags);
+                type_supported & properties_supported
+            })
+            .map(|(i, _memory_type)| i as u32)
+            .with_context(|| {
+                "unable to find a suitable memory type for this allocation!"
+            })?;
+
         self.allocator
             .lock()
             .unwrap()
-            .allocate(memory_requirements, property_flags)
+            .allocate(vk::MemoryAllocateInfo {
+                memory_type_index,
+                allocation_size: memory_requirements.size,
+                ..Default::default()
+            })
     }
 
     /// Free a memory allocation.

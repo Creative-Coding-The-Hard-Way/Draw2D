@@ -17,8 +17,4 @@ impl DeviceAllocator for StubAllocator {
     unsafe fn free(&mut self, _allocation: &Allocation) -> Result<()> {
         todo!()
     }
-
-    fn managed_by_me(&self, _allocation: &Allocation) -> bool {
-        todo!()
-    }
 }

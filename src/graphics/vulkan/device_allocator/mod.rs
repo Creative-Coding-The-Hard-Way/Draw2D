@@ -12,9 +12,11 @@
 
 mod allocation;
 mod forced_offset;
+mod mem_unit;
 mod metrics;
 mod passthrough;
 mod shared_ref;
+mod suballocator;
 
 #[cfg(test)]
 mod stub_allocator;
@@ -24,9 +26,11 @@ use ash::vk;
 
 pub use self::{
     forced_offset::ForcedOffsetAllocator,
+    mem_unit::MemUnit,
     metrics::{ConsoleMarkdownReport, MetricsAllocator},
     passthrough::PassthroughAllocator,
     shared_ref::SharedRefAllocator,
+    suballocator::Suballocator,
 };
 
 /// A single allocated piece of device memory.
@@ -41,16 +45,18 @@ pub struct Allocation {
 /// The external device memory allocation interface. This is the api used by
 /// applications to allocate and free memory on the gpu.
 pub trait DeviceAllocator {
-    /// Allocate a piece of device memory given the requirements and usage.
+    /// Allocate device memory with the provided type index and size.
     ///
     /// # unsafe because
     ///
     /// - it is the responsibility of the caller to free the returned memory
     ///   when it is no longer in use
+    /// - implementations do not generally check that the memory type index in
+    ///   allocate_info is the correct memory type index, the arguments are
+    ///   assumed to be correct
     unsafe fn allocate(
         &mut self,
-        memory_requirements: vk::MemoryRequirements,
-        property_flags: vk::MemoryPropertyFlags,
+        allocate_info: vk::MemoryAllocateInfo,
     ) -> Result<Allocation>;
 
     /// Free an allocated piece of device memory.
@@ -60,31 +66,6 @@ pub trait DeviceAllocator {
     /// - it is the responsibility of the caller to know when the GPU is no
     ///   longer using the allocation
     unsafe fn free(&mut self, allocation: &Allocation) -> Result<()>;
-
-    /// True when this specific allocator implementation knows how to manage
-    /// allocation.
-    fn managed_by_me(&self, allocation: &Allocation) -> bool;
-}
-
-/// This trait defines internally-used allocation methods. This enables
-/// implementations to compose without exposing internal details.
-trait MemoryTypeAllocator {
-    /// Allocate a piece of memory where the required memory type index is
-    /// known by the caller.
-    ///
-    /// # unsafe because
-    ///
-    /// - it is the responsibility of the caller to free the returned memory
-    ///   when it is no longer in use
-    /// - implementations do not generally check that the memory type index in
-    ///   allocate_info is the correct memory type index, the arguments are
-    ///   assumed to be correct
-    unsafe fn allocate_by_info(
-        &mut self,
-        memory_requirements: vk::MemoryRequirements,
-        property_flags: vk::MemoryPropertyFlags,
-        allocate_info: vk::MemoryAllocateInfo,
-    ) -> Result<Allocation>;
 }
 
 /// Build the standard allocator implementation.
@@ -100,22 +81,31 @@ pub fn build_standard_allocator(
     logical_device: ash::Device,
     physical_device: ash::vk::PhysicalDevice,
 ) -> Box<impl DeviceAllocator> {
-    Box::new(
-        SharedRefAllocator::new(
-            // Capture metrics for the device allocator
-            MetricsAllocator::new(
-                "Device Allocator",
-                ConsoleMarkdownReport::new(
-                    ash_instance.clone(),
-                    physical_device,
-                ),
-                PassthroughAllocator::create(
-                    ash_instance.clone(),
-                    logical_device,
-                    physical_device,
-                ),
-            ),
-        )
-        .clone(),
-    )
+    let device_allocator = SharedRefAllocator::new(MetricsAllocator::new(
+        "Device Allocator",
+        ConsoleMarkdownReport::new(ash_instance.clone(), physical_device),
+        PassthroughAllocator::create(logical_device),
+    ));
+
+    let mut system_allocator = MetricsAllocator::new(
+        "Application Allocator Interface",
+        ConsoleMarkdownReport::new(ash_instance.clone(), physical_device),
+        ForcedOffsetAllocator::new(device_allocator, MemUnit::MiB(1)),
+    );
+
+    let mut sub = Suballocator::new(unsafe {
+        system_allocator
+            .allocate(vk::MemoryAllocateInfo {
+                memory_type_index: 7,
+                allocation_size: 1024,
+                ..Default::default()
+            })
+            .expect("ahhhhh!!!!")
+    });
+    unsafe {
+        sub.free_all(&mut system_allocator)
+            .expect("free the suballocator!");
+    }
+
+    Box::new(system_allocator)
 }
