@@ -6,15 +6,14 @@ use ash::vk;
 pub struct StubAllocator {}
 
 impl DeviceAllocator for StubAllocator {
-    unsafe fn allocate(
-        &mut self,
-        _: vk::MemoryRequirements,
-        _: vk::MemoryPropertyFlags,
-    ) -> Result<Allocation> {
+    unsafe fn free(&mut self, _allocation: &Allocation) -> Result<()> {
         todo!()
     }
 
-    unsafe fn free(&mut self, _allocation: &Allocation) -> Result<()> {
+    unsafe fn allocate(
+        &mut self,
+        _allocate_info: vk::MemoryAllocateInfo,
+    ) -> Result<Allocation> {
         todo!()
     }
 }

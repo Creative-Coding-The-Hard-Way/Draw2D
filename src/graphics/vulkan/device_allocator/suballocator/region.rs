@@ -1,3 +1,5 @@
+use std::ops::{Bound, Range, RangeBounds};
+
 use crate::graphics::vulkan::device_allocator::Allocation;
 
 /// A region represents a range within an allocation.
@@ -65,6 +67,32 @@ impl Region {
         new_region
     }
 
+    /// Returns true when any part of this region is contained within another.
+    ///
+    /// NOTE: this is different from `is_contiguous` because that method only
+    /// checks that the edges are touching. Overlapping regions are not just
+    /// touching, but truly overlapping - this indicates the user is attempting
+    /// to free memory incorrectly.
+    pub fn is_overlapping(&self, other: &Self) -> bool {
+        if other.range().contains(&self.start())
+            || other.range().contains(&self.end())
+        {
+            return true;
+        }
+
+        if self.range().contains(&other.start())
+            || self.range().contains(&other.end())
+        {
+            return true;
+        }
+
+        false
+    }
+
+    fn range(&self) -> impl RangeBounds<u64> {
+        (Bound::Excluded(self.start()), Bound::Excluded(self.end()))
+    }
+
     /// Merge this region with another region.
     ///
     /// # Unsafe Because
@@ -91,6 +119,29 @@ mod test {
     }
 
     #[test]
+    pub fn test_overlapping() {
+        let big = Region::new(10, 10);
+        let small = Region::new(15, 2);
+
+        assert!(big.is_overlapping(&small));
+        assert!(small.is_overlapping(&big));
+        assert!(big.is_contiguous(&small) == false);
+        assert!(small.is_contiguous(&big) == false);
+
+        let left = Region::new(7, 4);
+        assert!(left.is_contiguous(&big) == false);
+        assert!(left.is_overlapping(&big));
+        assert!(big.is_overlapping(&left));
+
+        let right = Region::new(18, 8);
+        assert!(right.is_contiguous(&big) == false);
+        assert!(right.is_overlapping(&big));
+        assert!(big.is_overlapping(&right));
+
+        assert!(left.is_overlapping(&right) == false);
+    }
+
+    #[test]
     pub fn new_region_for_whole_allocation_test() {
         let allocation = dummy_allocation(23, 1234);
         let region = Region::new_whole_region(&allocation);
@@ -103,7 +154,8 @@ mod test {
         let a = Region::new(0, 512);
         let b = Region::new(512, 256);
         assert!(a.is_contiguous(&b));
-        assert!(!a.is_contiguous(&Region::new(513, 20)));
+        assert!(a.is_overlapping(&b) == false);
+        assert!(a.is_contiguous(&Region::new(513, 20)) == false);
     }
 
     #[test]

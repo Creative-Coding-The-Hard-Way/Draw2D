@@ -102,8 +102,19 @@ pub fn build_standard_allocator(
             })
             .expect("ahhhhh!!!!")
     });
+    let allocation = unsafe {
+        sub.allocate(vk::MemoryAllocateInfo {
+            allocation_size: 256,
+            memory_type_index: 7,
+            ..Default::default()
+        })
+        .unwrap()
+    };
     unsafe {
-        sub.free_all(&mut system_allocator)
+        sub.free(&allocation).unwrap();
+    };
+    unsafe {
+        sub.free_block(&mut system_allocator)
             .expect("free the suballocator!");
     }
 
