@@ -52,7 +52,7 @@ impl TextureImage {
             device.logical_device.bind_image_memory(
                 image,
                 allocation.memory,
-                0,
+                allocation.offset,
             )?;
         }
 

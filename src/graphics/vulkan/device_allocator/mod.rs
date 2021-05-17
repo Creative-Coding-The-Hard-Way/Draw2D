@@ -14,9 +14,12 @@ mod allocation;
 mod forced_offset;
 mod mem_unit;
 mod metrics;
+mod page_allocator;
 mod passthrough;
+mod pool;
 mod shared_ref;
 mod suballocator;
+mod type_index;
 
 #[cfg(test)]
 mod stub_allocator;
@@ -28,13 +31,16 @@ pub use self::{
     forced_offset::ForcedOffsetAllocator,
     mem_unit::MemUnit,
     metrics::{ConsoleMarkdownReport, MetricsAllocator},
+    page_allocator::PageAllocator,
     passthrough::PassthroughAllocator,
+    pool::PoolAllocator,
     shared_ref::SharedRefAllocator,
     suballocator::Suballocator,
+    type_index::TypeIndexAllocator,
 };
 
 /// A single allocated piece of device memory.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Allocation {
     pub memory: vk::DeviceMemory,
     pub offset: vk::DeviceSize,
@@ -87,36 +93,22 @@ pub fn build_standard_allocator(
         PassthroughAllocator::create(logical_device),
     ));
 
-    let mut system_allocator = MetricsAllocator::new(
-        "Application Allocator Interface",
-        ConsoleMarkdownReport::new(ash_instance.clone(), physical_device),
-        ForcedOffsetAllocator::new(device_allocator, MemUnit::MiB(1)),
+    let typed_allocator = TypeIndexAllocator::new(
+        &ash_instance,
+        physical_device,
+        |_memory_type_index, _memory_type| {
+            PageAllocator::new(
+                PoolAllocator::new(device_allocator.clone(), MemUnit::MiB(1)),
+                MemUnit::KiB(1),
+            )
+        },
     );
 
-    let mut sub = Suballocator::new(unsafe {
-        system_allocator
-            .allocate(vk::MemoryAllocateInfo {
-                memory_type_index: 7,
-                allocation_size: 1024,
-                ..Default::default()
-            })
-            .expect("ahhhhh!!!!")
-    });
-    let allocation = unsafe {
-        sub.allocate(vk::MemoryAllocateInfo {
-            allocation_size: 256,
-            memory_type_index: 7,
-            ..Default::default()
-        })
-        .unwrap()
-    };
-    unsafe {
-        sub.free(&allocation).unwrap();
-    };
-    unsafe {
-        sub.free_block(&mut system_allocator)
-            .expect("free the suballocator!");
-    }
+    let system_allocator = MetricsAllocator::new(
+        "Application Allocator Interface",
+        ConsoleMarkdownReport::new(ash_instance.clone(), physical_device),
+        typed_allocator,
+    );
 
     Box::new(system_allocator)
 }

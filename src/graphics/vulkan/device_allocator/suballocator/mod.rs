@@ -3,13 +3,14 @@ mod suballocator;
 
 use super::{Allocation, DeviceAllocator};
 
-use self::region::{MergeResult, Region};
+use self::region::Region;
 
 use anyhow::Result;
 use ash::vk;
 
 /// A suballocator can divvy up a single allocation into multiple
 /// non-overlapping allocations.
+#[derive(Debug)]
 pub struct Suballocator {
     block: Allocation,
     free_regions: Vec<Region>,
@@ -45,7 +46,6 @@ impl DeviceAllocator for Suballocator {
         self.free_region(Region::new(
             allocation.offset - self.block.offset,
             allocation.byte_size,
-        ));
-        Ok(())
+        ))
     }
 }

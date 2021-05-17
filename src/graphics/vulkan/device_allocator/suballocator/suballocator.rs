@@ -91,6 +91,12 @@ impl Suballocator {
 
         Ok(())
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.free_regions.len() == 1
+            && self.free_regions[0].offset == 0
+            && self.free_regions[0].size == self.block.byte_size
+    }
 }
 
 #[cfg(test)]
