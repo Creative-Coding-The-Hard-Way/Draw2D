@@ -104,11 +104,5 @@ pub fn build_standard_allocator(
         },
     );
 
-    let system_allocator = MetricsAllocator::new(
-        "Application Allocator Interface",
-        ConsoleMarkdownReport::new(ash_instance.clone(), physical_device),
-        typed_allocator,
-    );
-
-    Box::new(system_allocator)
+    Box::new(typed_allocator)
 }
