@@ -18,6 +18,7 @@ mod page_allocator;
 mod passthrough;
 mod pool;
 mod shared_ref;
+mod size_selector;
 mod suballocator;
 mod type_index;
 
@@ -35,6 +36,7 @@ pub use self::{
     passthrough::PassthroughAllocator,
     pool::PoolAllocator,
     shared_ref::SharedRefAllocator,
+    size_selector::SizeSelector,
     suballocator::Suballocator,
     type_index::TypeIndexAllocator,
 };
@@ -93,15 +95,33 @@ pub fn build_standard_allocator(
         PassthroughAllocator::create(logical_device),
     ));
 
-    let typed_allocator = TypeIndexAllocator::new(
-        &ash_instance,
-        physical_device,
-        |_memory_type_index, _memory_type| {
-            PageAllocator::new(
-                PoolAllocator::new(device_allocator.clone(), MemUnit::MiB(1)),
-                MemUnit::KiB(1),
-            )
-        },
+    let typed_allocator = PageAllocator::new(
+        TypeIndexAllocator::new(
+            &ash_instance,
+            physical_device,
+            |_memory_type_index, _memory_type| {
+                SizeSelector::new(
+                    // For allocations below 512KiB
+                    PoolAllocator::new(
+                        device_allocator.clone(),
+                        MemUnit::MiB(1),
+                    ),
+                    MemUnit::KiB(512),
+                    // for allocations above 512KiB
+                    SizeSelector::new(
+                        // for allocations below 256MiB
+                        PoolAllocator::new(
+                            device_allocator.clone(),
+                            MemUnit::MiB(512),
+                        ),
+                        MemUnit::MiB(256),
+                        // for allocations above 256MiB
+                        device_allocator.clone(),
+                    ),
+                )
+            },
+        ),
+        MemUnit::KiB(1),
     );
 
     Box::new(typed_allocator)
