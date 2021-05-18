@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/graphics/vulkan/device/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/graphics/vulkan/device/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../../draw2d/index.html'><div class='logo-container rust-logo'><img src='../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../../../settings.html"><img src="../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../draw2d/index.html'><div class='logo-container rust-logo'><img src='../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../../../../settings.html"><img src="../../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -196,6 +196,36 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module provides functions for picking a physical device and creating</span>
 <span class="doccomment">//! the logical device.</span>
@@ -206,14 +236,19 @@
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">queue</span>::<span class="ident">Queue</span>, <span class="ident">queue_family_indices</span>::<span class="ident">QueueFamilyIndices</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::<span class="ident">vulkan</span>::{<span class="ident">Instance</span>, <span class="ident">WindowSurface</span>};
-
-<span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">Context</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="ident">ash</span>::{
-    <span class="ident">version</span>::{<span class="ident">DeviceV1_0</span>, <span class="ident">InstanceV1_0</span>},
-    <span class="ident">vk</span>,
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::<span class="ident">vulkan</span>::{
+    <span class="ident">device_allocator</span>::{<span class="self">self</span>, <span class="ident">Allocation</span>},
+    <span class="ident">Instance</span>, <span class="ident">WindowSurface</span>,
 };
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ffi</span>::<span class="ident">CString</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>};
+
+<span class="kw">use</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span>;
+<span class="kw">use</span> <span class="ident">ash</span>::{<span class="ident">version</span>::<span class="ident">DeviceV1_0</span>, <span class="ident">vk</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">ffi</span>::<span class="ident">CString</span>,
+    <span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>},
+};
+
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">device_allocator</span>::<span class="ident">DeviceAllocator</span>;
 
 <span class="doccomment">/// This struct holds all device-specific resources, the physical device and</span>
 <span class="doccomment">/// logical device for interacting with it, and the associated queues.</span>
@@ -222,6 +257,8 @@
     <span class="kw">pub</span> <span class="ident">logical_device</span>: <span class="ident">ash</span>::<span class="ident">Device</span>,
     <span class="kw">pub</span> <span class="ident">graphics_queue</span>: <span class="ident">Queue</span>,
     <span class="kw">pub</span> <span class="ident">present_queue</span>: <span class="ident">Queue</span>,
+
+    <span class="ident">allocator</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">DeviceAllocator</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="ident">instance</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span>,
 }
@@ -248,11 +285,18 @@
         <span class="kw">let</span> (<span class="ident">graphics_queue</span>, <span class="ident">present_queue</span>) <span class="op">=</span>
             <span class="ident">queue_family_indices</span>.<span class="ident">get_queues</span>(<span class="kw-2">&amp;</span><span class="ident">logical_device</span>)<span class="question-mark">?</span>;
 
+        <span class="kw">let</span> <span class="ident">allocator</span> <span class="op">=</span> <span class="ident">device_allocator</span>::<span class="ident">build_standard_allocator</span>(
+            <span class="ident">instance</span>.<span class="ident">ash</span>.<span class="ident">clone</span>(),
+            <span class="ident">logical_device</span>.<span class="ident">clone</span>(),
+            <span class="ident">physical_device</span>,
+        );
+
         <span class="kw">let</span> <span class="ident">device</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="self">Self</span> {
             <span class="ident">physical_device</span>,
             <span class="ident">logical_device</span>,
             <span class="ident">graphics_queue</span>,
             <span class="ident">present_queue</span>,
+            <span class="ident">allocator</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">allocator</span>),
             <span class="ident">instance</span>,
         });
 
@@ -276,6 +320,63 @@
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">device</span>)
+    }
+
+    <span class="doccomment">/// Allocate a a chunk of memory for use in a buffer or texture.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # unsafe because</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// - the caller is responsible for eventually calling &#39;free memory&#39; before</span>
+    <span class="doccomment">///   the application quits</span>
+    <span class="doccomment">///</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">allocate_memory</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">memory_requirements</span>: <span class="ident">vk</span>::<span class="ident">MemoryRequirements</span>,
+        <span class="ident">property_flags</span>: <span class="ident">vk</span>::<span class="ident">MemoryPropertyFlags</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Allocation</span><span class="op">&gt;</span> {
+        <span class="kw">use</span> <span class="ident">anyhow</span>::<span class="ident">Context</span>;
+        <span class="kw">use</span> <span class="ident">ash</span>::<span class="ident">version</span>::<span class="ident">InstanceV1_0</span>;
+
+        <span class="kw">let</span> <span class="ident">memory_properties</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">instance</span>
+            .<span class="ident">ash</span>
+            .<span class="ident">get_physical_device_memory_properties</span>(<span class="self">self</span>.<span class="ident">physical_device</span>);
+
+        <span class="kw">let</span> <span class="ident">memory_type_index</span> <span class="op">=</span> <span class="ident">memory_properties</span>
+            .<span class="ident">memory_types</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">enumerate</span>()
+            .<span class="ident">find</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">memory_type</span>)<span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">type_supported</span> <span class="op">=</span>
+                    <span class="ident">memory_requirements</span>.<span class="ident">memory_type_bits</span> <span class="op">&amp;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
+                <span class="kw">let</span> <span class="ident">properties_supported</span> <span class="op">=</span>
+                    <span class="ident">memory_type</span>.<span class="ident">property_flags</span>.<span class="ident">contains</span>(<span class="ident">property_flags</span>);
+                <span class="ident">type_supported</span> <span class="op">&amp;</span> <span class="ident">properties_supported</span>
+            })
+            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">_memory_type</span>)<span class="op">|</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>)
+            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="string">&quot;unable to find a suitable memory type for this allocation!&quot;</span>
+            })<span class="question-mark">?</span>;
+
+        <span class="self">self</span>.<span class="ident">allocator</span>
+            .<span class="ident">lock</span>()
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">allocate</span>(<span class="ident">vk</span>::<span class="ident">MemoryAllocateInfo</span> {
+                <span class="ident">memory_type_index</span>,
+                <span class="ident">allocation_size</span>: <span class="ident">memory_requirements</span>.<span class="ident">size</span>,
+                ..<span class="ident">Default</span>::<span class="ident">default</span>()
+            })
+    }
+
+    <span class="doccomment">/// Free a memory allocation.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # unsafe because</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// - the caller is responsible for ensuring that the memory is no longer</span>
+    <span class="doccomment">///   in use by the gpu.</span>
+    <span class="doccomment">///</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">free_memory</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">allocation</span>: <span class="kw-2">&amp;</span><span class="ident">Allocation</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">allocator</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">free</span>(<span class="ident">allocation</span>)
     }
 
     <span class="doccomment">/// Give a debug name for a vulkan object owned by this device.</span>
@@ -308,47 +409,6 @@
         }
 
         <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="doccomment">/// Directly allocate device memory.</span>
-    <span class="doccomment">/// Unsafe because the caller is responsible for cleanup and handling the</span>
-    <span class="doccomment">/// lifecycle of the allocated memory.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">allocate_memory</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">memory_requirements</span>: <span class="ident">vk</span>::<span class="ident">MemoryRequirements</span>,
-        <span class="ident">property_flags</span>: <span class="ident">vk</span>::<span class="ident">MemoryPropertyFlags</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">vk</span>::<span class="ident">DeviceMemory</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">memory_properties</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">instance</span>
-            .<span class="ident">ash</span>
-            .<span class="ident">get_physical_device_memory_properties</span>(<span class="self">self</span>.<span class="ident">physical_device</span>);
-
-        <span class="kw">let</span> <span class="ident">memory_type_index</span> <span class="op">=</span> <span class="ident">memory_properties</span>
-            .<span class="ident">memory_types</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">enumerate</span>()
-            .<span class="ident">find</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">memory_type</span>)<span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">type_supported</span> <span class="op">=</span>
-                    <span class="ident">memory_requirements</span>.<span class="ident">memory_type_bits</span> <span class="op">&amp;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
-                <span class="kw">let</span> <span class="ident">properties_supported</span> <span class="op">=</span>
-                    <span class="ident">memory_type</span>.<span class="ident">property_flags</span>.<span class="ident">contains</span>(<span class="ident">property_flags</span>);
-                <span class="ident">type_supported</span> <span class="op">&amp;</span> <span class="ident">properties_supported</span>
-            })
-            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">_memory_type</span>)<span class="op">|</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>)
-            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="string">&quot;unable to find a suitable memory type for this allocation!&quot;</span>
-            })<span class="question-mark">?</span>;
-
-        <span class="kw">let</span> <span class="ident">allocate_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">MemoryAllocateInfo</span> {
-            <span class="ident">memory_type_index</span>,
-            <span class="ident">allocation_size</span>: <span class="ident">memory_requirements</span>.<span class="ident">size</span>,
-            ..<span class="ident">Default</span>::<span class="ident">default</span>()
-        };
-
-        <span class="kw">let</span> <span class="ident">memory</span> <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">logical_device</span>.<span class="ident">allocate_memory</span>(<span class="kw-2">&amp;</span><span class="ident">allocate_info</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(<span class="ident">memory</span>)
     }
 
     <span class="doccomment">/// Submit a command buffer to the specified queue, then wait for it to</span>
@@ -393,5 +453,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="draw2d"></div>
-    <script src="../../../../../main.js"></script><script src="../../../../../source-script.js"></script><script src="../../../../../source-files.js"></script><script defer src="../../../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="draw2d" data-search-js="../../../../../search-index.js"></div>
+    <script src="../../../../../main.js"></script><script src="../../../../../source-script.js"></script><script src="../../../../../source-files.js"></script></body></html>
