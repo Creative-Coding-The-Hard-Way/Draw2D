@@ -10,6 +10,7 @@ pub mod shader_module;
 pub mod swapchain;
 pub mod texture;
 pub mod window_surface;
+pub mod device_allocator;
 
 pub use self::{
     device::Device, instance::Instance, swapchain::Swapchain,

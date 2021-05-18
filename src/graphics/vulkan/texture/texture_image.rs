@@ -41,7 +41,7 @@ impl TextureImage {
                 .create_image(&image_create_info, None)?
         };
 
-        let memory = unsafe {
+        let allocation = unsafe {
             let memory_requirements =
                 device.logical_device.get_image_memory_requirements(image);
             device
@@ -49,7 +49,11 @@ impl TextureImage {
         };
 
         unsafe {
-            device.logical_device.bind_image_memory(image, memory, 0)?;
+            device.logical_device.bind_image_memory(
+                image,
+                allocation.memory,
+                allocation.offset,
+            )?;
         }
 
         let view_create_info = vk::ImageViewCreateInfo {
@@ -83,16 +87,16 @@ impl TextureImage {
             image,
             extent: image_create_info.extent,
             view,
-            memory,
+            allocation,
             device,
         })
     }
 
     /// Upload a texture's data from a buffer.
     ///
-    /// This method is just an alias to [upload_mipmaps_from_buffer] which only
-    /// updates the first mipmap. It's particularly convenient for textures
-    /// which only have a single mipmap level.
+    /// This method is just an alias to [Self::upload_mipmaps_from_buffer]
+    /// which only updates the first mipmap. It's particularly convenient for
+    /// textures which only have a single mipmap level.
     pub unsafe fn upload_from_buffer<Buf>(
         &mut self,
         command_buffer: vk::CommandBuffer,
@@ -110,9 +114,9 @@ impl TextureImage {
 
     /// Upload a texture's mipmaps from a buffer.
     ///
-    /// * This method assumes that each mipmap has the same [bytes_per_pixel]
+    /// * This method assumes that each mipmap has the same `bytes_per_pixel`
     ///   as the texture image.
-    /// * Order is super important. The first entry in [mipmap_sizes]
+    /// * Order is super important. The first entry in `mipmap_sizes`
     ///   corresponds to the first region of memory in the src bufer. The
     ///   mipmap extents are used to compute the byte offset and size of each
     ///   mipmap region.
@@ -281,8 +285,7 @@ impl Drop for TextureImage {
                 .destroy_image_view(self.view, None);
             self.device.logical_device.destroy_image(self.image, None);
             self.image = vk::Image::null();
-            self.device.logical_device.free_memory(self.memory, None);
-            self.memory = vk::DeviceMemory::null();
+            self.device.free_memory(&self.allocation).unwrap();
         }
     }
 }

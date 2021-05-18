@@ -1,5 +1,5 @@
 use super::Buffer;
-use crate::graphics::vulkan::Device;
+use crate::graphics::vulkan::{device_allocator::Allocation, Device};
 
 use anyhow::Result;
 use ash::{version::DeviceV1_0, vk};
@@ -9,8 +9,7 @@ use std::sync::Arc;
 /// allocation.
 pub struct StaticBuffer {
     raw: vk::Buffer,
-    memory: vk::DeviceMemory,
-    size: u64,
+    allocation: Allocation,
 
     usage: vk::BufferUsageFlags,
     properties: vk::MemoryPropertyFlags,
@@ -28,8 +27,7 @@ impl StaticBuffer {
     ) -> Result<Self> {
         Ok(Self {
             raw: vk::Buffer::null(),
-            memory: vk::DeviceMemory::null(),
-            size: 0,
+            allocation: Allocation::null(),
             usage,
             properties,
             device,
@@ -62,18 +60,21 @@ impl StaticBuffer {
             device.logical_device.get_buffer_memory_requirements(raw)
         };
 
-        let memory = unsafe {
+        let allocation = unsafe {
             device.allocate_memory(buffer_memory_requirements, properties)?
         };
 
         unsafe {
-            device.logical_device.bind_buffer_memory(raw, memory, 0)?;
+            device.logical_device.bind_buffer_memory(
+                raw,
+                allocation.memory,
+                allocation.offset,
+            )?;
         }
 
         Ok(Self {
             raw,
-            memory,
-            size: buffer_memory_requirements.size,
+            allocation,
             usage,
             properties,
             device,
@@ -88,13 +89,13 @@ impl Buffer for StaticBuffer {
     }
 
     /// The device memory handle. Valid for the lifetime of this buffer.
-    unsafe fn memory(&self) -> vk::DeviceMemory {
-        self.memory
+    unsafe fn allocation(&self) -> &Allocation {
+        &self.allocation
     }
 
     /// The size, in bytes, of the allocated device memory.
     fn size_in_bytes(&self) -> u64 {
-        self.size
+        self.allocation.byte_size
     }
 }
 
@@ -109,11 +110,7 @@ impl Drop for StaticBuffer {
                 self.device.logical_device.destroy_buffer(self.raw, None);
                 self.raw = vk::Buffer::null();
             }
-
-            if self.memory != vk::DeviceMemory::null() {
-                self.device.logical_device.free_memory(self.memory, None);
-                self.memory = vk::DeviceMemory::null();
-            }
+            self.device.free_memory(&self.allocation).unwrap();
         }
     }
 }
