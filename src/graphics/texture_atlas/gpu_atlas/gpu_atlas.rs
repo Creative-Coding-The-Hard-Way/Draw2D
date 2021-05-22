@@ -1,15 +1,14 @@
 use super::GpuAtlas;
 
 use crate::graphics::{
+    ext::Texture2dFactory,
     texture_atlas::{
         gpu_atlas::Binding, AtlasVersion, SamplerHandle, TextureAtlas,
         TextureHandle, MAX_SUPPORTED_TEXTURES,
     },
     vulkan::{
-        buffer::CpuBuffer,
-        command_pool::TransientCommandPool,
-        texture::{MipmapExtent, TextureImage},
-        Device,
+        buffer::CpuBuffer, command_pool::TransientCommandPool,
+        texture::MipmapExtent, Device,
     },
 };
 
@@ -43,6 +42,7 @@ impl GpuAtlas {
                 .logical_device
                 .create_sampler(&sampler_create_info, None)?
         };
+
         let mut atlas = Self {
             transfer_buffer: CpuBuffer::new(
                 device.clone(),
@@ -59,7 +59,10 @@ impl GpuAtlas {
         };
 
         let mut default_texture =
-            atlas.create_empty_2d_texture("default texture", 1, 1, 1)?;
+            atlas
+                .device
+                .create_empty_2d_texture("default texture", 1, 1, 1)?;
+
         unsafe {
             // SAFE: because the texture was just created and is not being used
             //       elsewhere.
@@ -82,57 +85,6 @@ impl GpuAtlas {
         }
 
         Ok(atlas)
-    }
-
-    /// Directly create an empty 2d texture.
-    fn create_empty_2d_texture<Name>(
-        &self,
-        name: Name,
-        width: u32,
-        height: u32,
-        mip_levels: u32,
-    ) -> Result<TextureImage>
-    where
-        Name: Into<String>,
-    {
-        let (format, bytes_per_pixel) = (vk::Format::R8G8B8A8_SRGB, 4 as u64);
-        let texture = TextureImage::new(
-            self.device.clone(),
-            vk::ImageCreateInfo {
-                image_type: vk::ImageType::TYPE_2D,
-                extent: vk::Extent3D {
-                    width,
-                    height,
-                    depth: 1,
-                },
-                mip_levels,
-                array_layers: 1,
-                format,
-                tiling: vk::ImageTiling::OPTIMAL,
-                initial_layout: vk::ImageLayout::UNDEFINED,
-                usage: vk::ImageUsageFlags::TRANSFER_DST
-                    | vk::ImageUsageFlags::SAMPLED,
-                samples: vk::SampleCountFlags::TYPE_1,
-                sharing_mode: vk::SharingMode::EXCLUSIVE,
-                ..Default::default()
-            },
-            vk::MemoryPropertyFlags::DEVICE_LOCAL,
-            bytes_per_pixel,
-        )?;
-
-        let owned_name = name.into();
-        self.device.name_vulkan_object(
-            format!("{} - Image", owned_name.clone()),
-            vk::ObjectType::IMAGE,
-            unsafe { &texture.raw_image() },
-        )?;
-        self.device.name_vulkan_object(
-            format!("{} - Image View", owned_name.clone()),
-            vk::ObjectType::IMAGE_VIEW,
-            unsafe { &texture.raw_view() },
-        )?;
-
-        Ok(texture)
     }
 
     fn read_file_mipmaps<P: AsRef<Path>>(
@@ -196,7 +148,7 @@ impl TextureAtlas for GpuAtlas {
     ) -> Result<TextureHandle> {
         let path_string = path_to_texture_file.into();
         let mipmaps = self.read_file_mipmaps(&path_string)?;
-        let mut texture = self.create_empty_2d_texture(
+        let mut texture = self.device.create_empty_2d_texture(
             path_string,
             mipmaps[0].width(),
             mipmaps[0].height(),

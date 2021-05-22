@@ -1,4 +1,4 @@
-use super::Device;
+use crate::graphics::Device;
 
 use crate::graphics::ext::SamplerFactory;
 
