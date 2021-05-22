@@ -2,8 +2,8 @@ use super::GpuAtlas;
 
 use crate::graphics::{
     texture_atlas::{
-        AtlasVersion, SamplerHandle, TextureAtlas, TextureHandle,
-        MAX_SUPPORTED_TEXTURES,
+        gpu_atlas::Binding, AtlasVersion, SamplerHandle, TextureAtlas,
+        TextureHandle, MAX_SUPPORTED_TEXTURES,
     },
     vulkan::{
         buffer::CpuBuffer,
@@ -71,7 +71,15 @@ impl GpuAtlas {
             )?;
             atlas.command_pool.reset()?;
         }
-        atlas.textures.push(default_texture);
+
+        atlas.textures.push(Some(Binding {
+            texture: default_texture,
+            sampler_handle: SamplerHandle::default(),
+        }));
+
+        for _ in 1..MAX_SUPPORTED_TEXTURES {
+            atlas.textures.push(None);
+        }
 
         Ok(atlas)
     }
@@ -158,7 +166,9 @@ impl TextureAtlas for GpuAtlas {
     }
 
     fn add_sampler(&mut self, sampler: vk::Sampler) -> Result<SamplerHandle> {
-        todo!()
+        self.samplers.push(sampler);
+        let index = self.samplers.len() - 1;
+        Ok(SamplerHandle::new(index as u32))
     }
 
     fn bind_sampler_to_texture(
@@ -166,7 +176,14 @@ impl TextureAtlas for GpuAtlas {
         sampler_handle: SamplerHandle,
         texture_handle: TextureHandle,
     ) -> Result<()> {
-        todo!()
+        if let Some(binding) =
+            &mut self.textures[texture_handle.texture_index() as usize]
+        {
+            binding.sampler_handle = sampler_handle;
+            Ok(())
+        } else {
+            anyhow::bail!("the provide texture handle does not match an existing texture!");
+        }
     }
 
     /// Add a texture to the atlas and return a texture handle.
@@ -177,12 +194,6 @@ impl TextureAtlas for GpuAtlas {
         &mut self,
         path_to_texture_file: impl Into<String>,
     ) -> Result<TextureHandle> {
-        if self.textures.len() >= MAX_SUPPORTED_TEXTURES {
-            anyhow::bail!(
-                "only a maximum of {} textures are supported!",
-                MAX_SUPPORTED_TEXTURES
-            );
-        }
         let path_string = path_to_texture_file.into();
         let mipmaps = self.read_file_mipmaps(&path_string)?;
         let mut texture = self.create_empty_2d_texture(
@@ -219,35 +230,49 @@ impl TextureAtlas for GpuAtlas {
 
             self.command_pool.reset()?;
         }
+        use anyhow::Context;
 
-        self.textures.push(texture);
-        let index = (self.textures.len() - 1) as u32;
+        let free_slot_index = self
+            .textures
+            .iter()
+            .enumerate()
+            .find(|(_i, entry)| entry.is_none())
+            .with_context(|| "unable to find a free texture slot!")?
+            .0;
+
+        self.textures[free_slot_index] = Some(Binding {
+            texture,
+            sampler_handle: SamplerHandle::default(),
+        });
 
         self.version = self.version.increment();
 
-        Ok(TextureHandle::new(index))
+        Ok(TextureHandle::new(free_slot_index as u32))
     }
 
     /// Build a vector of descriptor image info entries. This can be used when
     /// updating a descriptor set with specific image bindings.
     fn build_descriptor_image_info(&self) -> Vec<vk::DescriptorImageInfo> {
-        let mut bindings: Vec<vk::DescriptorImageInfo> = self
-            .textures
+        let default_view =
+            unsafe { self.textures[0].as_ref().unwrap().texture.raw_view() };
+
+        self.textures
             .iter()
-            .map(|texture| vk::DescriptorImageInfo {
-                image_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
-                image_view: unsafe { texture.raw_view() },
-                sampler: self.samplers[0],
+            .map(|binding_option| match binding_option {
+                Some(binding) => vk::DescriptorImageInfo {
+                    image_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
+                    image_view: unsafe { binding.texture.raw_view() },
+                    sampler: self.samplers
+                        [binding.sampler_handle.index() as usize],
+                },
+
+                None => vk::DescriptorImageInfo {
+                    image_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
+                    image_view: default_view,
+                    sampler: self.samplers[0],
+                },
             })
-            .collect();
-        for _ in self.textures.len()..MAX_SUPPORTED_TEXTURES {
-            bindings.push(vk::DescriptorImageInfo {
-                image_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
-                image_view: unsafe { self.textures[0].raw_view() },
-                sampler: self.samplers[0],
-            });
-        }
-        bindings
+            .collect()
     }
 }
 

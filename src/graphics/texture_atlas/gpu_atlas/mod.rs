@@ -1,7 +1,7 @@
 mod gpu_atlas;
 
 use crate::graphics::{
-    texture_atlas::AtlasVersion,
+    texture_atlas::{AtlasVersion, SamplerHandle},
     vulkan::{
         buffer::CpuBuffer, command_pool::TransientCommandPool,
         texture::TextureImage, Device,
@@ -11,11 +11,16 @@ use crate::graphics::{
 use ash::vk;
 use std::sync::Arc;
 
+struct Binding {
+    texture: TextureImage,
+    sampler_handle: SamplerHandle,
+}
+
 /// The GPU Atlas is responsible for actually loading texture data into gpu
 /// memory.
 pub struct GpuAtlas {
     /// The collection of all textures owned by this atlas.
-    textures: Vec<TextureImage>,
+    textures: Vec<Option<Binding>>,
 
     /// The samplers used by textures owned by this atlas.
     samplers: Vec<vk::Sampler>,

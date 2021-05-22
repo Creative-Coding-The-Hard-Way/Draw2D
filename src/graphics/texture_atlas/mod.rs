@@ -25,6 +25,8 @@ pub use self::{
     sampler_handle::SamplerHandle, texture_handle::TextureHandle,
 };
 
+use crate::graphics::Graphics;
+
 use anyhow::Result;
 use ash::vk;
 
@@ -59,4 +61,34 @@ pub trait TextureAtlas {
         &mut self,
         path_to_texture_file: impl Into<String>,
     ) -> Result<TextureHandle>;
+}
+
+impl TextureAtlas for Graphics {
+    fn version(&self) -> AtlasVersion {
+        self.texture_atlas.version()
+    }
+
+    fn build_descriptor_image_info(&self) -> Vec<vk::DescriptorImageInfo> {
+        self.texture_atlas.build_descriptor_image_info()
+    }
+
+    fn add_sampler(&mut self, sampler: vk::Sampler) -> Result<SamplerHandle> {
+        self.texture_atlas.add_sampler(sampler)
+    }
+
+    fn bind_sampler_to_texture(
+        &mut self,
+        sampler_handle: SamplerHandle,
+        texture_handle: TextureHandle,
+    ) -> Result<()> {
+        self.texture_atlas
+            .bind_sampler_to_texture(sampler_handle, texture_handle)
+    }
+
+    fn add_texture(
+        &mut self,
+        path_to_texture_file: impl Into<String>,
+    ) -> Result<TextureHandle> {
+        self.texture_atlas.add_texture(path_to_texture_file)
+    }
 }

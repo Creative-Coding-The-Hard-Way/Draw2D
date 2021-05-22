@@ -5,7 +5,7 @@ use crate::graphics::{
     frame_context::FrameContext,
     layer::{Layer, LayerHandle, LayerStack},
     pipeline2d::Pipeline2d,
-    texture_atlas::{GpuAtlas, TextureAtlas, TextureHandle},
+    texture_atlas::GpuAtlas,
     vulkan::{Device, Swapchain, WindowSurface},
 };
 
@@ -30,17 +30,6 @@ impl Graphics {
             layer_stack,
             device,
         })
-    }
-
-    /// Read a texture file into GPU Memory.
-    ///
-    /// The returned TextureHandle can be used in Batches for rendering with
-    /// the texture.
-    pub fn add_texture(
-        &mut self,
-        path: impl Into<String>,
-    ) -> Result<TextureHandle> {
-        self.texture_atlas.add_texture(path)
     }
 
     /// Add a new graphics layer to the top of the rendering stack.

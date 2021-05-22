@@ -3,6 +3,10 @@
 pub struct SamplerHandle(u32);
 
 impl SamplerHandle {
+    pub(super) fn new(index: u32) -> Self {
+        SamplerHandle(index)
+    }
+
     /// Return the raw index for this sampler listing.
     pub(super) fn index(&self) -> u32 {
         let SamplerHandle(index) = self;

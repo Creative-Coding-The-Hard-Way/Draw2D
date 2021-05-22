@@ -1,3 +1,4 @@
+pub mod ext;
 pub mod frame;
 pub mod frame_context;
 pub mod layer;
@@ -22,7 +23,7 @@ pub struct Graphics {
     pipeline2d: Pipeline2d,
 
     /// The graphics subsystem's texture atlas.
-    texture_atlas: GpuAtlas,
+    pub texture_atlas: GpuAtlas,
 
     /// The graphics subsystem's visual layers.
     layer_stack: LayerStack,
