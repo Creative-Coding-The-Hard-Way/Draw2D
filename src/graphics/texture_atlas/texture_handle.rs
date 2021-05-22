@@ -1,4 +1,6 @@
-use super::TextureHandle;
+/// A unique identifier for a texture managed by the texture atlas.
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct TextureHandle(u32);
 
 impl TextureHandle {
     /// Return the raw index which can be passed to the shader for selecting a

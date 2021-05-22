@@ -18,9 +18,14 @@
 mod atlas_version;
 mod cached_atlas;
 mod gpu_atlas;
+mod sampler_handle;
 mod texture_handle;
 
-pub use self::{cached_atlas::CachedAtlas, gpu_atlas::GpuAtlas};
+pub use self::{
+    atlas_version::AtlasVersion, cached_atlas::CachedAtlas,
+    gpu_atlas::GpuAtlas, sampler_handle::SamplerHandle,
+    texture_handle::TextureHandle,
+};
 
 use anyhow::Result;
 use ash::vk;
@@ -39,23 +44,25 @@ pub trait TextureAtlas {
     /// write all of this atlas's textures into a descriptor set.
     fn build_descriptor_image_info(&self) -> Vec<vk::DescriptorImageInfo>;
 
+    /// Add a named sampler to the atlas. Samplers can be persistently bound to
+    /// individual textures.
+    fn add_sampler(
+        &mut self,
+        name: impl Into<String>,
+        sampler: vk::Sampler,
+    ) -> Result<SamplerHandle>;
+
+    /// Bind a sampler to a texture. Binding are persistent - they do not change
+    /// until this method is called again.
+    fn bind_sampler_to_texture(
+        &mut self,
+        sampler_handle: SamplerHandle,
+        texture_handle: TextureHandle,
+    ) -> Result<()>;
+
     /// Load a texture file into the atlas.
     fn add_texture(
         &mut self,
         path_to_texture_file: impl Into<String>,
     ) -> Result<TextureHandle>;
 }
-
-/// At atlas's version changes any time that the loaded textures are changed
-/// in some way.
-///
-/// Typically this is used to detect when the atlas needs to update as shader's
-/// descriptor sets.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct AtlasVersion {
-    revision_count: u32,
-}
-
-/// A handle which can provide the texture index for a push constant.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct TextureHandle(u32);
