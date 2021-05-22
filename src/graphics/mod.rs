@@ -10,11 +10,8 @@ mod graphics_commands;
 mod pipeline2d;
 
 use self::{
-    frame_context::FrameContext,
-    layer::LayerStack,
-    pipeline2d::Pipeline2d,
-    texture_atlas::{CachedAtlas, GpuAtlas},
-    vulkan::Device,
+    frame_context::FrameContext, layer::LayerStack, pipeline2d::Pipeline2d,
+    texture_atlas::GpuAtlas, vulkan::Device,
 };
 
 use std::sync::Arc;
@@ -25,7 +22,7 @@ pub struct Graphics {
     pipeline2d: Pipeline2d,
 
     /// The graphics subsystem's texture atlas.
-    texture_atlas: CachedAtlas<GpuAtlas>,
+    texture_atlas: GpuAtlas,
 
     /// The graphics subsystem's visual layers.
     layer_stack: LayerStack,

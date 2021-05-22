@@ -24,6 +24,13 @@ impl AtlasVersion {
         version.revision_count == 0
             || self.revision_count != version.revision_count
     }
+
+    /// Create a new atlas version which is more up-to-date than the current.
+    pub fn increment(&self) -> Self {
+        AtlasVersion {
+            revision_count: self.revision_count + 1,
+        }
+    }
 }
 
 #[cfg(test)]

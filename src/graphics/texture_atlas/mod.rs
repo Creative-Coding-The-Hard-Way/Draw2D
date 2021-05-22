@@ -16,15 +16,13 @@
 //! for the entire frame.
 
 mod atlas_version;
-mod cached_atlas;
 mod gpu_atlas;
 mod sampler_handle;
 mod texture_handle;
 
 pub use self::{
-    atlas_version::AtlasVersion, cached_atlas::CachedAtlas,
-    gpu_atlas::GpuAtlas, sampler_handle::SamplerHandle,
-    texture_handle::TextureHandle,
+    atlas_version::AtlasVersion, gpu_atlas::GpuAtlas,
+    sampler_handle::SamplerHandle, texture_handle::TextureHandle,
 };
 
 use anyhow::Result;
@@ -46,11 +44,7 @@ pub trait TextureAtlas {
 
     /// Add a named sampler to the atlas. Samplers can be persistently bound to
     /// individual textures.
-    fn add_sampler(
-        &mut self,
-        name: impl Into<String>,
-        sampler: vk::Sampler,
-    ) -> Result<SamplerHandle>;
+    fn add_sampler(&mut self, sampler: vk::Sampler) -> Result<SamplerHandle>;
 
     /// Bind a sampler to a texture. Binding are persistent - they do not change
     /// until this method is called again.

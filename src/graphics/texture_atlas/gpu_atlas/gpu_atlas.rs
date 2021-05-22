@@ -2,7 +2,8 @@ use super::GpuAtlas;
 
 use crate::graphics::{
     texture_atlas::{
-        AtlasVersion, TextureAtlas, TextureHandle, MAX_SUPPORTED_TEXTURES,
+        AtlasVersion, SamplerHandle, TextureAtlas, TextureHandle,
+        MAX_SUPPORTED_TEXTURES,
     },
     vulkan::{
         buffer::CpuBuffer,
@@ -52,8 +53,8 @@ impl GpuAtlas {
                 "Texture Atlas Command Pool",
             )?,
             textures: vec![],
-            version: AtlasVersion { revision_count: 1 },
-            sampler,
+            version: AtlasVersion::new_out_of_date().increment(),
+            samplers: vec![sampler],
             device,
         };
 
@@ -156,6 +157,18 @@ impl TextureAtlas for GpuAtlas {
         self.version
     }
 
+    fn add_sampler(&mut self, sampler: vk::Sampler) -> Result<SamplerHandle> {
+        todo!()
+    }
+
+    fn bind_sampler_to_texture(
+        &mut self,
+        sampler_handle: SamplerHandle,
+        texture_handle: TextureHandle,
+    ) -> Result<()> {
+        todo!()
+    }
+
     /// Add a texture to the atlas and return a texture handle.
     ///
     /// Texture handles can be used when drawing to get the texture_index which
@@ -210,9 +223,9 @@ impl TextureAtlas for GpuAtlas {
         self.textures.push(texture);
         let index = (self.textures.len() - 1) as u32;
 
-        self.version.revision_count += 1;
+        self.version = self.version.increment();
 
-        Ok(TextureHandle(index))
+        Ok(TextureHandle::new(index))
     }
 
     /// Build a vector of descriptor image info entries. This can be used when
@@ -224,14 +237,14 @@ impl TextureAtlas for GpuAtlas {
             .map(|texture| vk::DescriptorImageInfo {
                 image_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
                 image_view: unsafe { texture.raw_view() },
-                sampler: self.sampler,
+                sampler: self.samplers[0],
             })
             .collect();
         for _ in self.textures.len()..MAX_SUPPORTED_TEXTURES {
             bindings.push(vk::DescriptorImageInfo {
                 image_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
                 image_view: unsafe { self.textures[0].raw_view() },
-                sampler: self.sampler,
+                sampler: self.samplers[0],
             });
         }
         bindings
@@ -241,9 +254,9 @@ impl TextureAtlas for GpuAtlas {
 impl Drop for GpuAtlas {
     fn drop(&mut self) {
         unsafe {
-            self.device
-                .logical_device
-                .destroy_sampler(self.sampler, None);
+            for sampler in self.samplers.drain(0..) {
+                self.device.logical_device.destroy_sampler(sampler, None);
+            }
         }
     }
 }

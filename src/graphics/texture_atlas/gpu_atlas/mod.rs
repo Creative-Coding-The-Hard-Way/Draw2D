@@ -17,8 +17,8 @@ pub struct GpuAtlas {
     /// The collection of all textures owned by this atlas.
     textures: Vec<TextureImage>,
 
-    /// The sampler used by all of the textures in this atlas.
-    sampler: vk::Sampler,
+    /// The samplers used by textures owned by this atlas.
+    samplers: Vec<vk::Sampler>,
 
     /// A pool of command buffers used by the atlas for assorted GPU operations.
     command_pool: TransientCommandPool,

@@ -3,6 +3,10 @@
 pub struct TextureHandle(u32);
 
 impl TextureHandle {
+    pub(super) fn new(index: u32) -> Self {
+        TextureHandle(index)
+    }
+
     /// Return the raw index which can be passed to the shader for selecting a
     /// texture.
     pub(crate) fn texture_index(&self) -> u32 {

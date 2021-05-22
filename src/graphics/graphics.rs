@@ -5,7 +5,7 @@ use crate::graphics::{
     frame_context::FrameContext,
     layer::{Layer, LayerHandle, LayerStack},
     pipeline2d::Pipeline2d,
-    texture_atlas::{CachedAtlas, GpuAtlas, TextureAtlas, TextureHandle},
+    texture_atlas::{GpuAtlas, TextureAtlas, TextureHandle},
     vulkan::{Device, Swapchain, WindowSurface},
 };
 
@@ -20,7 +20,7 @@ impl Graphics {
         let frame_context =
             FrameContext::new(device.clone(), swapchain.clone())?;
         let pipeline2d = Pipeline2d::new(device.clone(), &swapchain)?;
-        let texture_atlas = CachedAtlas::new(GpuAtlas::new(device.clone())?);
+        let texture_atlas = GpuAtlas::new(device.clone())?;
         let layer_stack = LayerStack::new();
 
         Ok(Self {
