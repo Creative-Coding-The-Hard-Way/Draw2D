@@ -121,21 +121,22 @@ impl TextureImage {
         src: &impl Buffer,
         mipmap_sizes: &[MipmapExtent],
     ) -> Result<()> {
-        self.device.sync_graphics_commands(|command_buffer| {
-            let required_size: u64 = mipmap_sizes
-                .iter()
-                .map(|mipmap_size| mipmap_size.size_in_bytes(self.bytes_per_pixel))
-                .sum();
-            if required_size > src.size_in_bytes() {
-                bail!(
-                    "The texture expects {:?} bytes, but the provided buffer includes only {:?} bytes of data!",
-                    required_size,
-                    src.size_in_bytes()
-                );
-            }
+        let required_size: u64 = mipmap_sizes
+            .iter()
+            .map(|mipmap_size| mipmap_size.size_in_bytes(self.bytes_per_pixel))
+            .sum();
+        if required_size > src.size_in_bytes() {
+            bail!(
+                "The texture expects {:?} bytes, but the provided buffer includes only {:?} bytes of data!",
+                required_size,
+                src.size_in_bytes()
+            );
+        }
 
+        self.device.sync_graphics_commands(|command_buffer| {
             let mut mip_level = 0;
             let mut offset: u64 = 0;
+
             for extent in mipmap_sizes {
                 self.write_barrier(command_buffer, mip_level);
                 self.copy_buffer_to_image(
@@ -150,6 +151,7 @@ impl TextureImage {
                 mip_level += 1;
                 offset += extent.size_in_bytes(self.bytes_per_pixel);
             }
+
             Ok(())
         })
     }

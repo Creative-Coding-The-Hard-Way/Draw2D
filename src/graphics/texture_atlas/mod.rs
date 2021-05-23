@@ -30,6 +30,8 @@ use crate::graphics::Graphics;
 use anyhow::Result;
 use ash::vk;
 
+use super::vulkan::texture::TextureImage;
+
 /// The maximum number of textures which can be managed by any given texture
 /// atlas.
 pub const MAX_SUPPORTED_TEXTURES: usize = 64;
@@ -48,6 +50,10 @@ pub trait TextureAtlas {
     /// individual textures.
     fn add_sampler(&mut self, sampler: vk::Sampler) -> Result<SamplerHandle>;
 
+    /// Add a texture to the atlas. The atlas owns the texture and will destroy
+    /// it when the atlas is dropped.
+    fn add_texture(&mut self, texture: TextureImage) -> Result<TextureHandle>;
+
     /// Bind a sampler to a texture. Binding are persistent - they do not change
     /// until this method is called again.
     fn bind_sampler_to_texture(
@@ -55,12 +61,6 @@ pub trait TextureAtlas {
         sampler_handle: SamplerHandle,
         texture_handle: TextureHandle,
     ) -> Result<()>;
-
-    /// Load a texture file into the atlas.
-    fn add_texture(
-        &mut self,
-        path_to_texture_file: impl Into<String>,
-    ) -> Result<TextureHandle>;
 }
 
 impl TextureAtlas for Graphics {
@@ -85,10 +85,7 @@ impl TextureAtlas for Graphics {
             .bind_sampler_to_texture(sampler_handle, texture_handle)
     }
 
-    fn add_texture(
-        &mut self,
-        path_to_texture_file: impl Into<String>,
-    ) -> Result<TextureHandle> {
-        self.texture_atlas.add_texture(path_to_texture_file)
+    fn add_texture(&mut self, texture: TextureImage) -> Result<TextureHandle> {
+        self.texture_atlas.add_texture(texture)
     }
 }

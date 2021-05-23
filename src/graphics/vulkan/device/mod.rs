@@ -1,7 +1,6 @@
 //! This module provides functions for picking a physical device and creating
 //! the logical device.
 
-mod ext;
 mod physical_device;
 mod queue;
 mod queue_family_indices;

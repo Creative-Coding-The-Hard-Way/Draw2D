@@ -1,18 +1,37 @@
-use super::GpuAtlas;
-
 use crate::graphics::{
     ext::Texture2dFactory,
     texture_atlas::{
-        gpu_atlas::Binding, AtlasVersion, SamplerHandle, TextureAtlas,
-        TextureHandle, MAX_SUPPORTED_TEXTURES,
+        AtlasVersion, SamplerHandle, TextureAtlas, TextureHandle,
+        MAX_SUPPORTED_TEXTURES,
     },
-    vulkan::{buffer::CpuBuffer, texture::MipmapExtent, Device},
+    vulkan::{buffer::CpuBuffer, texture::TextureImage, Device},
 };
 
 use anyhow::Result;
 use ash::{version::DeviceV1_0, vk};
-use image::ImageBuffer;
-use std::{path::Path, sync::Arc};
+use std::sync::Arc;
+
+struct Binding {
+    texture: TextureImage,
+    sampler_handle: SamplerHandle,
+}
+
+/// The GPU Atlas is responsible for actually loading texture data into gpu
+/// memory.
+pub struct GpuAtlas {
+    /// The collection of all textures owned by this atlas.
+    textures: Vec<Option<Binding>>,
+
+    /// The samplers used by textures owned by this atlas.
+    samplers: Vec<vk::Sampler>,
+
+    /// The version be used to determine when a shader's descriptors need to
+    /// be updated.
+    version: AtlasVersion,
+
+    /// A handle to the vulkan device.
+    device: Arc<Device>,
+}
 
 impl GpuAtlas {
     /// Create a new texture atlas which loads image data into GPU memory.
@@ -41,64 +60,38 @@ impl GpuAtlas {
             )?
         };
 
-        let mut atlas = Self {
-            transfer_buffer: CpuBuffer::new(
+        let default_texture = unsafe {
+            let mut transfer_buffer = CpuBuffer::new(
                 device.clone(),
                 vk::BufferUsageFlags::TRANSFER_SRC,
-            )?,
-            textures: vec![],
-            version: AtlasVersion::new_out_of_date().increment(),
-            samplers: vec![sampler],
-            device,
+            )?;
+
+            let white_pixel: [u8; 4] = [255, 255, 255, 255];
+            transfer_buffer.write_data(&white_pixel)?;
+
+            let mut tex = device.create_empty_2d_texture("default", 1, 1, 1)?;
+            tex.upload_from_buffer(&transfer_buffer)?;
+            tex
         };
 
-        let mut default_texture =
-            atlas
-                .device
-                .create_empty_2d_texture("default texture", 1, 1, 1)?;
+        let mut bindings = vec![];
+        bindings.reserve(MAX_SUPPORTED_TEXTURES);
 
-        unsafe {
-            // SAFE: because the texture was just created and is not being used
-            //       elsewhere.
-            let white_pixel: [u8; 4] = [255, 255, 255, 255];
-            atlas.transfer_buffer.write_data(&white_pixel)?;
-            default_texture.upload_from_buffer(&atlas.transfer_buffer)?;
-        }
-
-        atlas.textures.push(Some(Binding {
+        bindings.push(Some(Binding {
             texture: default_texture,
             sampler_handle: SamplerHandle::default(),
         }));
 
         for _ in 1..MAX_SUPPORTED_TEXTURES {
-            atlas.textures.push(None);
+            bindings.push(None);
         }
 
-        Ok(atlas)
-    }
-
-    fn read_file_mipmaps<P: AsRef<Path>>(
-        &self,
-        path: &P,
-    ) -> Result<Vec<ImageBuffer<image::Rgba<u8>, Vec<u8>>>> {
-        let image_file = image::open(path)?.into_rgba8();
-        let (width, height) = (image_file.width(), image_file.height());
-        let mip_levels = (height.max(width) as f32).log2().floor() as u32 + 1;
-
-        let mut mipmaps = Vec::with_capacity(mip_levels as usize);
-        mipmaps.push(image_file.clone());
-        for mipmap_level in 1..mip_levels {
-            use image::imageops;
-            let mipmap = imageops::resize(
-                &image_file,
-                width >> mipmap_level,
-                height >> mipmap_level,
-                imageops::FilterType::Gaussian,
-            );
-            mipmaps.push(mipmap);
-        }
-
-        Ok(mipmaps)
+        Ok(Self {
+            textures: bindings,
+            version: AtlasVersion::new_out_of_date().increment(),
+            samplers: vec![sampler],
+            device,
+        })
     }
 }
 
@@ -132,43 +125,7 @@ impl TextureAtlas for GpuAtlas {
     ///
     /// Texture handles can be used when drawing to get the texture_index which
     /// the shader uses to select this texture from the global array.
-    fn add_texture(
-        &mut self,
-        path_to_texture_file: impl Into<String>,
-    ) -> Result<TextureHandle> {
-        let path_string = path_to_texture_file.into();
-        let mipmaps = self.read_file_mipmaps(&path_string)?;
-        let mut texture = self.device.create_empty_2d_texture(
-            path_string,
-            mipmaps[0].width(),
-            mipmaps[0].height(),
-            mipmaps.len() as u32,
-        )?;
-
-        unsafe {
-            // SAFE: the transfer buffer is only used/considered valid within
-            //       the scope of this function.
-            let data: Vec<&[u8]> = mipmaps
-                .iter()
-                .map(|mipmap| mipmap.as_raw() as &[u8])
-                .collect();
-            self.transfer_buffer.write_data_arrays(&data)?;
-        }
-
-        unsafe {
-            let mipmap_sizes: Vec<MipmapExtent> = mipmaps
-                .iter()
-                .map(|mipmap| MipmapExtent {
-                    width: mipmap.width(),
-                    height: mipmap.height(),
-                })
-                .collect();
-
-            texture.upload_mipmaps_from_buffer(
-                &self.transfer_buffer,
-                &mipmap_sizes,
-            )?;
-        }
+    fn add_texture(&mut self, texture: TextureImage) -> Result<TextureHandle> {
         use anyhow::Context;
 
         let free_slot_index = self
