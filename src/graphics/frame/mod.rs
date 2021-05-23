@@ -4,7 +4,7 @@ mod sync;
 use self::{descriptor::FrameDescriptor, sync::FrameSync};
 
 use crate::graphics::vulkan::{
-    buffer::CpuBuffer, command_pool::TransientCommandPool, Device,
+    buffer::CpuBuffer, command_pool::ReusableCommandPool, Device,
 };
 
 use anyhow::{Context, Result};
@@ -16,7 +16,7 @@ pub struct Frame {
     pub sync: FrameSync,
     pub descriptor: FrameDescriptor,
     pub vertex_buffer: CpuBuffer,
-    pub command_pool: TransientCommandPool,
+    pub command_pool: ReusableCommandPool,
     pub framebuffer: vk::Framebuffer,
 
     command_buffers: Vec<vk::CommandBuffer>,
@@ -62,7 +62,7 @@ impl Frame {
                 device.clone(),
                 vk::BufferUsageFlags::VERTEX_BUFFER,
             )?,
-            command_pool: TransientCommandPool::new(
+            command_pool: ReusableCommandPool::new(
                 device.clone(),
                 name.clone(),
             )?,

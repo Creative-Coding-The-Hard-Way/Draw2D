@@ -6,10 +6,7 @@ use crate::graphics::{
         gpu_atlas::Binding, AtlasVersion, SamplerHandle, TextureAtlas,
         TextureHandle, MAX_SUPPORTED_TEXTURES,
     },
-    vulkan::{
-        buffer::CpuBuffer, command_pool::TransientCommandPool,
-        texture::MipmapExtent, Device,
-    },
+    vulkan::{buffer::CpuBuffer, texture::MipmapExtent, Device},
 };
 
 use anyhow::Result;
@@ -49,10 +46,6 @@ impl GpuAtlas {
                 device.clone(),
                 vk::BufferUsageFlags::TRANSFER_SRC,
             )?,
-            command_pool: TransientCommandPool::new(
-                device.clone(),
-                "Texture Atlas Command Pool",
-            )?,
             textures: vec![],
             version: AtlasVersion::new_out_of_date().increment(),
             samplers: vec![sampler],
@@ -69,11 +62,7 @@ impl GpuAtlas {
             //       elsewhere.
             let white_pixel: [u8; 4] = [255, 255, 255, 255];
             atlas.transfer_buffer.write_data(&white_pixel)?;
-            default_texture.upload_from_buffer(
-                atlas.command_pool.request_command_buffer()?,
-                &atlas.transfer_buffer,
-            )?;
-            atlas.command_pool.reset()?;
+            default_texture.upload_from_buffer(&atlas.transfer_buffer)?;
         }
 
         atlas.textures.push(Some(Binding {
@@ -176,12 +165,9 @@ impl TextureAtlas for GpuAtlas {
                 .collect();
 
             texture.upload_mipmaps_from_buffer(
-                self.command_pool.request_command_buffer()?,
                 &self.transfer_buffer,
                 &mipmap_sizes,
             )?;
-
-            self.command_pool.reset()?;
         }
         use anyhow::Context;
 

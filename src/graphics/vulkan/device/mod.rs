@@ -20,7 +20,9 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use super::device_allocator::DeviceAllocator;
+use super::{
+    command_pool::OwnedCommandPool, device_allocator::DeviceAllocator,
+};
 
 /// This struct holds all device-specific resources, the physical device and
 /// logical device for interacting with it, and the associated queues.
@@ -30,6 +32,7 @@ pub struct Device {
     pub graphics_queue: Queue,
     pub present_queue: Queue,
 
+    shared_graphics_pool: Mutex<OwnedCommandPool>,
     allocator: Mutex<Box<dyn DeviceAllocator>>,
 
     instance: Arc<Instance>,
@@ -63,11 +66,17 @@ impl Device {
             physical_device,
         );
 
+        let shared_graphics_pool = Mutex::new(OwnedCommandPool::new(
+            &logical_device,
+            graphics_queue.family_id,
+        )?);
+
         let device = Arc::new(Self {
             physical_device,
             logical_device,
             graphics_queue,
             present_queue,
+            shared_graphics_pool,
             allocator: Mutex::new(allocator),
             instance,
         });
@@ -76,6 +85,12 @@ impl Device {
             "Application Logical Device",
             vk::ObjectType::DEVICE,
             &device.logical_device.handle(),
+        )?;
+
+        device.name_vulkan_object(
+            "Shared Graphics Pool",
+            vk::ObjectType::COMMAND_POOL,
+            unsafe { device.shared_graphics_pool.lock().unwrap().raw() },
         )?;
 
         if device.graphics_queue.is_same(&device.present_queue) {
@@ -183,6 +198,47 @@ impl Device {
         Ok(())
     }
 
+    /// Synchronously submit commands for execution on the graphics queue.
+    ///
+    /// This method is internally synchronized and can be called on multiple
+    /// threads without any additional synchronization.
+    ///
+    /// This method forces the device to wait idle after submitting commands,
+    /// as such it is very slow (don't do it in a loop every frame!).
+    ///
+    /// # Unsafe Because
+    ///
+    /// - no internal synchronization is done, any resources used by graphcis
+    ///   commands must be synchronized by the caller
+    /// - note: the device idles after the submission, so no resources refereced
+    ///   inside this method should be in-use after the call.
+    pub unsafe fn sync_graphics_commands<R, Action>(
+        &self,
+        mut action: Action,
+    ) -> Result<R>
+    where
+        Action: FnMut(vk::CommandBuffer) -> Result<R>,
+    {
+        let pool = self.shared_graphics_pool.lock().unwrap();
+        let command_buffer =
+            pool.allocate_command_buffer(&self.logical_device)?;
+
+        let begin_info = vk::CommandBufferBeginInfo {
+            flags: vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT,
+            ..Default::default()
+        };
+        self.logical_device
+            .begin_command_buffer(command_buffer, &&begin_info)?;
+
+        let result = action(command_buffer);
+
+        self.logical_device.end_command_buffer(command_buffer)?;
+        self.submit_and_wait_idle(&self.graphics_queue, command_buffer)?;
+        pool.free_command_buffer(&self.logical_device, command_buffer);
+
+        result
+    }
+
     /// Submit a command buffer to the specified queue, then wait for it to
     /// idle.
     pub unsafe fn submit_and_wait_idle(
@@ -220,6 +276,10 @@ impl Drop for Device {
     /// not be destroyed until the logical device has been dropped.
     fn drop(&mut self) {
         unsafe {
+            self.shared_graphics_pool
+                .lock()
+                .unwrap()
+                .destroy(&self.logical_device);
             self.logical_device.destroy_device(None);
         }
     }

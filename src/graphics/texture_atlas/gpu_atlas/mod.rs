@@ -2,10 +2,7 @@ mod gpu_atlas;
 
 use crate::graphics::{
     texture_atlas::{AtlasVersion, SamplerHandle},
-    vulkan::{
-        buffer::CpuBuffer, command_pool::TransientCommandPool,
-        texture::TextureImage, Device,
-    },
+    vulkan::{buffer::CpuBuffer, texture::TextureImage, Device},
 };
 
 use ash::vk;
@@ -24,9 +21,6 @@ pub struct GpuAtlas {
 
     /// The samplers used by textures owned by this atlas.
     samplers: Vec<vk::Sampler>,
-
-    /// A pool of command buffers used by the atlas for assorted GPU operations.
-    command_pool: TransientCommandPool,
 
     /// This buffer is used to transfer data to the GPU when a texture is first
     /// added to the atlas.
