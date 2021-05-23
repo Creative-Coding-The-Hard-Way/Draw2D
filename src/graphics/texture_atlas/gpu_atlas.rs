@@ -146,6 +146,26 @@ impl TextureAtlas for GpuAtlas {
         Ok(TextureHandle::new(free_slot_index as u32))
     }
 
+    /// # Unsafe Because
+    ///
+    /// - the caller must make sure the atlas is not in use when this method
+    ///   is called
+    unsafe fn take_texture(
+        &mut self,
+        texture_handle: TextureHandle,
+    ) -> Result<TextureImage> {
+        use anyhow::Context;
+
+        let texture = self.textures[texture_handle.texture_index() as usize]
+            .take()
+            .context("no texture bound with that texture handle!")?
+            .texture;
+
+        self.version = self.version.increment();
+
+        Ok(texture)
+    }
+
     /// Build a vector of descriptor image info entries. This can be used when
     /// updating a descriptor set with specific image bindings.
     fn build_descriptor_image_info(&self) -> Vec<vk::DescriptorImageInfo> {

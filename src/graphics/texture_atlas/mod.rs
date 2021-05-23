@@ -28,7 +28,7 @@ pub use self::{
 use crate::graphics::Graphics;
 
 use anyhow::Result;
-use ash::vk;
+use ash::{version::DeviceV1_0, vk};
 
 use super::vulkan::texture::TextureImage;
 
@@ -53,6 +53,17 @@ pub trait TextureAtlas {
     /// Add a texture to the atlas. The atlas owns the texture and will destroy
     /// it when the atlas is dropped.
     fn add_texture(&mut self, texture: TextureImage) -> Result<TextureHandle>;
+
+    /// Take ownership of a texture owned by this atlas.
+    ///
+    /// # Unsafe Because
+    ///
+    /// - the caller must make sure that the texture atlas is not in use when
+    ///   this method is called
+    unsafe fn take_texture(
+        &mut self,
+        texture_handle: TextureHandle,
+    ) -> Result<TextureImage>;
 
     /// Bind a sampler to a texture. Binding are persistent - they do not change
     /// until this method is called again.
@@ -87,5 +98,15 @@ impl TextureAtlas for Graphics {
 
     fn add_texture(&mut self, texture: TextureImage) -> Result<TextureHandle> {
         self.texture_atlas.add_texture(texture)
+    }
+
+    /// This implementation is generally SAFE because it forces the device to
+    /// idle prior to removing the texture.
+    unsafe fn take_texture(
+        &mut self,
+        texture_handle: TextureHandle,
+    ) -> Result<TextureImage> {
+        self.device.logical_device.device_wait_idle()?;
+        self.texture_atlas.take_texture(texture_handle)
     }
 }
