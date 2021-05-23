@@ -9,7 +9,9 @@
 
 use draw2d::{
     graphics::{
+        ext::TextureLoader,
         layer::{Batch, LayerHandle},
+        texture_atlas::TextureAtlas,
         vertex::Vertex2d,
         Graphics,
     },
@@ -49,7 +51,9 @@ impl Application {
     fn init(&mut self) -> Result<()> {
         self.update_projection();
 
-        let texture_handle = self.graphics.add_texture("assets/example.png")?;
+        let texture_handle = self.graphics.add_texture(
+            self.graphics.read_texture_file("assets/example.png")?,
+        )?;
 
         let mut back = Batch::default();
         let mut middle = Batch::default();

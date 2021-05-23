@@ -121,31 +121,35 @@ mod test {
     }
 
     #[test]
-    pub fn test_free_whole_region() {
+    pub fn test_free_whole_region() -> Result<()> {
         let mut sub = Suballocator::new(fake_allocation(1024));
 
         let region = sub.allocate_region(1024).unwrap();
         assert_eq!(region, Region::new(0, 1024));
         assert_eq!(sub.free_regions, vec![]);
 
-        sub.free_region(region);
+        sub.free_region(region)?;
         assert_eq!(sub.free_regions, vec![Region::new(0, 1024)]);
+
+        Ok(())
     }
 
     #[test]
-    pub fn test_split_region() {
+    pub fn test_split_region() -> Result<()> {
         let mut sub = Suballocator::new(fake_allocation(1024));
 
         let region = sub.allocate_region(512).unwrap();
         assert_eq!(region, Region::new(0, 512));
         assert_eq!(sub.free_regions, vec![Region::new(512, 512)]);
 
-        sub.free_region(region);
+        sub.free_region(region)?;
         assert_eq!(sub.free_regions, vec![Region::new(0, 1024)]);
+
+        Ok(())
     }
 
     #[test]
-    pub fn test_merge_front_and_back() {
+    pub fn test_merge_front_and_back() -> Result<()> {
         let mut sub = Suballocator::new(fake_allocation(1024));
 
         let a = sub.allocate_region(256).unwrap();
@@ -154,21 +158,23 @@ mod test {
 
         assert_eq!(sub.free_regions, vec![]);
 
-        sub.free_region(c);
+        sub.free_region(c)?;
         assert_eq!(sub.free_regions, vec![Region::new(768, 256)]);
 
-        sub.free_region(a);
+        sub.free_region(a)?;
         assert_eq!(
             sub.free_regions,
             vec![Region::new(0, 256), Region::new(768, 256)]
         );
 
-        sub.free_region(b);
+        sub.free_region(b)?;
         assert_eq!(sub.free_regions, vec![Region::new(0, 1024)]);
+
+        Ok(())
     }
 
     #[test]
-    pub fn test_merge_front_with_leading() {
+    pub fn test_merge_front_with_leading() -> Result<()> {
         let mut sub = Suballocator::new(fake_allocation(1024));
 
         let a = sub.allocate_region(256).unwrap();
@@ -178,27 +184,29 @@ mod test {
 
         assert_eq!(sub.free_regions, vec![]);
 
-        sub.free_region(a);
+        sub.free_region(a)?;
         assert_eq!(sub.free_regions, vec![Region::new(0, 256)]);
 
-        sub.free_region(d);
+        sub.free_region(d)?;
         assert_eq!(
             sub.free_regions,
             vec![Region::new(0, 256), Region::new(768, 256)]
         );
 
-        sub.free_region(c);
+        sub.free_region(c)?;
         assert_eq!(
             sub.free_regions,
             vec![Region::new(0, 256), Region::new(512, 512)]
         );
 
-        sub.free_region(b);
+        sub.free_region(b)?;
         assert_eq!(sub.free_regions, vec![Region::new(0, 1024)]);
+
+        Ok(())
     }
 
     #[test]
-    pub fn test_merge_back_with_trailing() {
+    pub fn test_merge_back_with_trailing() -> Result<()> {
         let mut sub = Suballocator::new(fake_allocation(1024));
 
         let a = sub.allocate_region(256).unwrap();
@@ -208,23 +216,25 @@ mod test {
 
         assert_eq!(sub.free_regions, vec![]);
 
-        sub.free_region(a);
+        sub.free_region(a)?;
         assert_eq!(sub.free_regions, vec![Region::new(0, 256)]);
 
-        sub.free_region(d);
+        sub.free_region(d)?;
         assert_eq!(
             sub.free_regions,
             vec![Region::new(0, 256), Region::new(768, 256)]
         );
 
-        sub.free_region(b);
+        sub.free_region(b)?;
         assert_eq!(
             sub.free_regions,
             vec![Region::new(0, 512), Region::new(768, 256)]
         );
 
-        sub.free_region(c);
+        sub.free_region(c)?;
         assert_eq!(sub.free_regions, vec![Region::new(0, 1024)]);
+
+        Ok(())
     }
 
     #[should_panic]

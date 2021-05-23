@@ -22,10 +22,6 @@ use ash::vk;
 
 use anyhow::Result;
 
-/// The main application.
-///
-/// The Application has a window, a render context, and one or more systems
-/// which can render to a frame when presented by the render context.
 pub struct Application {
     world_layer: LayerHandle,
     graphics: Graphics,
