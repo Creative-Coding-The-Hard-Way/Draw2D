@@ -10,7 +10,9 @@
 use draw2d::{
     camera::{default_camera_controls, OrthoCamera},
     graphics::{
+        ext::TextureLoader,
         layer::{Batch, LayerHandle},
+        texture_atlas::TextureAtlas,
         vertex::Vertex2d,
         Graphics,
     },
@@ -66,7 +68,9 @@ impl Application {
             .get_layer_mut(&self.world_layer)
             .set_projection(self.camera.as_matrix());
 
-        let texture_handle = self.graphics.add_texture("assets/example.png")?;
+        let texture_handle = self.graphics.add_texture(
+            self.graphics.read_texture_file("assets/example.png")?,
+        )?;
 
         let mut back = Batch::default();
         let mut middle = Batch::default();
@@ -85,8 +89,9 @@ impl Application {
             .push_batches(&[back, middle, front]);
 
         let mut crosshairs = Batch::default();
-        crosshairs.texture_handle =
-            self.graphics.add_texture("assets/crosshair.png")?;
+        crosshairs.texture_handle = self.graphics.add_texture(
+            self.graphics.read_texture_file("assets/crosshair.png")?,
+        )?;
         crosshairs.add_square(16.0, 1.0);
 
         self.graphics

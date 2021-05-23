@@ -16,14 +16,21 @@
 //! for the entire frame.
 
 mod atlas_version;
-mod cached_atlas;
 mod gpu_atlas;
+mod sampler_handle;
 mod texture_handle;
 
-pub use self::{cached_atlas::CachedAtlas, gpu_atlas::GpuAtlas};
+pub use self::{
+    atlas_version::AtlasVersion, gpu_atlas::GpuAtlas,
+    sampler_handle::SamplerHandle, texture_handle::TextureHandle,
+};
+
+use crate::graphics::Graphics;
 
 use anyhow::Result;
-use ash::vk;
+use ash::{version::DeviceV1_0, vk};
+
+use super::vulkan::texture::TextureImage;
 
 /// The maximum number of textures which can be managed by any given texture
 /// atlas.
@@ -39,23 +46,67 @@ pub trait TextureAtlas {
     /// write all of this atlas's textures into a descriptor set.
     fn build_descriptor_image_info(&self) -> Vec<vk::DescriptorImageInfo>;
 
-    /// Load a texture file into the atlas.
-    fn add_texture(
+    /// Add a named sampler to the atlas. Samplers can be persistently bound to
+    /// individual textures.
+    fn add_sampler(&mut self, sampler: vk::Sampler) -> Result<SamplerHandle>;
+
+    /// Add a texture to the atlas. The atlas owns the texture and will destroy
+    /// it when the atlas is dropped.
+    fn add_texture(&mut self, texture: TextureImage) -> Result<TextureHandle>;
+
+    /// Take ownership of a texture owned by this atlas.
+    ///
+    /// # Unsafe Because
+    ///
+    /// - the caller must make sure that the texture atlas is not in use when
+    ///   this method is called
+    unsafe fn take_texture(
         &mut self,
-        path_to_texture_file: impl Into<String>,
-    ) -> Result<TextureHandle>;
+        texture_handle: TextureHandle,
+    ) -> Result<TextureImage>;
+
+    /// Bind a sampler to a texture. Binding are persistent - they do not change
+    /// until this method is called again.
+    fn bind_sampler_to_texture(
+        &mut self,
+        sampler_handle: SamplerHandle,
+        texture_handle: TextureHandle,
+    ) -> Result<()>;
 }
 
-/// At atlas's version changes any time that the loaded textures are changed
-/// in some way.
-///
-/// Typically this is used to detect when the atlas needs to update as shader's
-/// descriptor sets.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct AtlasVersion {
-    revision_count: u32,
-}
+impl TextureAtlas for Graphics {
+    fn version(&self) -> AtlasVersion {
+        self.texture_atlas.version()
+    }
 
-/// A handle which can provide the texture index for a push constant.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct TextureHandle(u32);
+    fn build_descriptor_image_info(&self) -> Vec<vk::DescriptorImageInfo> {
+        self.texture_atlas.build_descriptor_image_info()
+    }
+
+    fn add_sampler(&mut self, sampler: vk::Sampler) -> Result<SamplerHandle> {
+        self.texture_atlas.add_sampler(sampler)
+    }
+
+    fn bind_sampler_to_texture(
+        &mut self,
+        sampler_handle: SamplerHandle,
+        texture_handle: TextureHandle,
+    ) -> Result<()> {
+        self.texture_atlas
+            .bind_sampler_to_texture(sampler_handle, texture_handle)
+    }
+
+    fn add_texture(&mut self, texture: TextureImage) -> Result<TextureHandle> {
+        self.texture_atlas.add_texture(texture)
+    }
+
+    /// This implementation is generally SAFE because it forces the device to
+    /// idle prior to removing the texture.
+    unsafe fn take_texture(
+        &mut self,
+        texture_handle: TextureHandle,
+    ) -> Result<TextureImage> {
+        self.device.logical_device.device_wait_idle()?;
+        self.texture_atlas.take_texture(texture_handle)
+    }
+}

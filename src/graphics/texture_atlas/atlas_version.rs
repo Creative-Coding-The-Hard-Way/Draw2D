@@ -1,4 +1,12 @@
-use super::AtlasVersion;
+/// At atlas's version changes any time that the loaded textures are changed
+/// in some way.
+///
+/// Typically this is used to detect when the atlas needs to update as shader's
+/// descriptor sets.
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct AtlasVersion {
+    revision_count: u32,
+}
 
 impl AtlasVersion {
     /// A binding revision which will always be considered 'out_of_date'
@@ -16,11 +24,18 @@ impl AtlasVersion {
         version.revision_count == 0
             || self.revision_count != version.revision_count
     }
+
+    /// Create a new atlas version which is more up-to-date than the current.
+    pub fn increment(&self) -> Self {
+        AtlasVersion {
+            revision_count: self.revision_count + 1,
+        }
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::graphics::texture_atlas::AtlasVersion;
+    use super::*;
 
     #[test]
     fn same_versions_should_not_be_out_of_date() {

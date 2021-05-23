@@ -9,7 +9,7 @@
 
 use draw2d::{
     graphics::{
-        ext::TextureLoader,
+        ext::{SamplerFactory, TextureLoader},
         layer::{Batch, LayerHandle},
         texture_atlas::TextureAtlas,
         vertex::Vertex2d,
@@ -18,12 +18,10 @@ use draw2d::{
     GlfwWindow,
 };
 
+use ash::vk;
+
 use anyhow::Result;
 
-/// The main application.
-///
-/// The Application has a window, a render context, and one or more systems
-/// which can render to a frame when presented by the render context.
 pub struct Application {
     world_layer: LayerHandle,
     graphics: Graphics,
@@ -51,20 +49,50 @@ impl Application {
     fn init(&mut self) -> Result<()> {
         self.update_projection();
 
-        let texture_handle = self.graphics.add_texture(
+        let texture_handle_1 = self.graphics.add_texture(
             self.graphics.read_texture_file("assets/example.png")?,
         )?;
+        let texture_handle_2 = self.graphics.add_texture(
+            self.graphics.read_texture_file("assets/example.png")?,
+        )?;
+
+        let sampler = unsafe {
+            self.graphics.create_sampler(
+                "sampler 2",
+                vk::SamplerCreateInfo {
+                    mag_filter: vk::Filter::LINEAR,
+                    min_filter: vk::Filter::LINEAR,
+                    address_mode_u: vk::SamplerAddressMode::CLAMP_TO_BORDER,
+                    address_mode_v: vk::SamplerAddressMode::CLAMP_TO_BORDER,
+                    address_mode_w: vk::SamplerAddressMode::REPEAT,
+                    anisotropy_enable: 0,
+                    border_color: vk::BorderColor::FLOAT_OPAQUE_BLACK,
+                    unnormalized_coordinates: 0,
+                    compare_enable: 0,
+                    compare_op: vk::CompareOp::ALWAYS,
+                    mipmap_mode: vk::SamplerMipmapMode::LINEAR,
+                    mip_lod_bias: 0.0,
+                    min_lod: 0.0,
+                    max_lod: vk::LOD_CLAMP_NONE,
+                    ..Default::default()
+                },
+            )?
+        };
+        let sampler_handle = self.graphics.add_sampler(sampler)?;
+
+        self.graphics
+            .bind_sampler_to_texture(sampler_handle, texture_handle_2)?;
 
         let mut back = Batch::default();
         let mut middle = Batch::default();
         let mut front = Batch::default();
 
-        back.texture_handle = texture_handle;
+        back.texture_handle = texture_handle_1;
         back.add_square(200.0);
 
         middle.add_square(128.0);
 
-        front.texture_handle = texture_handle;
+        front.texture_handle = texture_handle_2;
         front.add_square(40.0);
 
         self.graphics
@@ -138,13 +166,13 @@ impl Quads for Batch {
             // top left
             Vertex2d {
                 pos: [-size, size],
-                uv: [0.0, 0.0],
+                uv: [-1.0, -1.0],
                 ..Default::default()
             },
             // top right
             Vertex2d {
                 pos: [size, size],
-                uv: [1.0, 0.0],
+                uv: [1.0, -1.0],
                 ..Default::default()
             },
             // bottom right
@@ -156,7 +184,7 @@ impl Quads for Batch {
             // top left
             Vertex2d {
                 pos: [-size, size],
-                uv: [0.0, 0.0],
+                uv: [-1.0, -1.0],
                 ..Default::default()
             },
             // bottom right
@@ -168,7 +196,7 @@ impl Quads for Batch {
             // bottom left
             Vertex2d {
                 pos: [-size, -size],
-                uv: [0.0, 1.0],
+                uv: [-1.0, 1.0],
                 ..Default::default()
             },
         ]);

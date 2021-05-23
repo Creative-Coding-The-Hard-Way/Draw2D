@@ -97,11 +97,7 @@ impl TextureImage {
     /// This method is just an alias to [Self::upload_mipmaps_from_buffer]
     /// which only updates the first mipmap. It's particularly convenient for
     /// textures which only have a single mipmap level.
-    pub unsafe fn upload_from_buffer<Buf>(
-        &mut self,
-        command_buffer: vk::CommandBuffer,
-        src: &Buf,
-    ) -> Result<()>
+    pub unsafe fn upload_from_buffer<Buf>(&mut self, src: &Buf) -> Result<()>
     where
         Buf: Buffer,
     {
@@ -109,7 +105,7 @@ impl TextureImage {
             width: self.extent.width,
             height: self.extent.height,
         };
-        self.upload_mipmaps_from_buffer(command_buffer, src, &[mipmap_extent])
+        self.upload_mipmaps_from_buffer(src, &[mipmap_extent])
     }
 
     /// Upload a texture's mipmaps from a buffer.
@@ -122,18 +118,9 @@ impl TextureImage {
     ///   mipmap region.
     pub unsafe fn upload_mipmaps_from_buffer(
         &mut self,
-        command_buffer: vk::CommandBuffer,
         src: &impl Buffer,
         mipmap_sizes: &[MipmapExtent],
     ) -> Result<()> {
-        self.device.logical_device.begin_command_buffer(
-            command_buffer,
-            &vk::CommandBufferBeginInfo {
-                flags: vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT,
-                ..Default::default()
-            },
-        )?;
-
         let required_size: u64 = mipmap_sizes
             .iter()
             .map(|mipmap_size| mipmap_size.size_in_bytes(self.bytes_per_pixel))
@@ -146,32 +133,27 @@ impl TextureImage {
             );
         }
 
-        let mut mip_level = 0;
-        let mut offset: u64 = 0;
-        for extent in mipmap_sizes {
-            self.write_barrier(command_buffer, mip_level);
-            self.copy_buffer_to_image(
-                command_buffer,
-                src.raw(),
-                offset,
-                extent,
-                mip_level,
-            );
-            self.read_barrier(command_buffer, mip_level);
+        self.device.sync_graphics_commands(|command_buffer| {
+            let mut mip_level = 0;
+            let mut offset: u64 = 0;
 
-            mip_level += 1;
-            offset += extent.size_in_bytes(self.bytes_per_pixel);
-        }
+            for extent in mipmap_sizes {
+                self.write_barrier(command_buffer, mip_level);
+                self.copy_buffer_to_image(
+                    command_buffer,
+                    src.raw(),
+                    offset,
+                    extent,
+                    mip_level,
+                );
+                self.read_barrier(command_buffer, mip_level);
 
-        self.device
-            .logical_device
-            .end_command_buffer(command_buffer)?;
-        self.device.submit_and_wait_idle(
-            &self.device.graphics_queue,
-            command_buffer,
-        )?;
+                mip_level += 1;
+                offset += extent.size_in_bytes(self.bytes_per_pixel);
+            }
 
-        Ok(())
+            Ok(())
+        })
     }
 
     /// Transition the image memory layout such that it is an optimal transfer
