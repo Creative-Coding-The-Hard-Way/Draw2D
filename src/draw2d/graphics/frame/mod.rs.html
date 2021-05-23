@@ -172,7 +172,7 @@
 <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">descriptor</span>::<span class="ident">FrameDescriptor</span>, <span class="ident">sync</span>::<span class="ident">FrameSync</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::<span class="ident">vulkan</span>::{
-    <span class="ident">buffer</span>::<span class="ident">CpuBuffer</span>, <span class="ident">command_pool</span>::<span class="ident">TransientCommandPool</span>, <span class="ident">Device</span>,
+    <span class="ident">buffer</span>::<span class="ident">CpuBuffer</span>, <span class="ident">command_pool</span>::<span class="ident">ReusableCommandPool</span>, <span class="ident">Device</span>,
 };
 
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">Context</span>, <span class="prelude-ty">Result</span>};
@@ -184,7 +184,7 @@
     <span class="kw">pub</span> <span class="ident">sync</span>: <span class="ident">FrameSync</span>,
     <span class="kw">pub</span> <span class="ident">descriptor</span>: <span class="ident">FrameDescriptor</span>,
     <span class="kw">pub</span> <span class="ident">vertex_buffer</span>: <span class="ident">CpuBuffer</span>,
-    <span class="kw">pub</span> <span class="ident">command_pool</span>: <span class="ident">TransientCommandPool</span>,
+    <span class="kw">pub</span> <span class="ident">command_pool</span>: <span class="ident">ReusableCommandPool</span>,
     <span class="kw">pub</span> <span class="ident">framebuffer</span>: <span class="ident">vk</span>::<span class="ident">Framebuffer</span>,
 
     <span class="ident">command_buffers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">vk</span>::<span class="ident">CommandBuffer</span><span class="op">&gt;</span>,
@@ -230,7 +230,7 @@
                 <span class="ident">device</span>.<span class="ident">clone</span>(),
                 <span class="ident">vk</span>::<span class="ident">BufferUsageFlags</span>::<span class="ident">VERTEX_BUFFER</span>,
             )<span class="question-mark">?</span>,
-            <span class="ident">command_pool</span>: <span class="ident">TransientCommandPool</span>::<span class="ident">new</span>(
+            <span class="ident">command_pool</span>: <span class="ident">ReusableCommandPool</span>::<span class="ident">new</span>(
                 <span class="ident">device</span>.<span class="ident">clone</span>(),
                 <span class="ident">name</span>.<span class="ident">clone</span>(),
             )<span class="question-mark">?</span>,

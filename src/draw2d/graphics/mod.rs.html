@@ -37,9 +37,8 @@
 <span id="34">34</span>
 <span id="35">35</span>
 <span id="36">36</span>
-<span id="37">37</span>
-<span id="38">38</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ext</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">frame</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">frame_context</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">layer</span>;
@@ -52,11 +51,8 @@
 <span class="kw">mod</span> <span class="ident">pipeline2d</span>;
 
 <span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">frame_context</span>::<span class="ident">FrameContext</span>,
-    <span class="ident">layer</span>::<span class="ident">LayerStack</span>,
-    <span class="ident">pipeline2d</span>::<span class="ident">Pipeline2d</span>,
-    <span class="ident">texture_atlas</span>::{<span class="ident">CachedAtlas</span>, <span class="ident">GpuAtlas</span>},
-    <span class="ident">vulkan</span>::<span class="ident">Device</span>,
+    <span class="ident">frame_context</span>::<span class="ident">FrameContext</span>, <span class="ident">layer</span>::<span class="ident">LayerStack</span>, <span class="ident">pipeline2d</span>::<span class="ident">Pipeline2d</span>,
+    <span class="ident">texture_atlas</span>::<span class="ident">GpuAtlas</span>, <span class="ident">vulkan</span>::<span class="ident">Device</span>,
 };
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
@@ -67,7 +63,7 @@
     <span class="ident">pipeline2d</span>: <span class="ident">Pipeline2d</span>,
 
     <span class="doccomment">/// The graphics subsystem&#39;s texture atlas.</span>
-    <span class="ident">texture_atlas</span>: <span class="ident">CachedAtlas</span><span class="op">&lt;</span><span class="ident">GpuAtlas</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">texture_atlas</span>: <span class="ident">GpuAtlas</span>,
 
     <span class="doccomment">/// The graphics subsystem&#39;s visual layers.</span>
     <span class="ident">layer_stack</span>: <span class="ident">LayerStack</span>,

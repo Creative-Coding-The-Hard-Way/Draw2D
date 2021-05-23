@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["SamplerFactory","Types which implement this trait can create and destroy raw vulkan samplers."],["Texture2dFactory","Types which implement this trait can easily construct new texture images which represent 2d rgba textures."],["TextureLoader","Types which implement this trait can load 2d textures from files on the disk."]]});

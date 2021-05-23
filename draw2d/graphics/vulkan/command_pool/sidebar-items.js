@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["TransientCommandPool","This struct holds a command pool and tracks which buffers have been allocated."]]});
+initSidebarItems({"struct":[["OwnedCommandPool","This structure holds resources for managing an owned command pool. “Owned” means that the owner is responsible for destroying the contained resources before this struct is dropped."],["ReusableCommandPool","This struct holds a command pool and tracks which buffers have been allocated."]]});
