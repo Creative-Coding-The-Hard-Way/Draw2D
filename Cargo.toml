@@ -14,6 +14,7 @@ memoffset = "*"
 image = "0.23.14"
 aquamarine = "*"
 indoc = "1.0.3"
+ab_glyph = "0.2.10"
 
 [dependencies.glfw]
 version = "0.41.0"

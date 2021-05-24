@@ -32,5 +32,5 @@ pub struct Graphics {
     frame_context: FrameContext,
 
     /// The vulkan device used by all resources in the graphics subsystem.
-    device: Arc<Device>,
+    pub device: Arc<Device>,
 }
