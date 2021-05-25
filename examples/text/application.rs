@@ -11,14 +11,12 @@ use crate::text_renderer;
 
 use super::text_renderer::TextRenderer;
 
-use ash::vk;
+use ab_glyph::{Font, FontArc, PxScaleFont};
 use draw2d::{
     graphics::{
-        ext::Texture2dFactory,
         layer::{Batch, LayerHandle},
-        texture_atlas::TextureAtlas,
+        texture_atlas::{TextureAtlas, TextureHandle},
         vertex::Vertex2d,
-        vulkan::buffer::CpuBuffer,
         Graphics,
     },
     GlfwWindow,
@@ -34,6 +32,9 @@ pub struct Application {
     world_layer: LayerHandle,
     graphics: Graphics,
     window_surface: GlfwWindow,
+    count: f32,
+    text_renderer: TextRenderer<FontArc, PxScaleFont<FontArc>>,
+    atlas_handle: TextureHandle,
 }
 
 impl Application {
@@ -47,67 +48,52 @@ impl Application {
         let mut graphics = Graphics::new(&window_surface)?;
         let world_layer = graphics.add_layer_to_bottom();
 
+        let font_bytes = include_bytes!(
+            "../../assets/Architects_Daughter/ArchitectsDaughter-Regular.ttf"
+        );
+        let font =
+            ab_glyph::FontArc::try_from_slice(font_bytes)?.into_scaled(100.0);
+        let mut text_renderer = TextRenderer::new(font);
+
+        let atlas_handle =
+            graphics.add_texture(text_renderer.build_atlas_texture(
+                text_renderer::standard_glyphs(),
+                &graphics.device,
+            )?)?;
+
         Ok(Self {
             graphics,
             window_surface,
             world_layer,
+            count: 0.0,
+            text_renderer,
+            atlas_handle,
         })
     }
 
     fn init(&mut self) -> Result<()> {
         self.update_projection();
 
-        use ab_glyph::Font;
-
-        let font_bytes =
-            include_bytes!("../../assets/Montserrat/Montserrat-Regular.ttf");
-        let font = ab_glyph::FontRef::try_from_slice(font_bytes)?;
-        let scaled = font.as_scaled(128.0);
-
-        let text = TextRenderer::new(scaled);
-
-        let texture = text.build_atlas_texture(
-            text_renderer::standard_glyphs(),
-            &self.graphics.device,
-        )?;
-
-        let handle = self.graphics.add_texture(texture)?;
-
-        let mut batch = Batch::default();
-        batch.texture_handle = handle;
-
-        Quad {
-            top_left: Vertex2d {
-                pos: [100.0, 100.0],
-                uv: [0.0, 1.0],
-                ..Default::default()
-            },
-            top_right: Vertex2d {
-                pos: [400.0, 100.0],
-                uv: [1.0, 1.0],
-                ..Default::default()
-            },
-            bottom_left: Vertex2d {
-                pos: [100.0, 132.0],
-                uv: [0.0, 0.0],
-                ..Default::default()
-            },
-            bottom_right: Vertex2d {
-                pos: [400.0, 132.0],
-                uv: [1.0, 0.0],
-                ..Default::default()
-            },
-        }
-        .add_to_batch(&mut batch);
-
-        self.graphics
-            .get_layer_mut(&self.world_layer)
-            .push_batches(&[batch]);
-
         Ok(())
     }
 
-    fn update(&mut self) {}
+    fn update(&mut self) {
+        self.count += 0.0001;
+
+        let mut batch = Batch::default();
+        batch.texture_handle = self.atlas_handle;
+
+        batch
+            .vertices
+            .extend_from_slice(&self.text_renderer.layout_Text(
+                &format!("hello world\nhere's a counter {:?}", self.count),
+                [150.0, 150.0],
+            ));
+
+        let layer = self.graphics.get_layer_mut(&self.world_layer);
+        layer.clear();
+        layer.push_batch(batch);
+    }
 
     /// Run the application, blocks until the main event loop exits.
     pub fn run(mut self) -> Result<()> {
@@ -151,8 +137,8 @@ impl Application {
             .set_projection(nalgebra::Matrix4::<f32>::new_orthographic(
                 0.0,
                 iwidth as f32,
-                iheight as f32,
                 0.0,
+                iheight as f32,
                 -1.0,
                 1.0,
             ));
