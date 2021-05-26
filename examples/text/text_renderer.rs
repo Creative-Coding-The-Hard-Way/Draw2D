@@ -23,10 +23,6 @@ pub struct TextRenderer<F: Font, SF: ScaleFont<F>> {
     _p: PhantomData<F>,
 }
 
-pub fn standard_glyphs() -> String {
-    r###"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890~!@#$%^&*()[]{}/\"';:.<>-_"###.into()
-}
-
 impl<F: Font, SF: ScaleFont<F>> TextRenderer<F, SF> {
     /// create a new text renderer for a particular font.
     pub fn new(font: SF) -> Self {
@@ -37,10 +33,19 @@ impl<F: Font, SF: ScaleFont<F>> TextRenderer<F, SF> {
         }
     }
 
-    pub fn single_letter(&self, c: char, pos: [f32; 2]) -> Vec<Vertex2d> {
-        let mut glyph = self.font.scaled_glyph(c);
-        glyph.position = ab_glyph::point(pos[0], pos[1]);
+    pub fn layout_text(&self, text: &str, pos: [f32; 2]) -> Vec<Vertex2d> {
+        let glyphs =
+            layout_paragraph(&self.font, ab_glyph::point(pos[0], pos[1]), text);
 
+        let mut vertices = vec![];
+        for glyph in glyphs {
+            self.triangulate_glyph(glyph, &mut vertices);
+        }
+
+        vertices
+    }
+
+    fn triangulate_glyph(&self, glyph: Glyph, vertices: &mut Vec<Vertex2d>) {
         let rect = self.glyph_tex_coords.get(&glyph.id).unwrap();
         let outlined = self.font.outline_glyph(glyph).unwrap();
         let bounds = outlined.px_bounds();
@@ -67,56 +72,14 @@ impl<F: Font, SF: ScaleFont<F>> TextRenderer<F, SF> {
                 ..Default::default()
             },
         }
-        .triangulate()
-    }
-
-    pub fn layout_Text(&self, text: &str, pos: [f32; 2]) -> Vec<Vertex2d> {
-        let glyphs =
-            layout_paragraph(&self.font, ab_glyph::point(pos[0], pos[1]), text);
-
-        let vertices = glyphs
-            .into_iter()
-            .map(|glyph| {
-                let rect = self.glyph_tex_coords.get(&glyph.id).unwrap();
-                let outlined = self.font.outline_glyph(glyph).unwrap();
-                let bounds = outlined.px_bounds();
-                Quad {
-                    top_left: Vertex2d {
-                        pos: [bounds.min.x, bounds.min.y],
-                        uv: [rect.left, rect.top],
-                        ..Default::default()
-                    },
-                    top_right: Vertex2d {
-                        pos: [bounds.max.x, bounds.min.y],
-                        uv: [rect.right, rect.top],
-                        ..Default::default()
-                    },
-                    bottom_right: Vertex2d {
-                        pos: [bounds.max.x, bounds.max.y],
-                        uv: [rect.right, rect.bottom],
-                        ..Default::default()
-                    },
-                    bottom_left: Vertex2d {
-                        pos: [bounds.min.x, bounds.max.y],
-                        uv: [rect.left, rect.bottom],
-                        ..Default::default()
-                    },
-                }
-                .triangulate()
-            })
-            .flatten()
-            .collect::<Vec<Vertex2d>>();
-
-        vertices
+        .triangulate(vertices)
     }
 
     pub fn build_atlas_texture(
         &mut self,
-        contents: String,
         device: &Arc<Device>,
     ) -> Result<TextureImage> {
-        let (glyphs, atlas_bounds) =
-            layout_padded_glyphs(&self.font, 4.0, &contents, 512.0);
+        let (glyphs, atlas_bounds) = layout_padded_glyphs(&self.font, 4.0);
 
         let (width, height) = (
             atlas_bounds.width() as usize,
@@ -230,13 +193,13 @@ where
 fn layout_padded_glyphs<F, SF>(
     font: &SF,
     padding: f32,
-    text: &str,
-    max_width: f32,
 ) -> (Vec<Glyph>, ab_glyph::Rect)
 where
     F: Font,
     SF: ScaleFont<F>,
 {
+    let target_width = font.scale().y * 100.0;
+
     let mut bounds = ab_glyph::Rect {
         min: ab_glyph::point(0.0, 0.0),
         max: ab_glyph::point(0.0, 0.0),
@@ -245,28 +208,33 @@ where
     let v_advance = font.height() + padding;
 
     let mut glyphs = vec![];
-    glyphs.reserve(text.len());
+    glyphs.reserve(font.glyph_count());
 
     let mut caret = ab_glyph::point(padding, padding);
-    for c in text.chars() {
-        caret.x = caret.x.ceil();
-        caret.y = caret.y.ceil();
-
+    for (_glyph_id, c) in font.codepoint_ids() {
         if c.is_control() {
             continue;
         }
+
+        // assign the glyph's position, ensure that it is always exactly
+        // pixel-aligned.
         let mut glyph = font.scaled_glyph(c);
+        caret.x = caret.x.ceil();
+        caret.y = caret.y.ceil();
         glyph.position = caret;
 
-        let outline = font.outline_glyph(glyph.clone()).unwrap();
+        let outline_option = font.outline_glyph(glyph.clone());
+        if outline_option.is_none() {
+            continue;
+        }
+        let outline = outline_option.unwrap();
 
         let glyph_bounds = outline.px_bounds();
 
         caret.x += glyph_bounds.width() + padding;
-
         bounds.max.x = bounds.max.x.max(caret.x);
 
-        if caret.x >= max_width {
+        if caret.x >= target_width {
             caret.y += v_advance;
             caret.x = padding;
         }
@@ -274,9 +242,7 @@ where
         bounds.max.y =
             bounds.max.y.max(caret.y + glyph_bounds.height() + padding);
 
-        if !c.is_whitespace() {
-            glyphs.push(glyph);
-        }
+        glyphs.push(glyph);
     }
 
     (glyphs, bounds)
@@ -290,8 +256,8 @@ struct Quad {
 }
 
 impl Quad {
-    pub fn triangulate(&self) -> Vec<Vertex2d> {
-        vec![
+    pub fn triangulate(&self, vertices: &mut Vec<Vertex2d>) {
+        vertices.extend_from_slice(&[
             // upper triangle
             self.top_left,
             self.top_right,
@@ -300,6 +266,6 @@ impl Quad {
             self.top_left,
             self.bottom_right,
             self.bottom_left,
-        ]
+        ]);
     }
 }

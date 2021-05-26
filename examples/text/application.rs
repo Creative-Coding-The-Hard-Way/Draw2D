@@ -57,7 +57,6 @@ impl Application {
 
         let atlas_handle =
             graphics.add_texture(text_renderer.build_atlas_texture(
-                text_renderer::standard_glyphs(),
                 &graphics.device,
             )?)?;
 
@@ -85,7 +84,7 @@ impl Application {
 
         batch
             .vertices
-            .extend_from_slice(&self.text_renderer.layout_Text(
+            .extend_from_slice(&self.text_renderer.layout_text(
                 &format!("hello world\nhere's a counter {:?}", self.count),
                 [150.0, 150.0],
             ));
