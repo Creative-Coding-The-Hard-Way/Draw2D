@@ -7,15 +7,12 @@
 //! app.run()?;
 //! ```
 
-use crate::text_renderer;
-
 use super::text_renderer::TextRenderer;
 
 use ab_glyph::{Font, FontArc, PxScaleFont};
 use draw2d::{
     graphics::{
         layer::{Batch, LayerHandle},
-        texture_atlas::{TextureAtlas, TextureHandle},
         vertex::Vertex2d,
         Graphics,
     },
@@ -32,9 +29,9 @@ pub struct Application {
     world_layer: LayerHandle,
     graphics: Graphics,
     window_surface: GlfwWindow,
-    count: f32,
-    text_renderer: TextRenderer<FontArc, PxScaleFont<FontArc>>,
-    atlas_handle: TextureHandle,
+
+    title_renderer: TextRenderer<FontArc, PxScaleFont<FontArc>>,
+    body_renderer: TextRenderer<FontArc, PxScaleFont<FontArc>>,
 }
 
 impl Application {
@@ -52,21 +49,21 @@ impl Application {
             "../../assets/Architects_Daughter/ArchitectsDaughter-Regular.ttf"
         );
         let font =
-            ab_glyph::FontArc::try_from_slice(font_bytes)?.into_scaled(100.0);
-        let mut text_renderer = TextRenderer::new(font);
+            ab_glyph::FontArc::try_from_slice(font_bytes)?.into_scaled(64.0);
+        let title_renderer = TextRenderer::new(font, &mut graphics)?;
 
-        let atlas_handle =
-            graphics.add_texture(text_renderer.build_atlas_texture(
-                &graphics.device,
-            )?)?;
+        let font_bytes =
+            include_bytes!("../../assets/Montserrat/Montserrat-Regular.ttf");
+        let font =
+            ab_glyph::FontArc::try_from_slice(font_bytes)?.into_scaled(32.0);
+        let body_renderer = TextRenderer::new(font, &mut graphics)?;
 
         Ok(Self {
             graphics,
             window_surface,
             world_layer,
-            count: 0.0,
-            text_renderer,
-            atlas_handle,
+            title_renderer,
+            body_renderer,
         })
     }
 
@@ -77,21 +74,28 @@ impl Application {
     }
 
     fn update(&mut self) {
-        self.count += 0.0001;
-
-        let mut batch = Batch::default();
-        batch.texture_handle = self.atlas_handle;
-
-        batch
-            .vertices
-            .extend_from_slice(&self.text_renderer.layout_text(
-                &format!("hello world\nhere's a counter {:?}", self.count),
-                [150.0, 150.0],
-            ));
+        let title = self
+            .title_renderer
+            .layout_text("Hello World!", [200.0, 50.0]);
+        let body = self.body_renderer.layout_text(
+            indoc::indoc!(
+                r#"
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+                in reprehenderit in voluptate velit esse cillum dolore eu
+                fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+                proident, sunt in culpa qui officia deserunt mollit anim id est
+                laborum.
+                "#
+            ),
+            [200.0, 120.0],
+        );
 
         let layer = self.graphics.get_layer_mut(&self.world_layer);
         layer.clear();
-        layer.push_batch(batch);
+        layer.push_batches(&[body, title]);
     }
 
     /// Run the application, blocks until the main event loop exits.

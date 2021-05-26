@@ -20,6 +20,14 @@ impl<T: na::RealField> Rect<T> {
             false
         }
     }
+
+    pub fn width(&self) -> T {
+        (self.right - self.left).abs()
+    }
+
+    pub fn height(&self) -> T {
+        (self.top - self.bottom).abs()
+    }
 }
 
 #[cfg(test)]
