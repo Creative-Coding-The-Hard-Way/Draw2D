@@ -247,7 +247,7 @@
         <span class="comment">// begin the render pass</span>
         <span class="kw">let</span> <span class="ident">clear_values</span> <span class="op">=</span> [<span class="ident">vk</span>::<span class="ident">ClearValue</span> {
             <span class="ident">color</span>: <span class="ident">vk</span>::<span class="ident">ClearColorValue</span> {
-                <span class="ident">float32</span>: [<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">1.0</span>],
+                <span class="ident">float32</span>: <span class="self">self</span>.<span class="ident">clear_color</span>,
             },
         }];
         <span class="kw">let</span> <span class="ident">render_pass_begin_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">RenderPassBeginInfo</span> {

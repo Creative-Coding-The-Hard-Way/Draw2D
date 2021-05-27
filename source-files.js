@@ -1,4 +1,6 @@
 var N = null;var sourcesIndex = {};
+sourcesIndex["ab_glyph"] = {"name":"","dirs":[{"name":"ttfp","files":["outliner.rs"]}],"files":["codepoint_ids.rs","err.rs","font.rs","font_arc.rs","glyph.rs","lib.rs","outlined.rs","scale.rs","ttfp.rs"]};
+sourcesIndex["ab_glyph_rasterizer"] = {"name":"","files":["geometry.rs","lib.rs","raster.rs"]};
 sourcesIndex["adler"] = {"name":"","files":["algo.rs","lib.rs"]};
 sourcesIndex["adler32"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["anyhow"] = {"name":"","files":["backtrace.rs","chain.rs","context.rs","error.rs","fmt.rs","kind.rs","lib.rs","macros.rs","ptr.rs","wrapper.rs"]};
@@ -42,6 +44,7 @@ sourcesIndex["num_integer"] = {"name":"","files":["average.rs","lib.rs","roots.r
 sourcesIndex["num_iter"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["num_rational"] = {"name":"","files":["lib.rs","pow.rs"]};
 sourcesIndex["num_traits"] = {"name":"","dirs":[{"name":"ops","files":["checked.rs","inv.rs","mod.rs","mul_add.rs","overflowing.rs","saturating.rs","wrapping.rs"]}],"files":["bounds.rs","cast.rs","float.rs","identities.rs","int.rs","lib.rs","macros.rs","pow.rs","real.rs","sign.rs"]};
+sourcesIndex["owned_ttf_parser"] = {"name":"","files":["convert.rs","lib.rs","owned.rs"]};
 sourcesIndex["paste"] = {"name":"","files":["attr.rs","error.rs","lib.rs","segment.rs"]};
 sourcesIndex["png"] = {"name":"","dirs":[{"name":"decoder","files":["mod.rs","stream.rs","zlib.rs"]}],"files":["chunk.rs","common.rs","encoder.rs","filter.rs","lib.rs","traits.rs","utils.rs"]};
 sourcesIndex["ppv_lite86"] = {"name":"","dirs":[{"name":"x86_64","files":["mod.rs","sse2.rs"]}],"files":["lib.rs","soft.rs","types.rs"]};
@@ -64,6 +67,7 @@ sourcesIndex["semver_parser"] = {"name":"","files":["common.rs","lib.rs","range.
 sourcesIndex["simba"] = {"name":"","dirs":[{"name":"scalar","files":["complex.rs","field.rs","mod.rs","real.rs","subset.rs"]},{"name":"simd","files":["auto_simd_impl.rs","mod.rs","simd_bool.rs","simd_complex.rs","simd_option.rs","simd_partial_ord.rs","simd_real.rs","simd_signed.rs","simd_value.rs"]}],"files":["lib.rs"]};
 sourcesIndex["syn"] = {"name":"","dirs":[{"name":"gen","files":["clone.rs","gen_helper.rs"]}],"files":["attr.rs","await.rs","bigint.rs","buffer.rs","custom_keyword.rs","custom_punctuation.rs","data.rs","derive.rs","discouraged.rs","error.rs","export.rs","expr.rs","ext.rs","generics.rs","group.rs","ident.rs","lib.rs","lifetime.rs","lit.rs","lookahead.rs","mac.rs","macros.rs","op.rs","parse.rs","parse_macro_input.rs","parse_quote.rs","path.rs","print.rs","punctuated.rs","sealed.rs","span.rs","spanned.rs","thread.rs","token.rs","ty.rs","verbatim.rs"]};
 sourcesIndex["tiff"] = {"name":"","dirs":[{"name":"decoder","files":["ifd.rs","mod.rs","stream.rs"]},{"name":"encoder","files":["colortype.rs","mod.rs","writer.rs"]}],"files":["bytecast.rs","error.rs","lib.rs","tags.rs"]};
+sourcesIndex["ttf_parser"] = {"name":"","dirs":[{"name":"tables","dirs":[{"name":"cff","files":["argstack.rs","cff1.rs","cff2.rs","charset.rs","charstring.rs","dict.rs","index.rs","mod.rs","std_names.rs"]},{"name":"cmap","files":["format0.rs","format10.rs","format12.rs","format13.rs","format14.rs","format2.rs","format4.rs","format6.rs","mod.rs"]}],"files":["avar.rs","cbdt.rs","cblc.rs","fvar.rs","gdef.rs","glyf.rs","gvar.rs","head.rs","hhea.rs","hmtx.rs","hvar.rs","kern.rs","loca.rs","maxp.rs","mod.rs","mvar.rs","name.rs","os2.rs","post.rs","sbix.rs","svg.rs","vhea.rs","vorg.rs"]}],"files":["ggg.rs","lib.rs","parser.rs","var_store.rs","writer.rs"]};
 sourcesIndex["typenum"] = {"name":"","files":["array.rs","bit.rs","int.rs","lib.rs","marker_traits.rs","operator_aliases.rs","private.rs","type_operators.rs","uint.rs"]};
 sourcesIndex["unicode_xid"] = {"name":"","files":["lib.rs","tables.rs"]};
 sourcesIndex["unindent"] = {"name":"","files":["lib.rs"]};

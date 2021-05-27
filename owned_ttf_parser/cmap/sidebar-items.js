@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Format","A character map encoding format."],["GlyphVariationResult","A result of a variation glyph mapping."]],"struct":[["Subtable","A character encoding subtable."],["Subtables","An iterator over character encoding subtables."]]});

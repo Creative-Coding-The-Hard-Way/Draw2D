@@ -37,6 +37,9 @@
 <span id="34">34</span>
 <span id="35">35</span>
 <span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ext</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">frame</span>;
@@ -71,8 +74,11 @@
     <span class="doccomment">/// This object owns the swapchain and all per-frame resources.</span>
     <span class="ident">frame_context</span>: <span class="ident">FrameContext</span>,
 
+    <span class="doccomment">/// the color used to clear the screen</span>
+    <span class="kw">pub</span> <span class="ident">clear_color</span>: [<span class="ident">f32</span>; <span class="number">4</span>],
+
     <span class="doccomment">/// The vulkan device used by all resources in the graphics subsystem.</span>
-    <span class="ident">device</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Device</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">device</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Device</span><span class="op">&gt;</span>,
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="draw2d" data-search-js="../../../search-index.js"></div>
