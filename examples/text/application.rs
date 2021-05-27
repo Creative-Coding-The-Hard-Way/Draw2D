@@ -58,6 +58,10 @@ impl Application {
             ab_glyph::FontArc::try_from_slice(font_bytes)?.into_scaled(32.0);
         let body_renderer = TextRenderer::new(font, &mut graphics)?;
 
+        // Solarized, base3
+        graphics.clear_color =
+            [227.0 / 255.0, 221.0 / 255.0, 204.0 / 255.0, 1.0];
+
         Ok(Self {
             graphics,
             window_surface,
@@ -74,9 +78,12 @@ impl Application {
     }
 
     fn update(&mut self) {
-        let title = self
-            .title_renderer
-            .layout_text("Hello World!", [200.0, 50.0]);
+        let color = [39.0 / 255.0, 44.0 / 255.0, 45.0 / 255.0, 1.0];
+        let title = self.title_renderer.layout_text(
+            "Hello World!",
+            [200.0, 50.0],
+            color,
+        );
         let body = self.body_renderer.layout_text(
             indoc::indoc!(
                 r#"
@@ -91,6 +98,7 @@ impl Application {
                 "#
             ),
             [200.0, 120.0],
+            color,
         );
 
         let layer = self.graphics.get_layer_mut(&self.world_layer);

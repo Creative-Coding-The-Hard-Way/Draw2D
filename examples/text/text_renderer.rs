@@ -44,7 +44,12 @@ impl<F: Font, SF: ScaleFont<F>> TextRenderer<F, SF> {
     ///
     /// - line_length: the character length of each line
     /// - pos: the location for the baseline of the rendered text
-    pub fn layout_debug(&self, line_length: usize, pos: [f32; 2]) -> Batch {
+    pub fn layout_debug(
+        &self,
+        line_length: usize,
+        pos: [f32; 2],
+        color: [f32; 4],
+    ) -> Batch {
         let full_text = self
             .font
             .codepoint_ids()
@@ -60,14 +65,19 @@ impl<F: Font, SF: ScaleFont<F>> TextRenderer<F, SF> {
             })
             .collect::<String>();
 
-        self.layout_text(&full_text, pos)
+        self.layout_text(&full_text, pos, color)
     }
 
     /// Render text with baseline at the given location.
     ///
     /// Multiple batches from this renderer can be merged into a single
     /// render batch if desired.
-    pub fn layout_text(&self, text: &str, pos: [f32; 2]) -> Batch {
+    pub fn layout_text(
+        &self,
+        text: &str,
+        pos: [f32; 2],
+        color: [f32; 4],
+    ) -> Batch {
         let glyphs =
             layout_paragraph(&self.font, ab_glyph::point(pos[0], pos[1]), text);
 
@@ -75,7 +85,7 @@ impl<F: Font, SF: ScaleFont<F>> TextRenderer<F, SF> {
         batch.texture_handle = self.texture_handle;
 
         for glyph in glyphs {
-            self.triangulate_glyph(glyph, &mut batch.vertices);
+            self.triangulate_glyph(glyph, color, &mut batch.vertices);
         }
 
         batch
@@ -95,7 +105,12 @@ impl<F: Font, SF: ScaleFont<F>> TextRenderer<F, SF> {
         Ok(())
     }
 
-    fn triangulate_glyph(&self, glyph: Glyph, vertices: &mut Vec<Vertex2d>) {
+    fn triangulate_glyph(
+        &self,
+        glyph: Glyph,
+        rgba: [f32; 4],
+        vertices: &mut Vec<Vertex2d>,
+    ) {
         let rect_option = self.glyph_tex_coords.get(&glyph.id);
         if rect_option.is_none() {
             return;
@@ -109,22 +124,22 @@ impl<F: Font, SF: ScaleFont<F>> TextRenderer<F, SF> {
             top_left: Vertex2d {
                 pos: [bounds.min.x, bounds.min.y],
                 uv: [rect.left, rect.top],
-                ..Default::default()
+                rgba,
             },
             top_right: Vertex2d {
                 pos: [bounds.max.x, bounds.min.y],
                 uv: [rect.right, rect.top],
-                ..Default::default()
+                rgba,
             },
             bottom_right: Vertex2d {
                 pos: [bounds.max.x, bounds.max.y],
                 uv: [rect.right, rect.bottom],
-                ..Default::default()
+                rgba,
             },
             bottom_left: Vertex2d {
                 pos: [bounds.min.x, bounds.max.y],
                 uv: [rect.left, rect.bottom],
-                ..Default::default()
+                rgba,
             },
         }
         .triangulate(vertices)

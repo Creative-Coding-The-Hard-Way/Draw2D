@@ -31,6 +31,9 @@ pub struct Graphics {
     /// This object owns the swapchain and all per-frame resources.
     frame_context: FrameContext,
 
+    /// the color used to clear the screen
+    pub clear_color: [f32; 4],
+
     /// The vulkan device used by all resources in the graphics subsystem.
     pub device: Arc<Device>,
 }

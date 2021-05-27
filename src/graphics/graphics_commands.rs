@@ -100,7 +100,7 @@ impl Graphics {
         // begin the render pass
         let clear_values = [vk::ClearValue {
             color: vk::ClearColorValue {
-                float32: [0.0, 0.0, 0.0, 1.0],
+                float32: self.clear_color,
             },
         }];
         let render_pass_begin_info = vk::RenderPassBeginInfo {
