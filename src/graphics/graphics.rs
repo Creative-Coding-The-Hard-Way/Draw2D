@@ -28,6 +28,7 @@ impl Graphics {
             texture_atlas,
             frame_context,
             layer_stack,
+            clear_color: [0.0, 0.0, 0.0, 1.0],
             device,
         })
     }
