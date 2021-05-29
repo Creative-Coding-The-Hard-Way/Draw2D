@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/matrixmultiply-0.2.4/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/matrixmultiply-0.3.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../matrixmultiply/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -114,6 +114,24 @@
 <span id="111">111</span>
 <span id="112">112</span>
 <span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2016 - 2018 Ulrik Sverdrup &quot;bluss&quot;</span>
 <span class="comment">//</span>
@@ -177,6 +195,10 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Features</span>
 <span class="doccomment">//!</span>
+<span class="doccomment">//! ### `std`</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! `std` is enabled by default.</span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! This crate can be used without the standard library (`#![no_std]`) by</span>
 <span class="doccomment">//! disabling the default `std` feature. To do so, use this in your</span>
 <span class="doccomment">//! `Cargo.toml`:</span>
@@ -194,10 +216,24 @@
 <span class="doccomment">//! [`target-feature`](https://doc.rust-lang.org/rustc/codegen-options/index.html#target-feature)</span>
 <span class="doccomment">//! option to `rustc`.)</span>
 <span class="doccomment">//!</span>
+<span class="doccomment">//! ### `threading`</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! `threading` is an optional crate feature</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Threading enables multithreading for the operations. The environment variable</span>
+<span class="doccomment">//! `MATMUL_NUM_THREADS` decides how many threads are used at maximum. At the moment 1-4 are</span>
+<span class="doccomment">//! supported and the default is the number of physical cpus (as detected by `num_cpus`).</span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! ## Other Notes</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The functions in this crate are thread safe, as long as the destination</span>
 <span class="doccomment">//! matrix is distinct.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Rust Version</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This version requires Rust 1.41.1 or later; the crate follows a carefully</span>
+<span class="doccomment">//! considered upgrade policy, where updating the minimum Rust version is not a breaking</span>
+<span class="doccomment">//! change.</span>
 
 <span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/matrixmultiply/0.2/&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
@@ -207,8 +243,6 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">core</span>;
 
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">rawpointer</span>;
-
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">mod</span> <span class="ident">debugmacros</span>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
@@ -216,6 +250,8 @@
 <span class="kw">mod</span> <span class="ident">archparam</span>;
 <span class="kw">mod</span> <span class="ident">gemm</span>;
 <span class="kw">mod</span> <span class="ident">kernel</span>;
+<span class="kw">mod</span> <span class="ident">ptr</span>;
+<span class="kw">mod</span> <span class="ident">threading</span>;
 
 <span class="kw">mod</span> <span class="ident">aligned_alloc</span>;
 <span class="kw">mod</span> <span class="ident">util</span>;
@@ -226,8 +262,8 @@
 <span class="kw">mod</span> <span class="ident">dgemm_kernel</span>;
 <span class="kw">mod</span> <span class="ident">sgemm_kernel</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">gemm</span>::<span class="ident">dgemm</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">gemm</span>::<span class="ident">sgemm</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">gemm</span>::<span class="ident">dgemm</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">gemm</span>::<span class="ident">sgemm</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="matrixmultiply" data-search-js="../../search-index.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
