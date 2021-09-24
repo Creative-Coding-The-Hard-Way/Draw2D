@@ -1,7 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/image-0.23.14/./src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../image/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;image-0.23.14&#x2F;.&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../image/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -396,7 +393,7 @@
 <span id="393">393</span>
 <span id="394">394</span>
 <span id="395">395</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="doccomment">//! # Overview</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate provides native rust implementations of image encoding and decoding as well as some</span>
@@ -489,9 +486,9 @@
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_copy_implementations</span>)]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;benchmarks&quot;</span>), <span class="ident">feature</span>(<span class="ident">test</span>))]</span>
 <span class="comment">// it&#39;s a bit of a pain otherwise</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">many_single_char_names</span>)]</span>
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::many_single_char_names</span>)]</span>
 <span class="comment">// it&#39;s a backwards compatibility break</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>, <span class="ident">clippy</span>::<span class="ident">enum_variant_names</span>)]</span>
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>, <span class="ident">clippy::enum_variant_names</span>)]</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;benchmarks&quot;</span>))]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">test</span>;
@@ -500,15 +497,15 @@
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">quickcheck</span>;
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
+<span class="kw">use</span> <span class="ident">std::io::Write</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">color</span>::{<span class="ident">ColorType</span>, <span class="ident">ExtendedColorType</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::color</span>::{<span class="ident">ColorType</span>, <span class="ident">ExtendedColorType</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">color</span>::{<span class="ident">Luma</span>, <span class="ident">LumaA</span>, <span class="ident">Rgb</span>, <span class="ident">Rgba</span>, <span class="ident">Bgr</span>, <span class="ident">Bgra</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::color</span>::{<span class="ident">Luma</span>, <span class="ident">LumaA</span>, <span class="ident">Rgb</span>, <span class="ident">Rgba</span>, <span class="ident">Bgr</span>, <span class="ident">Bgra</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::{<span class="ident">ImageError</span>, <span class="ident">ImageResult</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error</span>::{<span class="ident">ImageError</span>, <span class="ident">ImageResult</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">image</span>::{<span class="ident">AnimationDecoder</span>,
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::image</span>::{<span class="ident">AnimationDecoder</span>,
                 <span class="ident">GenericImage</span>,
                 <span class="ident">GenericImageView</span>,
                 <span class="ident">ImageDecoder</span>,
@@ -521,7 +518,7 @@
                 <span class="ident">Pixels</span>,
                 <span class="ident">SubImage</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">buffer_</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::buffer_</span>::{
                  <span class="ident">GrayAlphaImage</span>,
                  <span class="ident">GrayImage</span>,
                  <span class="comment">// Image types</span>
@@ -529,19 +526,19 @@
                  <span class="ident">RgbImage</span>,
                  <span class="ident">RgbaImage</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">flat</span>::<span class="ident">FlatSamples</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::flat::FlatSamples</span>;
 
 <span class="comment">// Traits</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">traits</span>::{<span class="ident">EncodableLayout</span>, <span class="ident">Primitive</span>, <span class="ident">Pixel</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::traits</span>::{<span class="ident">EncodableLayout</span>, <span class="ident">Primitive</span>, <span class="ident">Pixel</span>};
 
 <span class="comment">// Opening and loading images</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">io</span>::<span class="ident">free_functions</span>::{<span class="ident">guess_format</span>, <span class="ident">load</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">dynimage</span>::{<span class="ident">load_from_memory</span>, <span class="ident">load_from_memory_with_format</span>, <span class="ident">open</span>,
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::io::free_functions</span>::{<span class="ident">guess_format</span>, <span class="ident">load</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::dynimage</span>::{<span class="ident">load_from_memory</span>, <span class="ident">load_from_memory_with_format</span>, <span class="ident">open</span>,
                    <span class="ident">save_buffer</span>, <span class="ident">save_buffer_with_format</span>, <span class="ident">image_dimensions</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">dynimage</span>::<span class="ident">DynamicImage</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::dynimage::DynamicImage</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">animation</span>::{<span class="ident">Delay</span>, <span class="ident">Frame</span>, <span class="ident">Frames</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::animation</span>::{<span class="ident">Delay</span>, <span class="ident">Frame</span>, <span class="ident">Frames</span>};
 
 <span class="comment">// More detailed error type</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
@@ -549,7 +546,7 @@
 <span class="doccomment">/// Iterators and other auxiliary structure for the `ImageBuffer` type.</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">buffer</span> {
     <span class="comment">// Only those not exported at the top-level</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">buffer_</span>::{
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::buffer_</span>::{
         <span class="ident">ConvertBuffer</span>,
         <span class="ident">EnumeratePixels</span>,
         <span class="ident">EnumeratePixelsMut</span>,
@@ -649,27 +646,27 @@
 <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;Use codecs::avif instead&quot;</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">avif</span> {
     <span class="doccomment">//! Encoding of AVIF images.</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">avif</span>::<span class="ident">AvifEncoder</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::avif::AvifEncoder</span>;
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bmp&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;Use codecs::bmp instead&quot;</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bmp</span> {
     <span class="doccomment">//! Decoding and Encoding of BMP Images</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">bmp</span>::{<span class="ident">BMPEncoder</span>, <span class="ident">BmpDecoder</span>, <span class="ident">BmpEncoder</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::bmp</span>::{<span class="ident">BMPEncoder</span>, <span class="ident">BmpDecoder</span>, <span class="ident">BmpEncoder</span>};
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dds&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;Use codecs::dds instead&quot;</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">dds</span> {
     <span class="doccomment">//! Decoding of DDS images</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">dds</span>::<span class="ident">DdsDecoder</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::dds::DdsDecoder</span>;
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dxt&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;Use codecs:: instead&quot;</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">dxt</span> {
     <span class="doccomment">//! Decoding of DXT (S3TC) compression</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">dxt</span>::{
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::dxt</span>::{
         <span class="ident">DXTEncoder</span>, <span class="ident">DXTReader</span>, <span class="ident">DXTVariant</span>, <span class="ident">DxtDecoder</span>, <span class="ident">DxtEncoder</span>, <span class="ident">DxtReader</span>, <span class="ident">DxtVariant</span>,
     };
 }
@@ -677,21 +674,21 @@
 <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;Use codecs::farbfeld instead&quot;</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">farbfeld</span> {
     <span class="doccomment">//! Decoding of farbfeld images</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">farbfeld</span>::{<span class="ident">FarbfeldDecoder</span>, <span class="ident">FarbfeldEncoder</span>, <span class="ident">FarbfeldReader</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::farbfeld</span>::{<span class="ident">FarbfeldDecoder</span>, <span class="ident">FarbfeldEncoder</span>, <span class="ident">FarbfeldReader</span>};
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gif&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;Use codecs::gif instead&quot;</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">gif</span> {
     <span class="doccomment">//! Decoding of GIF Images</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">gif</span>::{<span class="ident">Encoder</span>, <span class="ident">GifDecoder</span>, <span class="ident">GifEncoder</span>, <span class="ident">GifReader</span>, <span class="ident">Repeat</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::gif</span>::{<span class="ident">Encoder</span>, <span class="ident">GifDecoder</span>, <span class="ident">GifEncoder</span>, <span class="ident">GifReader</span>, <span class="ident">Repeat</span>};
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;hdr&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;Use codecs::hdr instead&quot;</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">hdr</span> {
     <span class="doccomment">//! Decoding of Radiance HDR Images</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">hdr</span>::{
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::hdr</span>::{
         <span class="ident">read_raw_file</span>, <span class="ident">rgbe8</span>, <span class="ident">to_rgbe8</span>, <span class="ident">HDRAdapter</span>, <span class="ident">HDREncoder</span>, <span class="ident">HDRImageDecoderIterator</span>,
         <span class="ident">HDRMetadata</span>, <span class="ident">HdrAdapter</span>, <span class="ident">HdrDecoder</span>, <span class="ident">HdrEncoder</span>, <span class="ident">HdrImageDecoderIterator</span>, <span class="ident">HdrMetadata</span>,
         <span class="ident">HdrReader</span>, <span class="ident">RGBE8Pixel</span>, <span class="ident">Rgbe8Pixel</span>, <span class="ident">SIGNATURE</span>,
@@ -702,14 +699,14 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ico</span> {
     <span class="doccomment">//! Decoding and Encoding of ICO files</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">ico</span>::{<span class="ident">ICOEncoder</span>, <span class="ident">IcoDecoder</span>, <span class="ident">IcoEncoder</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::ico</span>::{<span class="ident">ICOEncoder</span>, <span class="ident">IcoDecoder</span>, <span class="ident">IcoEncoder</span>};
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;jpeg&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;Use codecs::jpeg instead&quot;</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">jpeg</span> {
     <span class="doccomment">//! Decoding and Encoding of JPEG Images</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">jpeg</span>::{
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::jpeg</span>::{
         <span class="ident">JPEGEncoder</span>, <span class="ident">JpegDecoder</span>, <span class="ident">JpegEncoder</span>, <span class="ident">PixelDensity</span>, <span class="ident">PixelDensityUnit</span>,
     };
 }
@@ -718,7 +715,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">png</span> {
     <span class="doccomment">//! Decoding and Encoding of PNG Images</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">png</span>::{
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::png</span>::{
         <span class="ident">ApngDecoder</span>, <span class="ident">CompressionType</span>, <span class="ident">FilterType</span>, <span class="ident">PNGEncoder</span>, <span class="ident">PNGReader</span>, <span class="ident">PngDecoder</span>, <span class="ident">PngEncoder</span>,
         <span class="ident">PngReader</span>,
     };
@@ -728,7 +725,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pnm</span> {
     <span class="doccomment">//! Decoding and Encoding of netpbm image formats (pbm, pgm, ppm and pam)</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">pnm</span>::{
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::pnm</span>::{
         <span class="ident">ArbitraryHeader</span>, <span class="ident">ArbitraryTuplType</span>, <span class="ident">BitmapHeader</span>, <span class="ident">GraymapHeader</span>, <span class="ident">PNMEncoder</span>, <span class="ident">PNMHeader</span>,
         <span class="ident">PNMSubtype</span>, <span class="ident">PixmapHeader</span>, <span class="ident">PnmDecoder</span>, <span class="ident">PnmEncoder</span>, <span class="ident">PnmHeader</span>, <span class="ident">PnmSubtype</span>, <span class="ident">SampleEncoding</span>,
     };
@@ -738,21 +735,21 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tga</span> {
     <span class="doccomment">//! Decoding and Encoding of TGA Images</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">tga</span>::{<span class="ident">TgaDecoder</span>, <span class="ident">TgaEncoder</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::tga</span>::{<span class="ident">TgaDecoder</span>, <span class="ident">TgaEncoder</span>};
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tiff&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;Use codecs::tiff instead&quot;</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tiff</span> {
     <span class="doccomment">//! Decoding and Encoding of TIFF Images</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">tiff</span>::{<span class="ident">TiffDecoder</span>, <span class="ident">TiffEncoder</span>, <span class="ident">TiffReader</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::tiff</span>::{<span class="ident">TiffDecoder</span>, <span class="ident">TiffEncoder</span>, <span class="ident">TiffReader</span>};
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;webp&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;Use codecs::webp instead&quot;</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">webp</span> {
     <span class="doccomment">//! Decoding of WebP Images</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codecs</span>::<span class="ident">webp</span>::{<span class="ident">vp8</span>, <span class="ident">WebPDecoder</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codecs::webp</span>::{<span class="ident">vp8</span>, <span class="ident">WebPDecoder</span>};
 }
 
 
@@ -774,14 +771,14 @@
 <span class="comment">// MIT License</span>
 <span class="comment">//</span>
 <span class="comment">// Copyright (c) 2018 Guillaume Gomez</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">insert_as_doc</span> {
+<span class="macro">macro_rules!</span> <span class="ident">insert_as_doc</span> {
     { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">content</span>:<span class="ident">expr</span> } <span class="op">=</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">content</span>]</span> <span class="kw">extern</span> { }
     }
 }
 
 <span class="comment">// Provides the README.md as doc, to ensure the example works!</span>
-<span class="macro">insert_as_doc</span><span class="macro">!</span>(<span class="macro">include_str</span><span class="macro">!</span>(<span class="string">&quot;../README.md&quot;</span>));
+<span class="macro">insert_as_doc!</span>(<span class="macro">include_str!</span>(<span class="string">&quot;../README.md&quot;</span>));
 
 <span class="comment">// Copies data from `src` to `dst`</span>
 <span class="comment">//</span>
@@ -789,9 +786,10 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">copy_memory</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
     <span class="kw">let</span> <span class="ident">len_src</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">len</span>();
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">dst</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">len_src</span>);
+    <span class="macro">assert!</span>(<span class="ident">dst</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">len_src</span>);
     <span class="ident">dst</span>.<span class="ident">write_all</span>(<span class="ident">src</span>).<span class="ident">unwrap</span>();
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="image" data-search-js="../../search-index.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="image" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</body></html>

@@ -1,7 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/image-0.23.14/./src/codecs/dxt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dxt.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../image/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;image-0.23.14&#x2F;.&#x2F;src&#x2F;codecs&#x2F;dxt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dxt.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../image/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -854,7 +851,7 @@
 <span id="851">851</span>
 <span id="852">852</span>
 <span id="853">853</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="doccomment">//!  Decoding of DXT (S3TC) compression</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!  DXT is an image format that supports lossy compression</span>
@@ -864,12 +861,12 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//!  Note: this module only implements bare DXT encoding/decoding, it does not parse formats that can contain DXT files like .dds</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">Read</span>, <span class="ident">Seek</span>, <span class="ident">SeekFrom</span>, <span class="ident">Write</span>};
+<span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
+<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Read</span>, <span class="ident">Seek</span>, <span class="ident">SeekFrom</span>, <span class="ident">Write</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">color</span>::<span class="ident">ColorType</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::{<span class="ident">ImageError</span>, <span class="ident">ImageResult</span>, <span class="ident">ParameterError</span>, <span class="ident">ParameterErrorKind</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">image</span>::{<span class="self">self</span>, <span class="ident">ImageDecoder</span>, <span class="ident">ImageDecoderExt</span>, <span class="ident">ImageReadBuffer</span>, <span class="ident">Progress</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::color::ColorType</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error</span>::{<span class="ident">ImageError</span>, <span class="ident">ImageResult</span>, <span class="ident">ParameterError</span>, <span class="ident">ParameterErrorKind</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::image</span>::{<span class="self">self</span>, <span class="ident">ImageDecoder</span>, <span class="ident">ImageDecoderExt</span>, <span class="ident">ImageReadBuffer</span>, <span class="ident">Progress</span>};
 
 <span class="doccomment">/// What version of DXT compression are we using?</span>
 <span class="doccomment">/// Note that DXT2 and DXT4 are left away as they&#39;re</span>
@@ -908,24 +905,24 @@
     <span class="doccomment">/// that is encoded in a single DXTn block</span>
     <span class="kw">fn</span> <span class="ident">decoded_bytes_per_block</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">DXTVariant</span>::<span class="ident">DXT1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">48</span>,
-            <span class="ident">DXTVariant</span>::<span class="ident">DXT3</span> <span class="op">|</span> <span class="ident">DXTVariant</span>::<span class="ident">DXT5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">64</span>,
+            <span class="ident">DXTVariant::DXT1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">48</span>,
+            <span class="ident">DXTVariant::DXT3</span> <span class="op">|</span> <span class="ident">DXTVariant::DXT5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">64</span>,
         }
     }
 
     <span class="doccomment">/// Returns the amount of bytes per block of encoded DXTn data</span>
     <span class="kw">fn</span> <span class="ident">encoded_bytes_per_block</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">DXTVariant</span>::<span class="ident">DXT1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">8</span>,
-            <span class="ident">DXTVariant</span>::<span class="ident">DXT3</span> <span class="op">|</span> <span class="ident">DXTVariant</span>::<span class="ident">DXT5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">16</span>,
+            <span class="ident">DXTVariant::DXT1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">8</span>,
+            <span class="ident">DXTVariant::DXT3</span> <span class="op">|</span> <span class="ident">DXTVariant::DXT5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">16</span>,
         }
     }
 
     <span class="doccomment">/// Returns the color type that is stored in this DXT variant</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">color_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ColorType</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">DXTVariant</span>::<span class="ident">DXT1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ColorType</span>::<span class="ident">Rgb8</span>,
-            <span class="ident">DXTVariant</span>::<span class="ident">DXT3</span> <span class="op">|</span> <span class="ident">DXTVariant</span>::<span class="ident">DXT5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ColorType</span>::<span class="ident">Rgba8</span>,
+            <span class="ident">DXTVariant::DXT1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ColorType::Rgb8</span>,
+            <span class="ident">DXTVariant::DXT3</span> <span class="op">|</span> <span class="ident">DXTVariant::DXT5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ColorType::Rgba8</span>,
         }
     }
 }
@@ -957,8 +954,8 @@
             <span class="comment">// TODO: this is actually a bit of a weird case. We could return `DecodingError` but</span>
             <span class="comment">// it&#39;s not really the format that is wrong However, the encoder should surely return</span>
             <span class="comment">// `EncodingError` so it would be the logical choice for symmetry.</span>
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ImageError</span>::<span class="ident">Parameter</span>(<span class="ident">ParameterError</span>::<span class="ident">from_kind</span>(
-                <span class="ident">ParameterErrorKind</span>::<span class="ident">DimensionMismatch</span>,
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ImageError::Parameter</span>(<span class="ident">ParameterError::from_kind</span>(
+                <span class="ident">ParameterErrorKind::DimensionMismatch</span>,
             )));
         }
         <span class="kw">let</span> <span class="ident">width_blocks</span> <span class="op">=</span> <span class="ident">width</span> <span class="op">/</span> <span class="number">4</span>;
@@ -972,16 +969,16 @@
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">read_scanline</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">u64</span>::<span class="ident">try_from</span>(<span class="ident">buf</span>.<span class="ident">len</span>()), <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">scanline_bytes</span>()));
+    <span class="kw">fn</span> <span class="ident">read_scanline</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="macro">assert_eq!</span>(<span class="ident">u64::try_from</span>(<span class="ident">buf</span>.<span class="ident">len</span>()), <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">scanline_bytes</span>()));
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">src</span> <span class="op">=</span>
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0u8</span>; <span class="self">self</span>.<span class="ident">variant</span>.<span class="ident">encoded_bytes_per_block</span>() <span class="op">*</span> <span class="self">self</span>.<span class="ident">width_blocks</span> <span class="kw">as</span> <span class="ident">usize</span>];
+            <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="self">self</span>.<span class="ident">variant</span>.<span class="ident">encoded_bytes_per_block</span>() <span class="op">*</span> <span class="self">self</span>.<span class="ident">width_blocks</span> <span class="kw">as</span> <span class="ident">usize</span>];
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">src</span>)<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">variant</span> {
-            <span class="ident">DXTVariant</span>::<span class="ident">DXT1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decode_dxt1_row</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="ident">buf</span>),
-            <span class="ident">DXTVariant</span>::<span class="ident">DXT3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decode_dxt3_row</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="ident">buf</span>),
-            <span class="ident">DXTVariant</span>::<span class="ident">DXT5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decode_dxt5_row</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="ident">buf</span>),
+            <span class="ident">DXTVariant::DXT1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decode_dxt1_row</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="ident">buf</span>),
+            <span class="ident">DXTVariant::DXT3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decode_dxt3_row</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="ident">buf</span>),
+            <span class="ident">DXTVariant::DXT5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decode_dxt5_row</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="ident">buf</span>),
         }
         <span class="self">self</span>.<span class="ident">row</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">buf</span>.<span class="ident">len</span>())
@@ -1002,18 +999,18 @@
     }
 
     <span class="kw">fn</span> <span class="ident">scanline_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">variant</span>.<span class="ident">decoded_bytes_per_block</span>() <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">width_blocks</span>)
+        <span class="self">self</span>.<span class="ident">variant</span>.<span class="ident">decoded_bytes_per_block</span>() <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">u64::from</span>(<span class="self">self</span>.<span class="ident">width_blocks</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">into_reader</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ImageResult</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Reader</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_reader</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ImageResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Reader</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">DxtReader</span> {
-            <span class="ident">buffer</span>: <span class="ident">ImageReadBuffer</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">scanline_bytes</span>(), <span class="self">self</span>.<span class="ident">total_bytes</span>()),
+            <span class="ident">buffer</span>: <span class="ident">ImageReadBuffer::new</span>(<span class="self">self</span>.<span class="ident">scanline_bytes</span>(), <span class="self">self</span>.<span class="ident">total_bytes</span>()),
             <span class="ident">decoder</span>: <span class="self">self</span>,
         })
     }
 
     <span class="kw">fn</span> <span class="ident">read_image</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ImageResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">u64</span>::<span class="ident">try_from</span>(<span class="ident">buf</span>.<span class="ident">len</span>()), <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">total_bytes</span>()));
+        <span class="macro">assert_eq!</span>(<span class="ident">u64::try_from</span>(<span class="ident">buf</span>.<span class="ident">len</span>()), <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">total_bytes</span>()));
 
         <span class="kw">for</span> <span class="ident">chunk</span> <span class="kw">in</span> <span class="ident">buf</span>.<span class="ident">chunks_mut</span>(<span class="self">self</span>.<span class="ident">scanline_bytes</span>() <span class="kw">as</span> <span class="ident">usize</span>) {
             <span class="self">self</span>.<span class="ident">read_scanline</span>(<span class="ident">chunk</span>)<span class="question-mark">?</span>;
@@ -1033,16 +1030,16 @@
         <span class="ident">progress_callback</span>: <span class="ident">F</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ImageResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">encoded_scanline_bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">variant</span>.<span class="ident">encoded_bytes_per_block</span>() <span class="kw">as</span> <span class="ident">u64</span>
-            <span class="op">*</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">width_blocks</span>);
+            <span class="op">*</span> <span class="ident">u64::from</span>(<span class="self">self</span>.<span class="ident">width_blocks</span>);
 
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom</span>::<span class="ident">Current</span>(<span class="number">0</span>))<span class="question-mark">?</span>;
-        <span class="ident">image</span>::<span class="ident">load_rect</span>(<span class="ident">x</span>, <span class="ident">y</span>, <span class="ident">width</span>, <span class="ident">height</span>, <span class="ident">buf</span>, <span class="ident">progress_callback</span>, <span class="self">self</span>,
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom::Current</span>(<span class="number">0</span>))<span class="question-mark">?</span>;
+        <span class="ident">image::load_rect</span>(<span class="ident">x</span>, <span class="ident">y</span>, <span class="ident">width</span>, <span class="ident">height</span>, <span class="ident">buf</span>, <span class="ident">progress_callback</span>, <span class="self">self</span>,
                          <span class="op">|</span><span class="ident">s</span>, <span class="ident">scanline</span><span class="op">|</span> {
-                             <span class="ident">s</span>.<span class="ident">inner</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom</span>::<span class="ident">Start</span>(<span class="ident">start</span> <span class="op">+</span> <span class="ident">scanline</span> <span class="op">*</span> <span class="ident">encoded_scanline_bytes</span>))<span class="question-mark">?</span>;
+                             <span class="ident">s</span>.<span class="ident">inner</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom::Start</span>(<span class="ident">start</span> <span class="op">+</span> <span class="ident">scanline</span> <span class="op">*</span> <span class="ident">encoded_scanline_bytes</span>))<span class="question-mark">?</span>;
                              <span class="prelude-val">Ok</span>(())
                          },
                          <span class="op">|</span><span class="ident">s</span>, <span class="ident">buf</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">read_scanline</span>(<span class="ident">buf</span>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ()))<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom</span>::<span class="ident">Start</span>(<span class="ident">start</span>))<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom::Start</span>(<span class="ident">start</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -1065,7 +1062,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">DXTReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">DxtReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>;
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">DxtReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">decoder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">decoder</span>;
         <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">read</span>(<span class="ident">buf</span>, <span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <span class="ident">decoder</span>.<span class="ident">read_scanline</span>(<span class="ident">buf</span>))
     }
@@ -1106,8 +1103,8 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ImageResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">width</span> <span class="op">%</span> <span class="number">4</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">height</span> <span class="op">%</span> <span class="number">4</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="comment">// TODO: this is not very idiomatic yet. Should return an EncodingError.</span>
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ImageError</span>::<span class="ident">Parameter</span>(<span class="ident">ParameterError</span>::<span class="ident">from_kind</span>(
-                <span class="ident">ParameterErrorKind</span>::<span class="ident">DimensionMismatch</span>,
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ImageError::Parameter</span>(<span class="ident">ParameterError::from_kind</span>(
+                <span class="ident">ParameterErrorKind::DimensionMismatch</span>,
             )));
         }
         <span class="kw">let</span> <span class="ident">width_blocks</span> <span class="op">=</span> <span class="ident">width</span> <span class="op">/</span> <span class="number">4</span>;
@@ -1115,13 +1112,13 @@
 
         <span class="kw">let</span> <span class="ident">stride</span> <span class="op">=</span> <span class="ident">variant</span>.<span class="ident">decoded_bytes_per_block</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">width_blocks</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">*</span> <span class="ident">height_blocks</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">*</span> <span class="ident">stride</span>);
+        <span class="macro">assert!</span>(<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">width_blocks</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">*</span> <span class="ident">height_blocks</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">*</span> <span class="ident">stride</span>);
 
         <span class="kw">for</span> <span class="ident">chunk</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">chunks</span>(<span class="ident">width_blocks</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">*</span> <span class="ident">stride</span>) {
             <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">variant</span> {
-                <span class="ident">DXTVariant</span>::<span class="ident">DXT1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">encode_dxt1_row</span>(<span class="ident">chunk</span>),
-                <span class="ident">DXTVariant</span>::<span class="ident">DXT3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">encode_dxt3_row</span>(<span class="ident">chunk</span>),
-                <span class="ident">DXTVariant</span>::<span class="ident">DXT5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">encode_dxt5_row</span>(<span class="ident">chunk</span>),
+                <span class="ident">DXTVariant::DXT1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">encode_dxt1_row</span>(<span class="ident">chunk</span>),
+                <span class="ident">DXTVariant::DXT3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">encode_dxt3_row</span>(<span class="ident">chunk</span>),
+                <span class="ident">DXTVariant::DXT5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">encode_dxt5_row</span>(<span class="ident">chunk</span>),
             };
             <span class="self">self</span>.<span class="ident">w</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>)<span class="question-mark">?</span>;
         }
@@ -1132,7 +1129,7 @@
 <span class="doccomment">/**
  * Actual encoding/decoding logic below.
  */</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">swap</span>;
+<span class="kw">use</span> <span class="ident">std::mem::swap</span>;
 
 <span class="kw">type</span> <span class="ident">Rgb</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="number">3</span>];
 
@@ -1153,9 +1150,9 @@
 <span class="doccomment">/// encodes an 8-bit RGB value into a 5-bit R, 6-bit G, 5-bit B 16-bit packed color value</span>
 <span class="doccomment">/// mapping preserves min/max values. It is guaranteed that i == encode(decode(i)) for all i</span>
 <span class="kw">fn</span> <span class="ident">enc565_encode</span>(<span class="ident">rgb</span>: <span class="ident">Rgb</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span> {
-    <span class="kw">let</span> <span class="ident">red</span> <span class="op">=</span> (<span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">rgb</span>[<span class="number">0</span>]) <span class="op">*</span> <span class="number">0x1F</span> <span class="op">+</span> <span class="number">0x7E</span>) <span class="op">/</span> <span class="number">0xFF</span>;
-    <span class="kw">let</span> <span class="ident">green</span> <span class="op">=</span> (<span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">rgb</span>[<span class="number">1</span>]) <span class="op">*</span> <span class="number">0x3F</span> <span class="op">+</span> <span class="number">0x7E</span>) <span class="op">/</span> <span class="number">0xFF</span>;
-    <span class="kw">let</span> <span class="ident">blue</span> <span class="op">=</span> (<span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">rgb</span>[<span class="number">2</span>]) <span class="op">*</span> <span class="number">0x1F</span> <span class="op">+</span> <span class="number">0x7E</span>) <span class="op">/</span> <span class="number">0xFF</span>;
+    <span class="kw">let</span> <span class="ident">red</span> <span class="op">=</span> (<span class="ident">u16::from</span>(<span class="ident">rgb</span>[<span class="number">0</span>]) <span class="op">*</span> <span class="number">0x1F</span> <span class="op">+</span> <span class="number">0x7E</span>) <span class="op">/</span> <span class="number">0xFF</span>;
+    <span class="kw">let</span> <span class="ident">green</span> <span class="op">=</span> (<span class="ident">u16::from</span>(<span class="ident">rgb</span>[<span class="number">1</span>]) <span class="op">*</span> <span class="number">0x3F</span> <span class="op">+</span> <span class="number">0x7E</span>) <span class="op">/</span> <span class="number">0xFF</span>;
+    <span class="kw">let</span> <span class="ident">blue</span> <span class="op">=</span> (<span class="ident">u16::from</span>(<span class="ident">rgb</span>[<span class="number">2</span>]) <span class="op">*</span> <span class="number">0x1F</span> <span class="op">+</span> <span class="number">0x7E</span>) <span class="op">/</span> <span class="number">0xFF</span>;
     (<span class="ident">red</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">11</span>) <span class="op">|</span> (<span class="ident">green</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">5</span>) <span class="op">|</span> <span class="ident">blue</span>
 }
 
@@ -1166,8 +1163,8 @@
 
 <span class="doccomment">/// returns the squared error between two RGB values</span>
 <span class="kw">fn</span> <span class="ident">diff</span>(<span class="ident">a</span>: <span class="ident">Rgb</span>, <span class="ident">b</span>: <span class="ident">Rgb</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-    <span class="ident">square</span>(<span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">a</span>[<span class="number">0</span>]) <span class="op">-</span> <span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">b</span>[<span class="number">0</span>])) <span class="op">+</span> <span class="ident">square</span>(<span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">a</span>[<span class="number">1</span>]) <span class="op">-</span> <span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">b</span>[<span class="number">1</span>]))
-        <span class="op">+</span> <span class="ident">square</span>(<span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">a</span>[<span class="number">2</span>]) <span class="op">-</span> <span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">b</span>[<span class="number">2</span>]))
+    <span class="ident">square</span>(<span class="ident">i32::from</span>(<span class="ident">a</span>[<span class="number">0</span>]) <span class="op">-</span> <span class="ident">i32::from</span>(<span class="ident">b</span>[<span class="number">0</span>])) <span class="op">+</span> <span class="ident">square</span>(<span class="ident">i32::from</span>(<span class="ident">a</span>[<span class="number">1</span>]) <span class="op">-</span> <span class="ident">i32::from</span>(<span class="ident">b</span>[<span class="number">1</span>]))
+        <span class="op">+</span> <span class="ident">square</span>(<span class="ident">i32::from</span>(<span class="ident">a</span>[<span class="number">2</span>]) <span class="op">-</span> <span class="ident">i32::from</span>(<span class="ident">b</span>[<span class="number">2</span>]))
 }
 
 <span class="comment">/*
@@ -1182,12 +1179,12 @@
     <span class="kw">if</span> <span class="ident">alpha0</span> <span class="op">&gt;</span> <span class="ident">alpha1</span> {
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">2</span>..<span class="number">8u16</span> {
             <span class="ident">table</span>[<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span>
-                (((<span class="number">8</span> <span class="op">-</span> <span class="ident">i</span>) <span class="op">*</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">alpha0</span>) <span class="op">+</span> (<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">*</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">alpha1</span>)) <span class="op">/</span> <span class="number">7</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+                (((<span class="number">8</span> <span class="op">-</span> <span class="ident">i</span>) <span class="op">*</span> <span class="ident">u16::from</span>(<span class="ident">alpha0</span>) <span class="op">+</span> (<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">*</span> <span class="ident">u16::from</span>(<span class="ident">alpha1</span>)) <span class="op">/</span> <span class="number">7</span>) <span class="kw">as</span> <span class="ident">u8</span>;
         }
     } <span class="kw">else</span> {
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">2</span>..<span class="number">6u16</span> {
             <span class="ident">table</span>[<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span>
-                (((<span class="number">6</span> <span class="op">-</span> <span class="ident">i</span>) <span class="op">*</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">alpha0</span>) <span class="op">+</span> (<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">*</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">alpha1</span>)) <span class="op">/</span> <span class="number">5</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+                (((<span class="number">6</span> <span class="op">-</span> <span class="ident">i</span>) <span class="op">*</span> <span class="ident">u16::from</span>(<span class="ident">alpha0</span>) <span class="op">+</span> (<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">*</span> <span class="ident">u16::from</span>(<span class="ident">alpha1</span>)) <span class="op">/</span> <span class="number">5</span>) <span class="kw">as</span> <span class="ident">u8</span>;
         }
     }
     <span class="ident">table</span>
@@ -1197,15 +1194,15 @@
 <span class="doccomment">/// source should have a length of 8, dest a length of 48 (RGB) or 64 (RGBA)</span>
 <span class="kw">fn</span> <span class="ident">decode_dxt_colors</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
     <span class="comment">// sanity checks, also enable the compiler to elide all following bound checks</span>
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">8</span> <span class="op">&amp;&amp;</span> (<span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">48</span> <span class="op">|</span><span class="op">|</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">64</span>));
+    <span class="macro">assert!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">8</span> <span class="op">&amp;&amp;</span> (<span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">48</span> <span class="op">|</span><span class="op">|</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">64</span>));
     <span class="comment">// calculate pitch to store RGB values in dest (3 for RGB, 4 for RGBA)</span>
     <span class="kw">let</span> <span class="ident">pitch</span> <span class="op">=</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">16</span>;
 
     <span class="comment">// extract color data</span>
-    <span class="kw">let</span> <span class="ident">color0</span> <span class="op">=</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">source</span>[<span class="number">0</span>]) <span class="op">|</span> (<span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">source</span>[<span class="number">1</span>]) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>);
-    <span class="kw">let</span> <span class="ident">color1</span> <span class="op">=</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">source</span>[<span class="number">2</span>]) <span class="op">|</span> (<span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">source</span>[<span class="number">3</span>]) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>);
-    <span class="kw">let</span> <span class="ident">color_table</span> <span class="op">=</span> <span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">source</span>[<span class="number">4</span>]) <span class="op">|</span> (<span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">source</span>[<span class="number">5</span>]) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>)
-        <span class="op">|</span> (<span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">source</span>[<span class="number">6</span>]) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>) <span class="op">|</span> (<span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">source</span>[<span class="number">7</span>]) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>);
+    <span class="kw">let</span> <span class="ident">color0</span> <span class="op">=</span> <span class="ident">u16::from</span>(<span class="ident">source</span>[<span class="number">0</span>]) <span class="op">|</span> (<span class="ident">u16::from</span>(<span class="ident">source</span>[<span class="number">1</span>]) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>);
+    <span class="kw">let</span> <span class="ident">color1</span> <span class="op">=</span> <span class="ident">u16::from</span>(<span class="ident">source</span>[<span class="number">2</span>]) <span class="op">|</span> (<span class="ident">u16::from</span>(<span class="ident">source</span>[<span class="number">3</span>]) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>);
+    <span class="kw">let</span> <span class="ident">color_table</span> <span class="op">=</span> <span class="ident">u32::from</span>(<span class="ident">source</span>[<span class="number">4</span>]) <span class="op">|</span> (<span class="ident">u32::from</span>(<span class="ident">source</span>[<span class="number">5</span>]) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>)
+        <span class="op">|</span> (<span class="ident">u32::from</span>(<span class="ident">source</span>[<span class="number">6</span>]) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>) <span class="op">|</span> (<span class="ident">u32::from</span>(<span class="ident">source</span>[<span class="number">7</span>]) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>);
     <span class="comment">// let color_table = source[4..8].iter().rev().fold(0, |t, &amp;b| (t &lt;&lt; 8) | b as u32);</span>
 
     <span class="comment">// decode the colors to rgb format</span>
@@ -1217,13 +1214,13 @@
     <span class="kw">if</span> <span class="ident">color0</span> <span class="op">&gt;</span> <span class="ident">color1</span> {
         <span class="comment">// linearly interpolate the other two color table entries</span>
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">3</span> {
-            <span class="ident">colors</span>[<span class="number">2</span>][<span class="ident">i</span>] <span class="op">=</span> ((<span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">colors</span>[<span class="number">0</span>][<span class="ident">i</span>]) <span class="op">*</span> <span class="number">2</span> <span class="op">+</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">colors</span>[<span class="number">1</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">3</span>) <span class="kw">as</span> <span class="ident">u8</span>;
-            <span class="ident">colors</span>[<span class="number">3</span>][<span class="ident">i</span>] <span class="op">=</span> ((<span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">colors</span>[<span class="number">0</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">colors</span>[<span class="number">1</span>][<span class="ident">i</span>]) <span class="op">*</span> <span class="number">2</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">3</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+            <span class="ident">colors</span>[<span class="number">2</span>][<span class="ident">i</span>] <span class="op">=</span> ((<span class="ident">u16::from</span>(<span class="ident">colors</span>[<span class="number">0</span>][<span class="ident">i</span>]) <span class="op">*</span> <span class="number">2</span> <span class="op">+</span> <span class="ident">u16::from</span>(<span class="ident">colors</span>[<span class="number">1</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">3</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+            <span class="ident">colors</span>[<span class="number">3</span>][<span class="ident">i</span>] <span class="op">=</span> ((<span class="ident">u16::from</span>(<span class="ident">colors</span>[<span class="number">0</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="ident">u16::from</span>(<span class="ident">colors</span>[<span class="number">1</span>][<span class="ident">i</span>]) <span class="op">*</span> <span class="number">2</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">3</span>) <span class="kw">as</span> <span class="ident">u8</span>;
         }
     } <span class="kw">else</span> {
         <span class="comment">// linearly interpolate one other entry, keep the other at 0</span>
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">3</span> {
-            <span class="ident">colors</span>[<span class="number">2</span>][<span class="ident">i</span>] <span class="op">=</span> ((<span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">colors</span>[<span class="number">0</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">colors</span>[<span class="number">1</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">2</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+            <span class="ident">colors</span>[<span class="number">2</span>][<span class="ident">i</span>] <span class="op">=</span> ((<span class="ident">u16::from</span>(<span class="ident">colors</span>[<span class="number">0</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="ident">u16::from</span>(<span class="ident">colors</span>[<span class="number">1</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">2</span>) <span class="kw">as</span> <span class="ident">u8</span>;
         }
     }
 
@@ -1237,13 +1234,13 @@
 
 <span class="doccomment">/// Decodes a 16-byte bock of dxt5 data to a 16xRGBA block</span>
 <span class="kw">fn</span> <span class="ident">decode_dxt5_block</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">16</span> <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">64</span>);
+    <span class="macro">assert!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">16</span> <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">64</span>);
 
     <span class="comment">// extract alpha index table (stored as little endian 64-bit value)</span>
     <span class="kw">let</span> <span class="ident">alpha_table</span> <span class="op">=</span> <span class="ident">source</span>[<span class="number">2</span>..<span class="number">8</span>]
         .<span class="ident">iter</span>()
         .<span class="ident">rev</span>()
-        .<span class="ident">fold</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">t</span>, <span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> (<span class="ident">t</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">b</span>));
+        .<span class="ident">fold</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">t</span>, <span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> (<span class="ident">t</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">u64::from</span>(<span class="ident">b</span>));
 
     <span class="comment">// alhpa level decode</span>
     <span class="kw">let</span> <span class="ident">alphas</span> <span class="op">=</span> <span class="ident">alpha_table_dxt5</span>(<span class="ident">source</span>[<span class="number">0</span>], <span class="ident">source</span>[<span class="number">1</span>]);
@@ -1259,13 +1256,13 @@
 
 <span class="doccomment">/// Decodes a 16-byte bock of dxt3 data to a 16xRGBA block</span>
 <span class="kw">fn</span> <span class="ident">decode_dxt3_block</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">16</span> <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">64</span>);
+    <span class="macro">assert!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">16</span> <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">64</span>);
 
     <span class="comment">// extract alpha index table (stored as little endian 64-bit value)</span>
     <span class="kw">let</span> <span class="ident">alpha_table</span> <span class="op">=</span> <span class="ident">source</span>[<span class="number">0</span>..<span class="number">8</span>]
         .<span class="ident">iter</span>()
         .<span class="ident">rev</span>()
-        .<span class="ident">fold</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">t</span>, <span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> (<span class="ident">t</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">b</span>));
+        .<span class="ident">fold</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">t</span>, <span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> (<span class="ident">t</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">u64::from</span>(<span class="ident">b</span>));
 
     <span class="comment">// serialize alpha (stored as 4-bit values)</span>
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">16</span> {
@@ -1278,16 +1275,16 @@
 
 <span class="doccomment">/// Decodes a 8-byte bock of dxt5 data to a 16xRGB block</span>
 <span class="kw">fn</span> <span class="ident">decode_dxt1_block</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">8</span> <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">48</span>);
+    <span class="macro">assert!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">8</span> <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">48</span>);
     <span class="ident">decode_dxt_colors</span>(<span class="kw-2">&amp;</span><span class="ident">source</span>, <span class="ident">dest</span>);
 }
 
 <span class="doccomment">/// Decode a row of DXT1 data to four rows of RGBA data.</span>
 <span class="doccomment">/// source.len() should be a multiple of 8, otherwise this panics.</span>
 <span class="kw">fn</span> <span class="ident">decode_dxt1_row</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">8</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+    <span class="macro">assert!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">8</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
     <span class="kw">let</span> <span class="ident">block_count</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">8</span>;
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">block_count</span> <span class="op">*</span> <span class="number">48</span>);
+    <span class="macro">assert!</span>(<span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">block_count</span> <span class="op">*</span> <span class="number">48</span>);
 
     <span class="comment">// contains the 16 decoded pixels per block</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded_block</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">48</span>];
@@ -1306,9 +1303,9 @@
 <span class="doccomment">/// Decode a row of DXT3 data to four rows of RGBA data.</span>
 <span class="doccomment">/// source.len() should be a multiple of 16, otherwise this panics.</span>
 <span class="kw">fn</span> <span class="ident">decode_dxt3_row</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">16</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+    <span class="macro">assert!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">16</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
     <span class="kw">let</span> <span class="ident">block_count</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">16</span>;
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">block_count</span> <span class="op">*</span> <span class="number">64</span>);
+    <span class="macro">assert!</span>(<span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">block_count</span> <span class="op">*</span> <span class="number">64</span>);
 
     <span class="comment">// contains the 16 decoded pixels per block</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded_block</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">64</span>];
@@ -1327,9 +1324,9 @@
 <span class="doccomment">/// Decode a row of DXT5 data to four rows of RGBA data.</span>
 <span class="doccomment">/// source.len() should be a multiple of 16, otherwise this panics.</span>
 <span class="kw">fn</span> <span class="ident">decode_dxt5_row</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">16</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+    <span class="macro">assert!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">16</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
     <span class="kw">let</span> <span class="ident">block_count</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">16</span>;
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">block_count</span> <span class="op">*</span> <span class="number">64</span>);
+    <span class="macro">assert!</span>(<span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">block_count</span> <span class="op">*</span> <span class="number">64</span>);
 
     <span class="comment">// contains the 16 decoded pixels per block</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded_block</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">64</span>];
@@ -1369,7 +1366,7 @@
 <span class="doccomment">/// dest 8 bytes of resulting encoded color data</span>
 <span class="kw">fn</span> <span class="ident">encode_dxt_colors</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
     <span class="comment">// sanity checks and determine stride when parsing the source data</span>
-    <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">64</span> <span class="op">|</span><span class="op">|</span> <span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">48</span>) <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">8</span>);
+    <span class="macro">assert!</span>((<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">64</span> <span class="op">|</span><span class="op">|</span> <span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">48</span>) <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">8</span>);
     <span class="kw">let</span> <span class="ident">stride</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">16</span>;
 
     <span class="comment">// reference colors array</span>
@@ -1410,7 +1407,7 @@
         <span class="comment">// if possible without overshoot</span>
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">3</span> {
             <span class="ident">rgb</span>[<span class="ident">i</span>] <span class="op">=</span>
-                ((<span class="ident">i16</span>::<span class="ident">from</span>(<span class="ident">rgb</span>[<span class="ident">i</span>]) <span class="op">-</span> <span class="ident">i16</span>::<span class="ident">from</span>(<span class="ident">ref_rgb</span>[<span class="ident">i</span>])) <span class="op">*</span> <span class="number">5</span> <span class="op">/</span> <span class="number">2</span> <span class="op">+</span> <span class="ident">i16</span>::<span class="ident">from</span>(<span class="ident">ref_rgb</span>[<span class="ident">i</span>])) <span class="kw">as</span> <span class="ident">u8</span>;
+                ((<span class="ident">i16::from</span>(<span class="ident">rgb</span>[<span class="ident">i</span>]) <span class="op">-</span> <span class="ident">i16::from</span>(<span class="ident">ref_rgb</span>[<span class="ident">i</span>])) <span class="op">*</span> <span class="number">5</span> <span class="op">/</span> <span class="number">2</span> <span class="op">+</span> <span class="ident">i16::from</span>(<span class="ident">ref_rgb</span>[<span class="ident">i</span>])) <span class="kw">as</span> <span class="ident">u8</span>;
         }
 
         <span class="comment">// roundtrip it through quantization</span>
@@ -1458,16 +1455,16 @@
                     <span class="comment">// interpolate one color, set the other to 0</span>
                     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">3</span> {
                         <span class="ident">colors</span>[<span class="number">2</span>][<span class="ident">i</span>] <span class="op">=</span>
-                            ((<span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">colors</span>[<span class="number">0</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">colors</span>[<span class="number">1</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">2</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+                            ((<span class="ident">u16::from</span>(<span class="ident">colors</span>[<span class="number">0</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="ident">u16::from</span>(<span class="ident">colors</span>[<span class="number">1</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">2</span>) <span class="kw">as</span> <span class="ident">u8</span>;
                     }
                     <span class="ident">colors</span>[<span class="number">3</span>] <span class="op">=</span> [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>];
                 } <span class="kw">else</span> {
                     <span class="comment">// interpolate to get 2 more colors</span>
                     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">3</span> {
                         <span class="ident">colors</span>[<span class="number">2</span>][<span class="ident">i</span>] <span class="op">=</span>
-                            ((<span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">colors</span>[<span class="number">0</span>][<span class="ident">i</span>]) <span class="op">*</span> <span class="number">2</span> <span class="op">+</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">colors</span>[<span class="number">1</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">3</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+                            ((<span class="ident">u16::from</span>(<span class="ident">colors</span>[<span class="number">0</span>][<span class="ident">i</span>]) <span class="op">*</span> <span class="number">2</span> <span class="op">+</span> <span class="ident">u16::from</span>(<span class="ident">colors</span>[<span class="number">1</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">3</span>) <span class="kw">as</span> <span class="ident">u8</span>;
                         <span class="ident">colors</span>[<span class="number">3</span>][<span class="ident">i</span>] <span class="op">=</span>
-                            ((<span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">colors</span>[<span class="number">0</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="ident">colors</span>[<span class="number">1</span>][<span class="ident">i</span>]) <span class="op">*</span> <span class="number">2</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">3</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+                            ((<span class="ident">u16::from</span>(<span class="ident">colors</span>[<span class="number">0</span>][<span class="ident">i</span>]) <span class="op">+</span> <span class="ident">u16::from</span>(<span class="ident">colors</span>[<span class="number">1</span>][<span class="ident">i</span>]) <span class="op">*</span> <span class="number">2</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">3</span>) <span class="kw">as</span> <span class="ident">u8</span>;
                     }
                 }
 
@@ -1550,7 +1547,7 @@
         <span class="kw">let</span> (<span class="ident">index</span>, <span class="ident">error</span>) <span class="op">=</span> <span class="ident">table</span>
             .<span class="ident">iter</span>()
             .<span class="ident">enumerate</span>()
-            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">e</span>)<span class="op">|</span> (<span class="ident">i</span>, <span class="ident">square</span>(<span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">e</span>) <span class="op">-</span> <span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">a</span>))))
+            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">e</span>)<span class="op">|</span> (<span class="ident">i</span>, <span class="ident">square</span>(<span class="ident">i32::from</span>(<span class="ident">e</span>) <span class="op">-</span> <span class="ident">i32::from</span>(<span class="ident">a</span>))))
             .<span class="ident">min_by_key</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">e</span>)
             .<span class="ident">unwrap</span>();
         <span class="ident">total_error</span> <span class="op">+</span><span class="op">=</span> <span class="ident">error</span>;
@@ -1562,7 +1559,7 @@
 
 <span class="doccomment">/// Encodes a RGBAx16 sequence of bytes to a 16 bytes DXT5 block</span>
 <span class="kw">fn</span> <span class="ident">encode_dxt5_block</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">64</span> <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">16</span>);
+    <span class="macro">assert!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">64</span> <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">16</span>);
 
     <span class="comment">// perform dxt color encoding</span>
     <span class="ident">encode_dxt_colors</span>(<span class="ident">source</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dest</span>[<span class="number">8</span>..<span class="number">16</span>]);
@@ -1613,7 +1610,7 @@
 
 <span class="doccomment">/// Encodes a RGBAx16 sequence of bytes into a 16 bytes DXT3 block</span>
 <span class="kw">fn</span> <span class="ident">encode_dxt3_block</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">64</span> <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">16</span>);
+    <span class="macro">assert!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">64</span> <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">16</span>);
 
     <span class="comment">// perform dxt color encoding</span>
     <span class="ident">encode_dxt_colors</span>(<span class="ident">source</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dest</span>[<span class="number">8</span>..<span class="number">16</span>]);
@@ -1623,7 +1620,7 @@
     <span class="comment">// index the alpha values into the 64bit alpha table</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">alpha_table</span> <span class="op">=</span> <span class="number">0u64</span>;
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">16</span> {
-        <span class="kw">let</span> <span class="ident">alpha</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">source</span>[<span class="ident">i</span> <span class="op">*</span> <span class="number">4</span> <span class="op">+</span> <span class="number">3</span>]);
+        <span class="kw">let</span> <span class="ident">alpha</span> <span class="op">=</span> <span class="ident">u64::from</span>(<span class="ident">source</span>[<span class="ident">i</span> <span class="op">*</span> <span class="number">4</span> <span class="op">+</span> <span class="number">3</span>]);
         <span class="kw">let</span> <span class="ident">alpha</span> <span class="op">=</span> (<span class="ident">alpha</span> <span class="op">+</span> <span class="number">0x8</span>) <span class="op">/</span> <span class="number">0x11</span>;
         <span class="ident">alpha_table</span> <span class="op">|</span><span class="op">=</span> <span class="ident">alpha</span> <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="ident">i</span> <span class="op">*</span> <span class="number">4</span>);
     }
@@ -1637,7 +1634,7 @@
 
 <span class="doccomment">/// Encodes a RGBx16 sequence of bytes into a 8 bytes DXT1 block</span>
 <span class="kw">fn</span> <span class="ident">encode_dxt1_block</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">48</span> <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">8</span>);
+    <span class="macro">assert!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">48</span> <span class="op">&amp;&amp;</span> <span class="ident">dest</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">8</span>);
 
     <span class="comment">// perform dxt color encoding</span>
     <span class="ident">encode_dxt_colors</span>(<span class="ident">source</span>, <span class="ident">dest</span>);
@@ -1646,10 +1643,10 @@
 <span class="doccomment">/// Decode a row of DXT1 data to four rows of RGBA data.</span>
 <span class="doccomment">/// source.len() should be a multiple of 8, otherwise this panics.</span>
 <span class="kw">fn</span> <span class="ident">encode_dxt1_row</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">48</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+    <span class="macro">assert!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">48</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
     <span class="kw">let</span> <span class="ident">block_count</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">48</span>;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dest</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0u8</span>; <span class="ident">block_count</span> <span class="op">*</span> <span class="number">8</span>];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dest</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="ident">block_count</span> <span class="op">*</span> <span class="number">8</span>];
     <span class="comment">// contains the 16 decoded pixels per block</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded_block</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">48</span>];
 
@@ -1668,10 +1665,10 @@
 <span class="doccomment">/// Decode a row of DXT3 data to four rows of RGBA data.</span>
 <span class="doccomment">/// source.len() should be a multiple of 16, otherwise this panics.</span>
 <span class="kw">fn</span> <span class="ident">encode_dxt3_row</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">64</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+    <span class="macro">assert!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">64</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
     <span class="kw">let</span> <span class="ident">block_count</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">64</span>;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dest</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0u8</span>; <span class="ident">block_count</span> <span class="op">*</span> <span class="number">16</span>];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dest</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="ident">block_count</span> <span class="op">*</span> <span class="number">16</span>];
     <span class="comment">// contains the 16 decoded pixels per block</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded_block</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">64</span>];
 
@@ -1690,10 +1687,10 @@
 <span class="doccomment">/// Decode a row of DXT5 data to four rows of RGBA data.</span>
 <span class="doccomment">/// source.len() should be a multiple of 16, otherwise this panics.</span>
 <span class="kw">fn</span> <span class="ident">encode_dxt5_row</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">64</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+    <span class="macro">assert!</span>(<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">64</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
     <span class="kw">let</span> <span class="ident">block_count</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">64</span>;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dest</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0u8</span>; <span class="ident">block_count</span> <span class="op">*</span> <span class="number">16</span>];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dest</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="ident">block_count</span> <span class="op">*</span> <span class="number">16</span>];
     <span class="comment">// contains the 16 decoded pixels per block</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded_block</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">64</span>];
 
@@ -1709,5 +1706,6 @@
     <span class="ident">dest</span>
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="image" data-search-js="../../../search-index.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="image" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
+    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
+</body></html>

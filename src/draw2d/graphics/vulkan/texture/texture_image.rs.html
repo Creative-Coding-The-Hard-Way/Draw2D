@@ -1,7 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/graphics/vulkan/texture/texture_image.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>texture_image.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../draw2d/index.html'><div class='logo-container rust-logo'><img src='../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../../../settings.html"><img src="../../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;graphics&#x2F;vulkan&#x2F;texture&#x2F;texture_image.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>texture_image.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../draw2d/index.html'><div class='logo-container rust-logo'><img src='../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -274,22 +271,22 @@
 <span id="271">271</span>
 <span id="272">272</span>
 <span id="273">273</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">MipmapExtent</span>, <span class="ident">TextureImage</span>};
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::<span class="ident">vulkan</span>::{<span class="ident">buffer</span>::<span class="ident">Buffer</span>, <span class="ident">Device</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::graphics::vulkan</span>::{<span class="ident">buffer::Buffer</span>, <span class="ident">Device</span>};
 
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">bail</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="ident">ash</span>::{<span class="ident">version</span>::<span class="ident">DeviceV1_0</span>, <span class="ident">vk</span>};
+<span class="kw">use</span> <span class="ident">ash</span>::{<span class="ident">version::DeviceV1_0</span>, <span class="ident">vk</span>};
 
 <span class="kw">impl</span> <span class="ident">TextureImage</span> {
     <span class="doccomment">/// The raw image handle used by this texture.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Unsafe because it is up to the caller to synchronize access to the</span>
     <span class="doccomment">/// image.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw_image</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">vk</span>::<span class="ident">Image</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw_image</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">vk::Image</span> {
         <span class="self">self</span>.<span class="ident">image</span>
     }
 
@@ -297,7 +294,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Unsafe because it is up to the caller to synchronize access to the</span>
     <span class="doccomment">/// view.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw_view</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">vk</span>::<span class="ident">ImageView</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw_view</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">vk::ImageView</span> {
         <span class="self">self</span>.<span class="ident">view</span>
     }
 
@@ -308,8 +305,8 @@
     <span class="doccomment">/// is R8G8B8A8_SRGB then the bytes per pixel is 4.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">device</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Device</span><span class="op">&gt;</span>,
-        <span class="ident">image_create_info</span>: <span class="ident">vk</span>::<span class="ident">ImageCreateInfo</span>,
-        <span class="ident">memory_property_flags</span>: <span class="ident">vk</span>::<span class="ident">MemoryPropertyFlags</span>,
+        <span class="ident">image_create_info</span>: <span class="ident">vk::ImageCreateInfo</span>,
+        <span class="ident">memory_property_flags</span>: <span class="ident">vk::MemoryPropertyFlags</span>,
         <span class="ident">bytes_per_pixel</span>: <span class="ident">u64</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">image</span> <span class="op">=</span> <span class="kw">unsafe</span> {
@@ -333,24 +330,24 @@
             )<span class="question-mark">?</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">view_create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">ImageViewCreateInfo</span> {
+        <span class="kw">let</span> <span class="ident">view_create_info</span> <span class="op">=</span> <span class="ident">vk::ImageViewCreateInfo</span> {
             <span class="ident">image</span>,
-            <span class="ident">view_type</span>: <span class="ident">vk</span>::<span class="ident">ImageViewType</span>::<span class="ident">TYPE_2D</span>,
+            <span class="ident">view_type</span>: <span class="ident">vk::ImageViewType::TYPE_2D</span>,
             <span class="ident">format</span>: <span class="ident">image_create_info</span>.<span class="ident">format</span>,
-            <span class="ident">subresource_range</span>: <span class="ident">vk</span>::<span class="ident">ImageSubresourceRange</span> {
-                <span class="ident">aspect_mask</span>: <span class="ident">vk</span>::<span class="ident">ImageAspectFlags</span>::<span class="ident">COLOR</span>,
+            <span class="ident">subresource_range</span>: <span class="ident">vk::ImageSubresourceRange</span> {
+                <span class="ident">aspect_mask</span>: <span class="ident">vk::ImageAspectFlags::COLOR</span>,
                 <span class="ident">base_mip_level</span>: <span class="number">0</span>,
                 <span class="ident">level_count</span>: <span class="ident">image_create_info</span>.<span class="ident">mip_levels</span>,
                 <span class="ident">base_array_layer</span>: <span class="number">0</span>,
                 <span class="ident">layer_count</span>: <span class="number">1</span>,
             },
-            <span class="ident">components</span>: <span class="ident">vk</span>::<span class="ident">ComponentMapping</span> {
-                <span class="ident">r</span>: <span class="ident">vk</span>::<span class="ident">ComponentSwizzle</span>::<span class="ident">R</span>,
-                <span class="ident">g</span>: <span class="ident">vk</span>::<span class="ident">ComponentSwizzle</span>::<span class="ident">G</span>,
-                <span class="ident">b</span>: <span class="ident">vk</span>::<span class="ident">ComponentSwizzle</span>::<span class="ident">B</span>,
-                <span class="ident">a</span>: <span class="ident">vk</span>::<span class="ident">ComponentSwizzle</span>::<span class="ident">A</span>,
+            <span class="ident">components</span>: <span class="ident">vk::ComponentMapping</span> {
+                <span class="ident">r</span>: <span class="ident">vk::ComponentSwizzle::R</span>,
+                <span class="ident">g</span>: <span class="ident">vk::ComponentSwizzle::G</span>,
+                <span class="ident">b</span>: <span class="ident">vk::ComponentSwizzle::B</span>,
+                <span class="ident">a</span>: <span class="ident">vk::ComponentSwizzle::A</span>,
             },
-            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+            ..<span class="ident">Default::default</span>()
         };
 
         <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="kw">unsafe</span> {
@@ -403,7 +400,7 @@
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">mipmap_size</span><span class="op">|</span> <span class="ident">mipmap_size</span>.<span class="ident">size_in_bytes</span>(<span class="self">self</span>.<span class="ident">bytes_per_pixel</span>))
             .<span class="ident">sum</span>();
         <span class="kw">if</span> <span class="ident">required_size</span> <span class="op">&gt;</span> <span class="ident">src</span>.<span class="ident">size_in_bytes</span>() {
-            <span class="macro">bail</span><span class="macro">!</span>(
+            <span class="macro">bail!</span>(
                 <span class="string">&quot;The texture expects {:?} bytes, but the provided buffer includes only {:?} bytes of data!&quot;</span>,
                 <span class="ident">required_size</span>,
                 <span class="ident">src</span>.<span class="ident">size_in_bytes</span>()
@@ -437,29 +434,29 @@
     <span class="doccomment">/// target.</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">write_barrier</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">command_buffer</span>: <span class="ident">vk</span>::<span class="ident">CommandBuffer</span>,
+        <span class="ident">command_buffer</span>: <span class="ident">vk::CommandBuffer</span>,
         <span class="ident">mip_level</span>: <span class="ident">u32</span>,
     ) {
-        <span class="kw">let</span> <span class="ident">write_barrier</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">ImageMemoryBarrier</span> {
-            <span class="ident">old_layout</span>: <span class="ident">vk</span>::<span class="ident">ImageLayout</span>::<span class="ident">UNDEFINED</span>,
-            <span class="ident">new_layout</span>: <span class="ident">vk</span>::<span class="ident">ImageLayout</span>::<span class="ident">TRANSFER_DST_OPTIMAL</span>,
+        <span class="kw">let</span> <span class="ident">write_barrier</span> <span class="op">=</span> <span class="ident">vk::ImageMemoryBarrier</span> {
+            <span class="ident">old_layout</span>: <span class="ident">vk::ImageLayout::UNDEFINED</span>,
+            <span class="ident">new_layout</span>: <span class="ident">vk::ImageLayout::TRANSFER_DST_OPTIMAL</span>,
             <span class="ident">image</span>: <span class="self">self</span>.<span class="ident">image</span>,
-            <span class="ident">subresource_range</span>: <span class="ident">vk</span>::<span class="ident">ImageSubresourceRange</span> {
-                <span class="ident">aspect_mask</span>: <span class="ident">vk</span>::<span class="ident">ImageAspectFlags</span>::<span class="ident">COLOR</span>,
+            <span class="ident">subresource_range</span>: <span class="ident">vk::ImageSubresourceRange</span> {
+                <span class="ident">aspect_mask</span>: <span class="ident">vk::ImageAspectFlags::COLOR</span>,
                 <span class="ident">base_mip_level</span>: <span class="ident">mip_level</span>,
                 <span class="ident">level_count</span>: <span class="number">1</span>,
                 <span class="ident">base_array_layer</span>: <span class="number">0</span>,
                 <span class="ident">layer_count</span>: <span class="number">1</span>,
             },
-            <span class="ident">src_access_mask</span>: <span class="ident">vk</span>::<span class="ident">AccessFlags</span>::<span class="ident">empty</span>(),
-            <span class="ident">dst_access_mask</span>: <span class="ident">vk</span>::<span class="ident">AccessFlags</span>::<span class="ident">TRANSFER_WRITE</span>,
-            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+            <span class="ident">src_access_mask</span>: <span class="ident">vk::AccessFlags::empty</span>(),
+            <span class="ident">dst_access_mask</span>: <span class="ident">vk::AccessFlags::TRANSFER_WRITE</span>,
+            ..<span class="ident">Default::default</span>()
         };
         <span class="self">self</span>.<span class="ident">device</span>.<span class="ident">logical_device</span>.<span class="ident">cmd_pipeline_barrier</span>(
             <span class="ident">command_buffer</span>,
-            <span class="ident">vk</span>::<span class="ident">PipelineStageFlags</span>::<span class="ident">TOP_OF_PIPE</span>,
-            <span class="ident">vk</span>::<span class="ident">PipelineStageFlags</span>::<span class="ident">TRANSFER</span>,
-            <span class="ident">vk</span>::<span class="ident">DependencyFlags</span>::<span class="ident">empty</span>(),
+            <span class="ident">vk::PipelineStageFlags::TOP_OF_PIPE</span>,
+            <span class="ident">vk::PipelineStageFlags::TRANSFER</span>,
+            <span class="ident">vk::DependencyFlags::empty</span>(),
             <span class="kw-2">&amp;</span>[],
             <span class="kw-2">&amp;</span>[],
             <span class="kw-2">&amp;</span>[<span class="ident">write_barrier</span>],
@@ -470,29 +467,29 @@
     <span class="doccomment">/// within the fragment shader.</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">read_barrier</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">command_buffer</span>: <span class="ident">vk</span>::<span class="ident">CommandBuffer</span>,
+        <span class="ident">command_buffer</span>: <span class="ident">vk::CommandBuffer</span>,
         <span class="ident">mip_level</span>: <span class="ident">u32</span>,
     ) {
-        <span class="kw">let</span> <span class="ident">read_barrier</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">ImageMemoryBarrier</span> {
-            <span class="ident">old_layout</span>: <span class="ident">vk</span>::<span class="ident">ImageLayout</span>::<span class="ident">TRANSFER_DST_OPTIMAL</span>,
-            <span class="ident">new_layout</span>: <span class="ident">vk</span>::<span class="ident">ImageLayout</span>::<span class="ident">SHADER_READ_ONLY_OPTIMAL</span>,
+        <span class="kw">let</span> <span class="ident">read_barrier</span> <span class="op">=</span> <span class="ident">vk::ImageMemoryBarrier</span> {
+            <span class="ident">old_layout</span>: <span class="ident">vk::ImageLayout::TRANSFER_DST_OPTIMAL</span>,
+            <span class="ident">new_layout</span>: <span class="ident">vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL</span>,
             <span class="ident">image</span>: <span class="self">self</span>.<span class="ident">image</span>,
-            <span class="ident">subresource_range</span>: <span class="ident">vk</span>::<span class="ident">ImageSubresourceRange</span> {
-                <span class="ident">aspect_mask</span>: <span class="ident">vk</span>::<span class="ident">ImageAspectFlags</span>::<span class="ident">COLOR</span>,
+            <span class="ident">subresource_range</span>: <span class="ident">vk::ImageSubresourceRange</span> {
+                <span class="ident">aspect_mask</span>: <span class="ident">vk::ImageAspectFlags::COLOR</span>,
                 <span class="ident">base_mip_level</span>: <span class="ident">mip_level</span>,
                 <span class="ident">level_count</span>: <span class="number">1</span>,
                 <span class="ident">base_array_layer</span>: <span class="number">0</span>,
                 <span class="ident">layer_count</span>: <span class="number">1</span>,
             },
-            <span class="ident">src_access_mask</span>: <span class="ident">vk</span>::<span class="ident">AccessFlags</span>::<span class="ident">TRANSFER_WRITE</span>,
-            <span class="ident">dst_access_mask</span>: <span class="ident">vk</span>::<span class="ident">AccessFlags</span>::<span class="ident">SHADER_READ</span>,
-            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+            <span class="ident">src_access_mask</span>: <span class="ident">vk::AccessFlags::TRANSFER_WRITE</span>,
+            <span class="ident">dst_access_mask</span>: <span class="ident">vk::AccessFlags::SHADER_READ</span>,
+            ..<span class="ident">Default::default</span>()
         };
         <span class="self">self</span>.<span class="ident">device</span>.<span class="ident">logical_device</span>.<span class="ident">cmd_pipeline_barrier</span>(
             <span class="ident">command_buffer</span>,
-            <span class="ident">vk</span>::<span class="ident">PipelineStageFlags</span>::<span class="ident">TRANSFER</span>,
-            <span class="ident">vk</span>::<span class="ident">PipelineStageFlags</span>::<span class="ident">FRAGMENT_SHADER</span>,
-            <span class="ident">vk</span>::<span class="ident">DependencyFlags</span>::<span class="ident">empty</span>(),
+            <span class="ident">vk::PipelineStageFlags::TRANSFER</span>,
+            <span class="ident">vk::PipelineStageFlags::FRAGMENT_SHADER</span>,
+            <span class="ident">vk::DependencyFlags::empty</span>(),
             <span class="kw-2">&amp;</span>[],
             <span class="kw-2">&amp;</span>[],
             <span class="kw-2">&amp;</span>[<span class="ident">read_barrier</span>],
@@ -502,24 +499,24 @@
     <span class="doccomment">/// Copy a region of the buffer&#39;s memory into the image mipmap.</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">copy_buffer_to_image</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">command_buffer</span>: <span class="ident">vk</span>::<span class="ident">CommandBuffer</span>,
-        <span class="ident">src_buffer</span>: <span class="ident">vk</span>::<span class="ident">Buffer</span>,
+        <span class="ident">command_buffer</span>: <span class="ident">vk::CommandBuffer</span>,
+        <span class="ident">src_buffer</span>: <span class="ident">vk::Buffer</span>,
         <span class="ident">offset</span>: <span class="ident">u64</span>,
         <span class="ident">mipmap_extent</span>: <span class="kw-2">&amp;</span><span class="ident">MipmapExtent</span>,
         <span class="ident">mip_level</span>: <span class="ident">u32</span>,
     ) {
-        <span class="kw">let</span> <span class="ident">region</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">BufferImageCopy</span> {
+        <span class="kw">let</span> <span class="ident">region</span> <span class="op">=</span> <span class="ident">vk::BufferImageCopy</span> {
             <span class="ident">buffer_offset</span>: <span class="ident">offset</span>,
             <span class="ident">buffer_row_length</span>: <span class="number">0</span>,
             <span class="ident">buffer_image_height</span>: <span class="number">0</span>,
-            <span class="ident">image_subresource</span>: <span class="ident">vk</span>::<span class="ident">ImageSubresourceLayers</span> {
-                <span class="ident">aspect_mask</span>: <span class="ident">vk</span>::<span class="ident">ImageAspectFlags</span>::<span class="ident">COLOR</span>,
+            <span class="ident">image_subresource</span>: <span class="ident">vk::ImageSubresourceLayers</span> {
+                <span class="ident">aspect_mask</span>: <span class="ident">vk::ImageAspectFlags::COLOR</span>,
                 <span class="ident">mip_level</span>,
                 <span class="ident">base_array_layer</span>: <span class="number">0</span>,
                 <span class="ident">layer_count</span>: <span class="number">1</span>,
             },
-            <span class="ident">image_offset</span>: <span class="ident">vk</span>::<span class="ident">Offset3D</span> { <span class="ident">x</span>: <span class="number">0</span>, <span class="ident">y</span>: <span class="number">0</span>, <span class="ident">z</span>: <span class="number">0</span> },
-            <span class="ident">image_extent</span>: <span class="ident">vk</span>::<span class="ident">Extent3D</span> {
+            <span class="ident">image_offset</span>: <span class="ident">vk::Offset3D</span> { <span class="ident">x</span>: <span class="number">0</span>, <span class="ident">y</span>: <span class="number">0</span>, <span class="ident">z</span>: <span class="number">0</span> },
+            <span class="ident">image_extent</span>: <span class="ident">vk::Extent3D</span> {
                 <span class="ident">width</span>: <span class="ident">mipmap_extent</span>.<span class="ident">width</span>,
                 <span class="ident">height</span>: <span class="ident">mipmap_extent</span>.<span class="ident">height</span>,
                 <span class="ident">depth</span>: <span class="number">1</span>,
@@ -529,7 +526,7 @@
             <span class="ident">command_buffer</span>,
             <span class="ident">src_buffer</span>,
             <span class="self">self</span>.<span class="ident">image</span>,
-            <span class="ident">vk</span>::<span class="ident">ImageLayout</span>::<span class="ident">TRANSFER_DST_OPTIMAL</span>,
+            <span class="ident">vk::ImageLayout::TRANSFER_DST_OPTIMAL</span>,
             <span class="kw-2">&amp;</span>[<span class="ident">region</span>],
         );
     }
@@ -537,17 +534,18 @@
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">TextureImage</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;DESTROY TEXTURE&quot;</span>);
+        <span class="macro">log::trace!</span>(<span class="string">&quot;DESTROY TEXTURE&quot;</span>);
         <span class="kw">unsafe</span> {
             <span class="self">self</span>.<span class="ident">device</span>
                 .<span class="ident">logical_device</span>
                 .<span class="ident">destroy_image_view</span>(<span class="self">self</span>.<span class="ident">view</span>, <span class="prelude-val">None</span>);
             <span class="self">self</span>.<span class="ident">device</span>.<span class="ident">logical_device</span>.<span class="ident">destroy_image</span>(<span class="self">self</span>.<span class="ident">image</span>, <span class="prelude-val">None</span>);
-            <span class="self">self</span>.<span class="ident">image</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">Image</span>::<span class="ident">null</span>();
+            <span class="self">self</span>.<span class="ident">image</span> <span class="op">=</span> <span class="ident">vk::Image::null</span>();
             <span class="self">self</span>.<span class="ident">device</span>.<span class="ident">free_memory</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">allocation</span>).<span class="ident">unwrap</span>();
         }
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="draw2d" data-search-js="../../../../../search-index.js"></div>
-    <script src="../../../../../main.js"></script><script src="../../../../../source-script.js"></script><script src="../../../../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="draw2d" data-search-index-js="../../../../../search-index.js" data-search-js="../../../../../search.js"></div>
+    <script src="../../../../../main.js"></script><script src="../../../../../source-script.js"></script><script src="../../../../../source-files.js"></script>
+</body></html>

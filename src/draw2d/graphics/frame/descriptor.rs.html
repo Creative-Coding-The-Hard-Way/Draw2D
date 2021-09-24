@@ -1,7 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/graphics/frame/descriptor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>descriptor.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../draw2d/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;graphics&#x2F;frame&#x2F;descriptor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>descriptor.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../draw2d/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -167,17 +164,17 @@
 <span id="164">164</span>
 <span id="165">165</span>
 <span id="166">166</span>
-</pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">graphics</span>::{
+</pre><pre class="rust">
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::graphics</span>::{
     <span class="ident">pipeline2d</span>,
     <span class="ident">texture_atlas</span>::{<span class="ident">AtlasVersion</span>, <span class="ident">TextureAtlas</span>},
-    <span class="ident">vulkan</span>::<span class="ident">Device</span>,
+    <span class="ident">vulkan::Device</span>,
 };
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
-<span class="kw">use</span> <span class="ident">anyhow</span>::<span class="prelude-ty">Result</span>;
-<span class="kw">use</span> <span class="ident">ash</span>::{<span class="ident">version</span>::<span class="ident">DeviceV1_0</span>, <span class="ident">vk</span>};
+<span class="kw">use</span> <span class="ident">anyhow::Result</span>;
+<span class="kw">use</span> <span class="ident">ash</span>::{<span class="ident">version::DeviceV1_0</span>, <span class="ident">vk</span>};
 
 <span class="doccomment">/// All DescriptorSet-related resources required by this applications frames.</span>
 <span class="doccomment">///</span>
@@ -189,14 +186,14 @@
     <span class="ident">atlas_version</span>: <span class="ident">AtlasVersion</span>,
 
     <span class="doccomment">///! A Descriptor Pool is required for allocating a Descriptor Set.</span>
-    <span class="ident">descriptor_pool</span>: <span class="ident">vk</span>::<span class="ident">DescriptorPool</span>,
+    <span class="ident">descriptor_pool</span>: <span class="ident">vk::DescriptorPool</span>,
 
     <span class="doccomment">///! The Descriptor Set Layout tells Vulkan how the shader will access</span>
     <span class="doccomment">///! descriptors.</span>
-    <span class="ident">descriptor_set_layout</span>: <span class="ident">vk</span>::<span class="ident">DescriptorSetLayout</span>,
+    <span class="ident">descriptor_set_layout</span>: <span class="ident">vk::DescriptorSetLayout</span>,
 
     <span class="doccomment">///! The Descriptor Set actually binds shader uniforms to gpu resources.</span>
-    <span class="ident">descriptor_set</span>: <span class="ident">vk</span>::<span class="ident">DescriptorSet</span>,
+    <span class="ident">descriptor_set</span>: <span class="ident">vk::DescriptorSet</span>,
 
     <span class="doccomment">///! A handle to the device, used to cleanup resources and for helper</span>
     <span class="doccomment">///! methods.</span>
@@ -211,28 +208,28 @@
     {
         <span class="kw">let</span> <span class="ident">owned_name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>();
         <span class="kw">let</span> (<span class="ident">descriptor_set_layout</span>, <span class="ident">bindings</span>) <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">pipeline2d</span>::<span class="ident">descriptor_sets</span>::<span class="ident">create_descriptor_set_layout</span>(<span class="kw-2">&amp;</span><span class="ident">device</span>)<span class="question-mark">?</span>
+            <span class="ident">pipeline2d::descriptor_sets::create_descriptor_set_layout</span>(<span class="kw-2">&amp;</span><span class="ident">device</span>)<span class="question-mark">?</span>
         };
         <span class="ident">device</span>.<span class="ident">name_vulkan_object</span>(
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} - DescriptorSetLayout&quot;</span>, <span class="ident">owned_name</span>.<span class="ident">clone</span>()),
-            <span class="ident">vk</span>::<span class="ident">ObjectType</span>::<span class="ident">DESCRIPTOR_SET_LAYOUT</span>,
+            <span class="macro">format!</span>(<span class="string">&quot;{} - DescriptorSetLayout&quot;</span>, <span class="ident">owned_name</span>.<span class="ident">clone</span>()),
+            <span class="ident">vk::ObjectType::DESCRIPTOR_SET_LAYOUT</span>,
             <span class="kw-2">&amp;</span><span class="ident">descriptor_set_layout</span>,
         )<span class="question-mark">?</span>;
 
         <span class="comment">// create a descriptor pool which exactly matches the number of bindings</span>
-        <span class="kw">let</span> <span class="ident">pool_sizes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">vk</span>::<span class="ident">DescriptorPoolSize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">bindings</span>
+        <span class="kw">let</span> <span class="ident">pool_sizes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">vk::DescriptorPoolSize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">bindings</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">binding</span><span class="op">|</span> <span class="ident">vk</span>::<span class="ident">DescriptorPoolSize</span> {
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">binding</span><span class="op">|</span> <span class="ident">vk::DescriptorPoolSize</span> {
                 <span class="ident">ty</span>: <span class="ident">binding</span>.<span class="ident">descriptor_type</span>,
                 <span class="ident">descriptor_count</span>: <span class="ident">binding</span>.<span class="ident">descriptor_count</span>,
             })
             .<span class="ident">collect</span>();
-        <span class="kw">let</span> <span class="ident">pool_create_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">DescriptorPoolCreateInfo</span> {
+        <span class="kw">let</span> <span class="ident">pool_create_info</span> <span class="op">=</span> <span class="ident">vk::DescriptorPoolCreateInfo</span> {
             <span class="ident">p_pool_sizes</span>: <span class="ident">pool_sizes</span>.<span class="ident">as_ptr</span>(),
             <span class="ident">pool_size_count</span>: <span class="ident">pool_sizes</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
             <span class="ident">max_sets</span>: <span class="number">1</span>,
-            <span class="ident">flags</span>: <span class="ident">vk</span>::<span class="ident">DescriptorPoolCreateFlags</span>::<span class="ident">empty</span>(),
-            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+            <span class="ident">flags</span>: <span class="ident">vk::DescriptorPoolCreateFlags::empty</span>(),
+            ..<span class="ident">Default::default</span>()
         };
         <span class="kw">let</span> <span class="ident">descriptor_pool</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">device</span>
@@ -240,17 +237,17 @@
                 .<span class="ident">create_descriptor_pool</span>(<span class="kw-2">&amp;</span><span class="ident">pool_create_info</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>
         };
         <span class="ident">device</span>.<span class="ident">name_vulkan_object</span>(
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} - DescriptorPool&quot;</span>, <span class="ident">owned_name</span>.<span class="ident">clone</span>()),
-            <span class="ident">vk</span>::<span class="ident">ObjectType</span>::<span class="ident">DESCRIPTOR_POOL</span>,
+            <span class="macro">format!</span>(<span class="string">&quot;{} - DescriptorPool&quot;</span>, <span class="ident">owned_name</span>.<span class="ident">clone</span>()),
+            <span class="ident">vk::ObjectType::DESCRIPTOR_POOL</span>,
             <span class="kw-2">&amp;</span><span class="ident">descriptor_pool</span>,
         )<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">descriptor_set_layouts</span> <span class="op">=</span> [<span class="ident">descriptor_set_layout</span>];
-        <span class="kw">let</span> <span class="ident">descriptor_set_allocate_info</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">DescriptorSetAllocateInfo</span> {
+        <span class="kw">let</span> <span class="ident">descriptor_set_allocate_info</span> <span class="op">=</span> <span class="ident">vk::DescriptorSetAllocateInfo</span> {
             <span class="ident">descriptor_pool</span>,
             <span class="ident">p_set_layouts</span>: <span class="ident">descriptor_set_layouts</span>.<span class="ident">as_ptr</span>(),
             <span class="ident">descriptor_set_count</span>: <span class="ident">descriptor_set_layouts</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
-            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+            ..<span class="ident">Default::default</span>()
         };
 
         <span class="kw">let</span> <span class="ident">descriptor_set</span> <span class="op">=</span> <span class="kw">unsafe</span> {
@@ -259,8 +256,8 @@
                 .<span class="ident">allocate_descriptor_sets</span>(<span class="kw-2">&amp;</span><span class="ident">descriptor_set_allocate_info</span>)<span class="question-mark">?</span>[<span class="number">0</span>]
         };
         <span class="ident">device</span>.<span class="ident">name_vulkan_object</span>(
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} - DescriptorSet&quot;</span>, <span class="ident">owned_name</span>.<span class="ident">clone</span>()),
-            <span class="ident">vk</span>::<span class="ident">ObjectType</span>::<span class="ident">DESCRIPTOR_SET</span>,
+            <span class="macro">format!</span>(<span class="string">&quot;{} - DescriptorSet&quot;</span>, <span class="ident">owned_name</span>.<span class="ident">clone</span>()),
+            <span class="ident">vk::ObjectType::DESCRIPTOR_SET</span>,
             <span class="kw-2">&amp;</span><span class="ident">descriptor_set</span>,
         )<span class="question-mark">?</span>;
 
@@ -268,7 +265,7 @@
             <span class="ident">descriptor_pool</span>,
             <span class="ident">descriptor_set_layout</span>,
             <span class="ident">descriptor_set</span>,
-            <span class="ident">atlas_version</span>: <span class="ident">AtlasVersion</span>::<span class="ident">new_out_of_date</span>(),
+            <span class="ident">atlas_version</span>: <span class="ident">AtlasVersion::new_out_of_date</span>(),
             <span class="ident">device</span>,
         })
     }
@@ -297,16 +294,16 @@
     <span class="doccomment">///          the middle of a frame&#39;s draw call.</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">write_texture_descriptor</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">image_infos</span>: <span class="kw-2">&amp;</span>[<span class="ident">vk</span>::<span class="ident">DescriptorImageInfo</span>],
+        <span class="ident">image_infos</span>: <span class="kw-2">&amp;</span>[<span class="ident">vk::DescriptorImageInfo</span>],
     ) {
-        <span class="kw">let</span> <span class="ident">descriptor_write</span> <span class="op">=</span> <span class="ident">vk</span>::<span class="ident">WriteDescriptorSet</span> {
+        <span class="kw">let</span> <span class="ident">descriptor_write</span> <span class="op">=</span> <span class="ident">vk::WriteDescriptorSet</span> {
             <span class="ident">dst_set</span>: <span class="self">self</span>.<span class="ident">descriptor_set</span>,
             <span class="ident">dst_binding</span>: <span class="number">0</span>,
             <span class="ident">dst_array_element</span>: <span class="number">0</span>,
-            <span class="ident">descriptor_type</span>: <span class="ident">vk</span>::<span class="ident">DescriptorType</span>::<span class="ident">COMBINED_IMAGE_SAMPLER</span>,
+            <span class="ident">descriptor_type</span>: <span class="ident">vk::DescriptorType::COMBINED_IMAGE_SAMPLER</span>,
             <span class="ident">p_image_info</span>: <span class="ident">image_infos</span>.<span class="ident">as_ptr</span>(),
             <span class="ident">descriptor_count</span>: <span class="ident">image_infos</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
-            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+            ..<span class="ident">Default::default</span>()
         };
         <span class="self">self</span>.<span class="ident">device</span>
             .<span class="ident">logical_device</span>
@@ -316,7 +313,7 @@
     <span class="doccomment">/// Return a non-owning handle to the raw vulkan descriptor set object.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Unsafe:  it is up to the caller to synchronize usage of the set.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw_descriptor_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">vk</span>::<span class="ident">DescriptorSet</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw_descriptor_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">vk::DescriptorSet</span> {
         <span class="self">self</span>.<span class="ident">descriptor_set</span>
     }
 }
@@ -335,5 +332,6 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="draw2d" data-search-js="../../../../search-index.js"></div>
-    <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="draw2d" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
+    <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script>
+</body></html>
