@@ -31,8 +31,10 @@ fn missing_extensions(
             String::from_utf8(
                 ext.extension_name.iter().map(|c| *c as u8).collect(),
             )
-            .unwrap()
         })
+        // only accept valid utf-8 extension names
+        .filter(|item| item.is_ok())
+        .map(|item| item.unwrap())
         .collect();
 
     log::info!("Available extensions {}", available_names.join("\n"));
